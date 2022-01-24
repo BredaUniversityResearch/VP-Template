@@ -2,15 +2,15 @@
 	"source": "UE",
 	"applications": [
 		{
-			"app_key": "application.generated.ue.vptemplate-17155196.ue4editor.exe",
+			"app_key": "application.generated.ue.vptemplate-17735300.ue4editor.exe",
 			"launch_type": "url",
 			"url": "steam://launch/",
-			"action_manifest_path": "C:/Users/Kamen/Documents/Unreal Projects/VPTemplate/Config/SteamVRBindings/steamvr_manifest.json",
+			"action_manifest_path": "C:/Projects/Virtual-Productions-Template/VPTemplate/Config/SteamVRBindings/steamvr_manifest.json",
 			"strings":
 			{
 				"en_us":
 				{
-					"name": "VPTemplate-17155196 [UE Editor]"
+					"name": "VPTemplate-17735300 [UE Editor]"
 				}
 			}
 		}

@@ -1,0 +1,216 @@
+{
+	"nDisplay":
+	{
+		"description": "",
+		"version": "4.27",
+		"assetPath": "/Game/StageSetup/Config_Buas_LED.Config_Buas_LED",
+		"misc":
+		{
+			"bFollowLocalPlayerCamera": false,
+			"bExitOnEsc": true
+		},
+		"scene":
+		{
+			"xforms":
+			{
+				"BUAS_LED_Volume":
+				{
+					"parentId": "",
+					"location":
+					{
+						"x": 260,
+						"y": 0,
+						"z": 0
+					},
+					"rotation":
+					{
+						"pitch": 0,
+						"yaw": 180.00051879882812,
+						"roll": 0
+					}
+				},
+				"ICVFXCamera":
+				{
+					"parentId": "",
+					"location":
+					{
+						"x": -200,
+						"y": 0,
+						"z": 160
+					},
+					"rotation":
+					{
+						"pitch": 0,
+						"yaw": 0,
+						"roll": 0
+					}
+				},
+				"BUAS_LED_Ceiling":
+				{
+					"parentId": "",
+					"location":
+					{
+						"x": 75,
+						"y": 0,
+						"z": 400
+					},
+					"rotation":
+					{
+						"pitch": 7.0000000960135367e-06,
+						"yaw": 0,
+						"roll": 0
+					}
+				}
+			},
+			"cameras":
+			{
+				"DefaultViewPoint":
+				{
+					"interpupillaryDistance": 6.4000000953674316,
+					"swapEyes": false,
+					"stereoOffset": "none",
+					"parentId": "",
+					"location":
+					{
+						"x": 0,
+						"y": 0,
+						"z": 50
+					},
+					"rotation":
+					{
+						"pitch": 0,
+						"yaw": 0,
+						"roll": 0
+					}
+				}
+			},
+			"screens":
+			{
+			}
+		},
+		"cluster":
+		{
+			"masterNode":
+			{
+				"id": "Node_0",
+				"ports":
+				{
+					"ClusterSync": 41001,
+					"RenderSync": 41002,
+					"ClusterEventsJson": 41003,
+					"ClusterEventsBinary": 41004
+				}
+			},
+			"sync":
+			{
+				"renderSyncPolicy":
+				{
+					"type": "ethernet",
+					"parameters":
+					{
+					}
+				},
+				"inputSyncPolicy":
+				{
+					"type": "ReplicateMaster",
+					"parameters":
+					{
+					}
+				}
+			},
+			"network":
+			{
+				"ConnectRetriesAmount": "300",
+				"ConnectRetryDelay": "1000",
+				"GameStartBarrierTimeout": "18000000",
+				"FrameStartBarrierTimeout": "1800000",
+				"FrameEndBarrierTimeout": "1800000",
+				"RenderSyncBarrierTimeout": "1800000"
+			},
+			"nodes":
+			{
+				"Node_0":
+				{
+					"host": "127.0.0.1",
+					"sound": false,
+					"fullScreen": false,
+					"window":
+					{
+						"x": 1920,
+						"y": 0,
+						"w": 3840,
+						"h": 1968
+					},
+					"postprocess":
+					{
+					},
+					"viewports":
+					{
+						"VP_0":
+						{
+							"camera": "DefaultViewPoint",
+							"bufferRatio": 1,
+							"gPUIndex": -1,
+							"allowCrossGPUTransfer": true,
+							"isShared": true,
+							"region":
+							{
+								"x": 0,
+								"y": 0,
+								"w": 3072,
+								"h": 1344
+							},
+							"projectionPolicy":
+							{
+								"type": "Mesh",
+								"parameters":
+								{
+									"mesh_component": "BUAS_LED_Volume"
+								}
+							}
+						},
+						"VP_1":
+						{
+							"camera": "DefaultViewPoint",
+							"bufferRatio": 1,
+							"gPUIndex": -1,
+							"allowCrossGPUTransfer": true,
+							"isShared": true,
+							"region":
+							{
+								"x": 0,
+								"y": 1344,
+								"w": 1248,
+								"h": 624
+							},
+							"projectionPolicy":
+							{
+								"type": "Mesh",
+								"parameters":
+								{
+									"mesh_component": "BUAS_LED_Ceiling"
+								}
+							}
+						}
+					},
+					"outputRemap":
+					{
+						"bEnable": false,
+						"dataSource": "mesh",
+						"staticMeshAsset": "",
+						"externalFile": ""
+					}
+				}
+			}
+		},
+		"customParameters":
+		{
+		},
+		"diagnostics":
+		{
+			"simulateLag": false,
+			"minLagTime": 0,
+			"maxLagTime": 0
+		}
+	}
+}
