@@ -1,0 +1,84 @@
+{
+	"TreeElements": [
+		{
+			"Name": "Top Group",
+			"Note": "",
+			"Type": 0,
+			"Expanded": true,
+			"Children": [
+				{
+					"Name": "LightSource",
+					"Note": "Illuminates the whole scene",
+					"Type": 3,
+					"Expanded": true,
+					"RelatedLightName": "LightSource",
+					"State": 2,
+					"Intensity": 276556152832,
+					"Hue": -0.00011529808398336172,
+					"Saturation": 4.5914945482066956e-41,
+					"UseTemperature": true,
+					"Temperature": 276555628544,
+					"Children": []
+				},
+				{
+					"Name": "Bottom group with skylight",
+					"Note": "",
+					"Type": 0,
+					"Expanded": false,
+					"Children": [
+						{
+							"Name": "SkyLight_2",
+							"Note": "",
+							"Type": 1,
+							"Expanded": true,
+							"RelatedLightName": "SkyLight_2",
+							"State": 2,
+							"Intensity": 577,
+							"Hue": 1,
+							"Saturation": 861,
+							"UseTemperature": false,
+							"Temperature": 0,
+							"Children": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"Name": "Point Light Group",
+			"Note": "",
+			"Type": 0,
+			"Expanded": true,
+			"Children": [
+				{
+					"Name": "PointLight_1",
+					"Note": "The one on the right",
+					"Type": 4,
+					"Expanded": true,
+					"RelatedLightName": "PointLight_1",
+					"State": 2,
+					"Intensity": 1,
+					"Hue": 1,
+					"Saturation": 1,
+					"UseTemperature": false,
+					"Temperature": 9.0359216312680517e-32,
+					"Children": []
+				},
+				{
+					"Name": "PointLight2_4",
+					"Note": "The one on the left",
+					"Type": 4,
+					"Expanded": true,
+					"RelatedLightName": "PointLight2_4",
+					"State": 2,
+					"Intensity": 1,
+					"Hue": 0,
+					"Saturation": 0,
+					"UseTemperature": false,
+					"Temperature": 904.4000244140625,
+					"Children": []
+				}
+			]
+		}
+	]
+}

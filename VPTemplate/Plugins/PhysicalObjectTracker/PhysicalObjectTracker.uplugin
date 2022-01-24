@@ -1,0 +1,40 @@
+{
+	"FileVersion": 3,
+	"Version": 2,
+	"VersionName": "1.0",
+	"FriendlyName": "Physical Object Tracker",
+	"Description": "",
+	"Category": "Other",
+	"CreatedBy": "Cradle - Breda University of Applied Sciences",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EngineVersion": "4.27.0",
+	"CanContainContent": false,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "PhysicalObjectTracker",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64"
+			]
+		},
+		{
+			"Name": "PhysicalObjectTrackerEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "SteamVR",
+			"Enabled": true
+		}
+	]
+}
