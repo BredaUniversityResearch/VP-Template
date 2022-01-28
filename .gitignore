@@ -71,6 +71,8 @@ VPTemplate/Plugins/*/Saved/*
 VPTemplate/Intermediate/*
 VPTemplate/Plugins/*/Intermediate/*
 #!VPTemplate/Plugins/*/Binaries/*/*.dll
+**/Binaries/*/*.target
+**/Binaries/*/*.modules
 *.pdb
 
 # Cache files for the editor to use

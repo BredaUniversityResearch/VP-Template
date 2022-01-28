@@ -24,7 +24,8 @@
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
 				"Win32",
-				"Win64"
+				"Win64",
+				"Android"
 			]
 		},
 		{
@@ -32,7 +33,8 @@
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
 				"Win32",
-				"Win64"
+				"Win64",
+				"Linux"
 			]
 		},
 		{
@@ -87,12 +89,14 @@
 			"Name": "nDisplay",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
-				"Win64"
+				"Win64",
+				"Linux"
 			]
 		},
 		{
 			"Name": "AjaMedia",
 			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/91088fb17fb04b6b9eda41aaf8fda21e",
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]
@@ -100,8 +104,10 @@
 		{
 			"Name": "BlackmagicMedia",
 			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/433d28bdfb764ec5b2e60c4f45d5cb5c",
 			"SupportedTargetPlatforms": [
-				"Win64"
+				"Win64",
+				"Linux"
 			]
 		},
 		{
@@ -122,14 +128,18 @@
 			"Name": "AppleARKit",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
-				"IOS"
+				"IOS",
+				"Win64",
+				"Mac"
 			]
 		},
 		{
 			"Name": "AppleARKitFaceSupport",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
-				"IOS"
+				"IOS",
+				"Win64",
+				"Mac"
 			]
 		},
 		{
@@ -154,6 +164,14 @@
 		},
 		{
 			"Name": "Switchboard",
+			"Enabled": true
+		},
+		{
+			"Name": "BlackmagicCameraControl",
+			"Enabled": true
+		},
+		{
+			"Name": "PhysicalObjectTracker",
 			"Enabled": true
 		}
 	],

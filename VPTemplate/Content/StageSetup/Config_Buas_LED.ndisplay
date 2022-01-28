@@ -155,9 +155,9 @@
 							"isShared": true,
 							"region":
 							{
-								"x": 576,
+								"x": 0,
 								"y": 0,
-								"w": 2496,
+								"w": 3072,
 								"h": 1344
 							},
 							"projectionPolicy":

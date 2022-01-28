@@ -584,6 +584,22 @@
 			"Type": "SymbolFile"
 		},
 		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTracker.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTracker.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTrackerEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTrackerEditor.pdb",
+			"Type": "SymbolFile"
+		},
+		{
 			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor-CradleLightControl.dll",
 			"Type": "DynamicLibrary"
 		},
@@ -610,22 +626,6 @@
 		{
 			"Path": "$(EngineDir)/Plugins/VirtualProduction/DMX/DMXEngine/Binaries/Win64/UE4Editor-DMXBlueprintGraph.dll",
 			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTracker.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTracker.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTrackerEditor.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTrackerEditor.pdb",
-			"Type": "SymbolFile"
 		},
 		{
 			"Path": "$(EngineDir)/Plugins/2D/Paper2D/Binaries/Win64/UE4Editor-Paper2D.dll",
@@ -2988,15 +2988,15 @@
 			"Type": "RequiredResource"
 		},
 		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor.modules",
+			"Type": "RequiredResource"
+		},
+		{
 			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor.modules",
 			"Type": "RequiredResource"
 		},
 		{
 			"Path": "$(EngineDir)/Plugins/VirtualProduction/DMX/DMXEngine/Binaries/Win64/UE4Editor.modules",
-			"Type": "RequiredResource"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor.modules",
 			"Type": "RequiredResource"
 		},
 		{
@@ -3658,15 +3658,15 @@
 			"Type": "UFS"
 		},
 		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/PhysicalObjectTracker.uplugin",
+			"Type": "UFS"
+		},
+		{
 			"Path": "$(ProjectDir)/Plugins/CradleLightControl/CradleLightControl.uplugin",
 			"Type": "UFS"
 		},
 		{
 			"Path": "$(EngineDir)/Plugins/VirtualProduction/DMX/DMXEngine/DMXEngine.uplugin",
-			"Type": "UFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/PhysicalObjectTracker.uplugin",
 			"Type": "UFS"
 		},
 		{
