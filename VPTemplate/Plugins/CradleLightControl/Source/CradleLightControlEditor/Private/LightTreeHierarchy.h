@@ -43,13 +43,13 @@ public:
 
     void BeginTransaction();
 
+    void GenerateWidgetForItem(UItemHandle* Item);
 
     TSharedRef<ITableRow> AddToTree(::UItemHandle* Item, const TSharedRef<STableViewBase>& OwnerTable);
 
     void GetTreeItemChildren(::UItemHandle* Item, TArray<UItemHandle*>& Children);
     void SelectionCallback(UItemHandle* Item, ESelectInfo::Type SelectType);
     FReply AddFolderToTree();
-    void TreeExpansionCallback(UItemHandle* Item, bool bExpanded);
     void OnToolDataLoadedCallback(uint8 LoadingResult);
     void RegenerateItemHandleWidgets(UItemHandle* ItemHandle);
     EActiveTimerReturnType VerifyLights(double, float);
@@ -59,11 +59,16 @@ public:
 
     void SearchBarOnChanged(const FText& NewString);
 
+    TSharedPtr<class STreeItemWidget> GetWidgetForItem(UItemHandle* ItemHandle);
+    void UpdateExpansionForItem(UItemHandle* ItemHandle, bool bContinueRecursively = true);
+    void ExpansionChangedCallback(UItemHandle* ItemHandle, bool bNewState);
+    void ChangeExpansionInTree(UItemHandle* ItemHandle, bool bNewState);
 
     FText GetPresetFilename() const;
 
 
     UToolData* ToolData;
+    TMap<UItemHandle*, TSharedPtr<STreeItemWidget>> ItemWidgets;
 
     FSlateIcon SaveIcon;
     FSlateIcon SaveAsIcon;

@@ -65,9 +65,9 @@ public:
 	void RegisterTabSpawner();
 	void RegisterDMXTabSpawner();
 
-	// Generates the widget for the given item handle. Necessary because of icons are in the editor module rather than the core module.
+	// Generates the widget for the given item handle. Necessary because icons are in the editor module rather than the core module.
 	// This widget is used only in the tree hierarchy
-	void GenerateItemHandleWidget(UItemHandle* ItemHandle);
+	//void GenerateItemHandleWidget(UItemHandle* ItemHandle);
 
 	void GenerateIcons();
 	// Meant to be used with only the light icon types.

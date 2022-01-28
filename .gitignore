@@ -70,7 +70,7 @@ VPTemplate/Plugins/*/Saved/*
 # Compiled source files for the engine to use
 VPTemplate/Intermediate/*
 VPTemplate/Plugins/*/Intermediate/*
-!VPTemplate/Plugins/*/Binaries/*/*.dll
+#!VPTemplate/Plugins/*/Binaries/*/*.dll
 *.pdb
 
 # Cache files for the editor to use

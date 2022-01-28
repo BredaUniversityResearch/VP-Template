@@ -44,8 +44,6 @@ public:
         , Name("Unnamed")
         , Note("")
         , Item(nullptr)
-        , bExpanded(false)
-        , bMatchesSearchString(true)
     {
         SetFlags(GetFlags() | RF_Transactional);
     };
@@ -69,9 +67,6 @@ public:
     // Check if this item handle has the given item handle as an indirect child
     bool HasAsIndirectChild(UItemHandle* Item);
 
-    FReply StartRename(const FGeometry&, const FPointerEvent&);
-    void EndRename(const FText& Text, ETextCommit::Type CommitType);
-
     TSharedPtr<FJsonValue> SaveToJson();
     enum ELoadingResult : uint8
     {
@@ -84,7 +79,6 @@ public:
 
     ELoadingResult LoadFromJson(TSharedPtr<FJsonObject> JsonObject);
     // Update the handle's expansion in the hierarchy it belongs to
-    void ExpandInTree();
     FReply RemoveFromTree();
 
     // Returns all lights under this handle, including children of children
@@ -92,8 +86,6 @@ public:
 
     void UpdateFolderIcon();
 
-    // Check if the name of the handle matches the search string. Not case sensitive.
-    bool CheckNameAgainstSearchString(const FString& SearchString);
 
     // Returns the number of lights under this handle. Includes children of children.
     int LightCount() const;
@@ -122,17 +114,17 @@ public:
     // Reference to the ToolData instance which has created and owns the handle
     class UToolData* ToolData;
 
-    // Top widget which contains all other widgets for the handle's widget
-    TSharedPtr<SBox> TableRowBox;
+    //// Top widget which contains all other widgets for the handle's widget
+    //TSharedPtr<SBox> TableRowBox;
 
-    TSharedPtr<SCheckBox> StateCheckbox;
-    // SBox containing the widget for the name of the handle, or editable text if it is being renamed
-    TSharedPtr<SBox> RowNameBox;
-    FCheckBoxStyle CheckBoxStyle;
+    //TSharedPtr<SCheckBox> StateCheckbox;
+    //// SBox containing the widget for the name of the handle, or editable text if it is being renamed
+    //TSharedPtr<SBox> RowNameBox;
+    //FCheckBoxStyle CheckBoxStyle;
 
 
-    bool bExpanded;
-    bool bMatchesSearchString;
+    //bool bExpanded;
+    //bool bMatchesSearchString;
 
-    bool bInRename;
+    //bool bInRename;
 };

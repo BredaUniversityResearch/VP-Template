@@ -11,7 +11,7 @@ class UItemHandle;
 DECLARE_DELEGATE(FClearSelectionDelegate);
 DECLARE_DELEGATE_RetVal_TwoParams(FString, FLightJsonFileDialogDelegate, FString /*Title*/, FString /*StartDir*/);
 DECLARE_DELEGATE(FOnTreeStructureChangedDelegate);
-DECLARE_DELEGATE_TwoParams(FItemExpansionChangedDelegate, UItemHandle* /*ItemHandle*/, bool /*NewExpansionState*/);
+DECLARE_DELEGATE_TwoParams(FItemExpansionChangedDelegate, UItemHandle* /*ItemHandle*/, bool /*bContinueRecursively*/);
 DECLARE_DELEGATE_OneParam(FOnMasterLightTransactedDelegate, UItemHandle* /*MasterLightHandle*/);
 DECLARE_DELEGATE_OneParam(FOnToolDataLoadedDelegate, uint8 /*LoadingResult*/)
 

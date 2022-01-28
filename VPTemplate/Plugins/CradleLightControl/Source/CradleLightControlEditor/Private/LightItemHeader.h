@@ -9,9 +9,11 @@ public:
 
     SLATE_ARGUMENT(UToolData*, ToolData)
 
-        SLATE_END_ARGS()
+    SLATE_ARGUMENT(TSharedPtr<class SLightTreeHierarchy>, TreeHierarchyWidget)
 
-        void Construct(const FArguments& Args);
+    SLATE_END_ARGS()
+
+	void Construct(const FArguments& Args);
 
     void Update();
 
@@ -32,6 +34,7 @@ public:
     void CommitNewItemNote(const FText& Text, ETextCommit::Type CommitType);
 
     UToolData* ToolData;
+    TSharedPtr<class SLightTreeHierarchy> TreeHierarchyWidget;
 
     TSharedPtr<SBox> ContentBox;
     FCheckBoxStyle LightHeaderCheckboxStyle;

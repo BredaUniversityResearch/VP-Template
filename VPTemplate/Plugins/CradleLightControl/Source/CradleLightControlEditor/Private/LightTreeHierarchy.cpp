@@ -13,211 +13,11 @@
 #include "Styling/SlateIconFinder.h"
 #include "ItemHandle.h"
 #include "ToolData.h"
+#include "TreeItemWidget.h"
 
 #include "LightControlTool.h"
 
-#include "ToolData.h"
 #include "VirtualLight.h"
-
-#pragma region TreeItemStruct
-
-//
-//ECheckBoxState ULightTreeItem::IsLightEnabled() const
-//{
-//    bool AllOff = true, AllOn = true;
-//
-//    if (Type != Folder && !IsValid(SkyLight))
-//        return ECheckBoxState::Undetermined;
-//
-//    switch (Type)
-//    {
-//    case ETreeItemType::SkyLight:
-//        return SkyLight->GetLightComponent()->IsVisible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-//    case ETreeItemType::SpotLight:
-//        return SpotLight->GetLightComponent()->IsVisible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-//    case ETreeItemType::DirectionalLight:
-//        return DirectionalLight->GetLightComponent()->IsVisible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-//    case ETreeItemType::PointLight:
-//        return PointLight->GetLightComponent()->IsVisible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-//    case ETreeItemType::Folder:
-//        for (auto& Child : Children)
-//        {
-//            auto State = Child->IsLightEnabled();
-//            if (State == ECheckBoxState::Checked)
-//                AllOff = false;
-//            else if (State == ECheckBoxState::Unchecked)
-//                AllOn = false;
-//            else if (State == ECheckBoxState::Undetermined)
-//                return ECheckBoxState::Undetermined;
-//
-//            if (!AllOff && !AllOn)
-//                return ECheckBoxState::Undetermined;
-//        }
-//
-//        if (AllOn)
-//            return ECheckBoxState::Checked;
-//        else
-//            return ECheckBoxState::Unchecked;
-//
-//
-//    default:
-//        return ECheckBoxState::Undetermined;
-//    }
-//}
-//
-//void ULightTreeItem::OnCheck(ECheckBoxState NewState)
-//{
-//    bool B = false;
-//    if (NewState == ECheckBoxState::Checked)
-//        B = true;
-//    if (Type != Folder && !IsValid(ActorPtr))
-//        return;
-//
-//    GEditor->BeginTransaction(FText::FromString(Name + " State change"));
-//
-//    SetEnabled(B);
-//
-//    GEditor->EndTransaction();
-//}
-//
-//
-//void ULightTreeItem::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
-//{
-//    UObject::PostTransacted(TransactionEvent);
-//    if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo)
-//    {
-//        if (Type != Folder)
-//            OwningWidget->CoreToolPtr->GetLightPropertyEditor().Pin()->UpdateSaturationGradient(OwningWidget->TransactionalVariables->SelectionMasterLight->Hue);
-//        else
-//           OwningWidget->Tree->RequestTreeRefresh();
-//
-//        GenerateTableRow();
-//    }
-//}
-//
-//
-//void ULightTreeItem::FetchDataFromLight()
-//{
-//    _ASSERT(Type != Folder);
-//
-//    FLinearColor RGB;
-//
-//    Intensity = 0.0f;
-//    Saturation = 0.0f;
-//    Temperature = 0.0f;
-//
-//    if (Type == ETreeItemType::SkyLight)
-//    {
-//        RGB = SkyLight->GetLightComponent()->GetLightColor();
-//
-//    }
-//    else
-//    {
-//        ALight* LightPtr = Cast<ALight>(PointLight);
-//        RGB = LightPtr->GetLightColor();
-//    }
-//    auto HSV = RGB.LinearRGBToHSV();
-//    Saturation = HSV.G;
-//
-//    // If Saturation is 0, the color is white. The RGB => HSV conversion calculates the Hue to be 0 in that case, even if it's not supposed to be.
-//    // Do this to preserve the Hue previously used rather than it getting reset to 0.
-//    if (Saturation != 0.0f)
-//        Hue = HSV.R;
-//
-//    if (Type == ETreeItemType::PointLight)
-//    {
-//        auto Comp = PointLight->PointLightComponent;
-//        Intensity = Comp->Intensity;       
-//    }    
-//    else if (Type == ETreeItemType::SpotLight)
-//    {
-//        auto Comp = SpotLight->SpotLightComponent;
-//        Intensity = Comp->Intensity;
-//    }
-//
-//    if (Type != ETreeItemType::SkyLight)
-//    {
-//        auto LightPtr = Cast<ALight>(ActorPtr);
-//        auto LightComp = LightPtr->GetLightComponent();
-//        bUseTemperature = LightComp->bUseTemperature;
-//        Temperature = LightComp->Temperature;
-//
-//        bCastShadows = LightComp->CastShadows;
-//    }
-//    else
-//    {
-//        bCastShadows = SkyLight->GetLightComponent()->CastShadows;
-//    }
-//
-//    auto CurrentFwd = FQuat::MakeFromEuler(FVector(0.0f, Vertical, Horizontal)).GetForwardVector();
-//    auto ActorQuat = ActorPtr->GetTransform().GetRotation().GetNormalized();
-//    auto ActorFwd = ActorQuat.GetForwardVector();
-//
-//    if (CurrentFwd.Equals(ActorFwd))
-//    {
-//        auto Euler = ActorQuat.Euler();
-//        Horizontal = Euler.Z;
-//        Vertical = Euler.Y;
-//    }
-//    
-//
-//    if (Type == ETreeItemType::SpotLight)
-//    {
-//        InnerAngle = SpotLight->SpotLightComponent->InnerConeAngle;
-//        OuterAngle = SpotLight->SpotLightComponent->OuterConeAngle;
-//    }
-//    UpdateDMX();
-//}
-//
-//void ULightTreeItem::UpdateLightColor()
-//{
-//    auto NewColor = FLinearColor::MakeFromHSV8(StaticCast<uint8>(Hue / 360.0f * 255.0f), StaticCast<uint8>(Saturation * 255.0f), 255);
-//    UpdateLightColor(NewColor);
-//}
-//
-//void ULightTreeItem::UpdateLightColor(FLinearColor& Color)
-//{
-//    if (Type == ETreeItemType::SkyLight)
-//    {
-//        SkyLight->GetLightComponent()->SetLightColor(Color);
-//        SkyLight->GetLightComponent()->UpdateLightSpriteTexture();
-//    }
-//    else
-//    {
-//        auto LightPtr = Cast<ALight>(PointLight);
-//        LightPtr->SetLightColor(Color);
-//        LightPtr->GetLightComponent()->UpdateLightSpriteTexture();
-//    }
-//    UpdateDMX();
-//}
-//
-//void ULightTreeItem::UpdateDMX()
-//{
-//    if (DMXProperties.bUseDmx && DMXProperties.OutputPort && DMXProperties.DataConverter)
-//    {
-//        DMXProperties.DataConverter->Channels.Empty();
-//        DMXProperties.DataConverter->StartingChannel = DMXProperties.StartingChannel;
-//        DMXProperties.DataConverter->Convert(this);
-//
-//        //auto& Channels = DMXProperties.Channels;
-//        //auto Start = DMXProperties.StartingChannel;
-//
-//        DMXProperties.OutputPort->SendDMX(1, DMXProperties.DataConverter->Channels);
-//    }
-//}
-//
-
-
-
-#pragma endregion
-//
-//void UTreeTransactionalVariables::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
-//{
-//    if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo && Widget.IsValid())
-//    {
-//        Widget.Pin()->Tree->RequestTreeRefresh();
-//    }
-//}
 
 void SLightTreeHierarchy::Construct(const FArguments& Args)
 {
@@ -241,11 +41,17 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
     ToolData->LoadMetaData();
     ToolData->ItemExpansionChangedDelegate = FItemExpansionChangedDelegate::CreateLambda([this](UItemHandle* Item, bool bState)
         {
-            Tree->SetItemExpansion(Item, bState);
+            GetWidgetForItem(Item)->bExpanded = bState;
+            UpdateExpansionForItem(Item, false);
         });
 
     ToolData->TreeStructureChangedDelegate = FOnTreeStructureChangedDelegate::CreateLambda([this]()
         {
+            ItemWidgets.Empty();
+			for (auto& Item : ToolData->ListOfTreeItems)
+			{
+                ItemWidgets.FindOrAdd(Item) = SNew(STreeItemWidget, Item);
+			}
     		Tree->RequestTreeRefresh();
         });
     if (DataVerificationDelegate.IsBound())
@@ -365,7 +171,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
                 .OnSelectionChanged(this, &SLightTreeHierarchy::SelectionCallback)
                 .OnGenerateRow(this, &SLightTreeHierarchy::AddToTree)
                 .OnGetChildren(this, &SLightTreeHierarchy::GetTreeItemChildren)
-                .OnExpansionChanged(this, &SLightTreeHierarchy::TreeExpansionCallback)
+                .OnExpansionChanged(this, &SLightTreeHierarchy::ExpansionChangedCallback)
                 
             ]
         ]
@@ -432,10 +238,10 @@ void SLightTreeHierarchy::OnActorSpawned(AActor* Actor)
             break;
         }
         DataUpdateDelegate.ExecuteIfBound(NewItemHandle);
-        NewItemHandle->CheckNameAgainstSearchString(SearchString);
+        GetWidgetForItem(NewItemHandle)->CheckNameAgainstSearchString(SearchString);
 
         ToolData->RootItems.Add(NewItemHandle);
-        FCradleLightControlEditorModule::Get().GenerateItemHandleWidget(NewItemHandle);
+        GenerateWidgetForItem(NewItemHandle);
 
         Tree->RequestTreeRefresh();
     }
@@ -446,26 +252,24 @@ void SLightTreeHierarchy::BeginTransaction()
     ToolData->Modify();
 }
 
+void SLightTreeHierarchy::GenerateWidgetForItem(UItemHandle* Item)
+{
+    ItemWidgets.FindOrAdd(Item) = SNew(STreeItemWidget, Item);
+}
+
 TSharedRef<ITableRow> SLightTreeHierarchy::AddToTree(UItemHandle* ItemPtr,
                                                      const TSharedRef<STableViewBase>& OwnerTable)
 {
     SHorizontalBox::FSlot& CheckBoxSlot = SHorizontalBox::Slot();
     CheckBoxSlot.SizeParam.SizeRule = FSizeParam::SizeRule_Auto;
 
+    auto Widget = GetWidgetForItem(ItemPtr);
 
-    if (!ItemPtr->Type == Folder || ItemPtr->Children.Num() > 0)
+    if (!Widget)
     {
-        CheckBoxSlot
-        [
-            SAssignNew(ItemPtr->StateCheckbox, SCheckBox)
-                .IsChecked_UObject(ItemPtr, &UItemHandle::IsLightEnabled)
-                .OnCheckStateChanged_UObject(ItemPtr, &UItemHandle::OnCheck)
-        ];
+	    Widget = SNew(STreeItemWidget, ItemPtr);
     }
-    if (!ItemPtr->TableRowBox)
-    {
-        SAssignNew(ItemPtr->TableRowBox, SBox);
-    }
+    
     auto Row =
         SNew(STableRow<UItemHandle*>, OwnerTable)
         .Padding(2.0f)
@@ -475,9 +279,9 @@ TSharedRef<ITableRow> SLightTreeHierarchy::AddToTree(UItemHandle* ItemPtr,
             StaticCastSharedPtr<FItemDragDropOperation>(DragDropEvent.GetOperation())->Destination = ItemPtr;
             return DragDropEnd(DragDropEvent);
         })
-        .Visibility_Lambda([ItemPtr]() {return ItemPtr->bMatchesSearchString ? EVisibility::Visible : EVisibility::Collapsed; })
+        .Visibility_Lambda([Widget]() {return Widget->bMatchesSearchString ? EVisibility::Visible : EVisibility::Collapsed; })
         [
-            ItemPtr->TableRowBox.ToSharedRef()
+            Widget->AsShared()
         ];
 
     //ItemPtr->GenerateTableRow();
@@ -536,19 +340,14 @@ FReply SLightTreeHierarchy::AddFolderToTree()
 {
     UItemHandle* NewFolder = ToolData->AddItem(true);
     NewFolder->Name = "New Group";
-    NewFolder->CheckNameAgainstSearchString(SearchString);
+    GetWidgetForItem(NewFolder)->CheckNameAgainstSearchString(SearchString);
     ToolData->RootItems.Add(NewFolder);
-    FCradleLightControlEditorModule::Get().GenerateItemHandleWidget(NewFolder);
+    GenerateWidgetForItem(NewFolder);
 
     Tree->RequestTreeRefresh();
 
 
     return FReply::Handled();
-}
-
-void SLightTreeHierarchy::TreeExpansionCallback(UItemHandle* Item, bool bExpanded)
-{
-    Item->bExpanded = bExpanded;
 }
 
 void SLightTreeHierarchy::OnToolDataLoadedCallback(uint8 LoadingResult)
@@ -595,7 +394,7 @@ void SLightTreeHierarchy::OnToolDataLoadedCallback(uint8 LoadingResult)
 
 void SLightTreeHierarchy::RegenerateItemHandleWidgets(UItemHandle* ItemHandle)
 {
-    FCradleLightControlEditorModule::Get().GenerateItemHandleWidget(ItemHandle);
+    GenerateWidgetForItem(ItemHandle);
 
     for (auto Child : ItemHandle->Children)
     {
@@ -724,7 +523,7 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
         }
         if (Source)
         {
-            FCradleLightControlEditorModule::Get().GenerateItemHandleWidget(Source);
+            GenerateWidgetForItem(Source);
         }
     }
     ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
@@ -732,7 +531,7 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
 
     GEditor->EndTransaction();
     Destination->UpdateFolderIcon();
-    FCradleLightControlEditorModule::Get().GenerateItemHandleWidget(Destination);
+    GenerateWidgetForItem(Destination);
 
     auto Reply = FReply::Handled();
     Reply.EndDragDrop();
@@ -746,11 +545,44 @@ void SLightTreeHierarchy::SearchBarOnChanged(const FText& NewString)
     SearchString = NewString.ToString();
     for (auto RootItem : ToolData->RootItems)
     {
-        RootItem->CheckNameAgainstSearchString(SearchString);
+        GetWidgetForItem(RootItem)->CheckNameAgainstSearchString(SearchString);
     }
 
     //Tree->RequestTreeRefresh();
     Tree->RebuildList();
+}
+
+TSharedPtr<STreeItemWidget> SLightTreeHierarchy::GetWidgetForItem(UItemHandle* ItemHandle)
+{
+    return ItemWidgets.FindOrAdd(ItemHandle);
+}
+
+void SLightTreeHierarchy::UpdateExpansionForItem(UItemHandle* ItemHandle, bool bContinueRecursively)
+{
+    check(ItemWidgets.Find(ItemHandle));
+    Tree->SetItemExpansion(ItemHandle, ItemWidgets[ItemHandle]->bExpanded);
+
+    if (bContinueRecursively)
+    {
+	    for (auto& Child : ItemHandle->Children)
+	    {
+            Tree->SetItemExpansion(Child, ItemWidgets[ItemHandle]->bExpanded);
+	    }
+    }
+}
+
+void SLightTreeHierarchy::ExpansionChangedCallback(UItemHandle* ItemHandle, bool bNewState)
+{
+    check(ItemWidgets.Find(ItemHandle));
+    ItemWidgets[ItemHandle]->bExpanded = bNewState;
+
+}
+
+void SLightTreeHierarchy::ChangeExpansionInTree(UItemHandle* ItemHandle, bool bNewState)
+{
+    check(ItemWidgets.Find(ItemHandle));
+    ItemWidgets[ItemHandle]->bExpanded = bNewState;
+    Tree->SetItemExpansion(ItemHandle, bNewState);
 }
 
 FText SLightTreeHierarchy::GetPresetFilename() const

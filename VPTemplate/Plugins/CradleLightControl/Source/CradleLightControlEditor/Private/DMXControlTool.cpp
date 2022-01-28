@@ -204,6 +204,7 @@ SVerticalBox::FSlot& SDMXControlTool::LightHeader()
         [
             SAssignNew(ItemHeader, SLightItemHeader)
             .ToolData(ToolData)
+			.TreeHierarchyWidget(TreeWidget)
         ];
 
     //UpdateLightHeader();
@@ -221,7 +222,7 @@ FReply SDMXControlTool::AddLightButtonCallback()
         ToolData->GetSelectedGroup()->Children.Add(NewItemHandle);
     else
         ToolData->RootItems.Add(NewItemHandle);
-    FCradleLightControlEditorModule::Get().GenerateItemHandleWidget(NewItemHandle);
+	TreeWidget->GenerateWidgetForItem(NewItemHandle);
     ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
 
     return FReply::Handled();

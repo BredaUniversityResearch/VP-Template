@@ -154,22 +154,6 @@ bool UItemHandle::HasAsIndirectChild(UItemHandle* ItemHandle)
     return false;
 }
 
-FReply UItemHandle::StartRename(const FGeometry&, const FPointerEvent&)
-{
-    bInRename = true;
-    return FReply::Handled();
-}
-
-
-void UItemHandle::EndRename(const FText& Text, ETextCommit::Type CommitType)
-{
-    if (ETextCommit::Type::OnEnter == CommitType)
-    {
-        Name = Text.ToString();
-    }
-
-    bInRename = false;
-}
 
 TSharedPtr<FJsonValue> UItemHandle::SaveToJson()
 {
@@ -181,7 +165,6 @@ TSharedPtr<FJsonValue> UItemHandle::SaveToJson()
     JsonItem->SetStringField("Name", Name);
     JsonItem->SetStringField("Note", Note);
     JsonItem->SetNumberField("Type", Type);
-    JsonItem->SetBoolField("Expanded", bExpanded);
     if (Type != Folder)
     {
         // If this is not a group, we save the item held by the handle
@@ -211,7 +194,6 @@ UItemHandle::ELoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> Js
     Name = JsonObject->GetStringField("Name");
     Note = JsonObject->GetStringField("Note");
     Type = StaticCast<ETreeItemType>(JsonObject->GetNumberField("Type"));
-    bExpanded = JsonObject->GetBoolField("Expanded");
     auto JsonItem = JsonObject->GetObjectField("Item");
     if (Type != Folder)
     {
@@ -257,16 +239,6 @@ UItemHandle::ELoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> Js
 
 
     return Success;
-}
-
-void UItemHandle::ExpandInTree()
-{
-    ToolData->ItemExpansionChangedDelegate.ExecuteIfBound(this, bExpanded);
-
-    for (auto Child : Children)
-    {
-        Child->ExpandInTree();
-    }
 }
 
 FReply UItemHandle::RemoveFromTree()
@@ -348,25 +320,6 @@ void UItemHandle::UpdateFolderIcon()
         Parent->UpdateFolderIcon();
 }
 
-bool UItemHandle::CheckNameAgainstSearchString(const FString& SearchString)
-{
-    bMatchesSearchString = false;
-    if (SearchString.Len() == 0)
-    {
-        bMatchesSearchString = true;
-    }
-    else if (Name.Find(SearchString) != -1)
-    {
-        bMatchesSearchString = true;
-    }
-
-    for (auto ChildItem : Children)
-    {
-        bMatchesSearchString |= ChildItem->CheckNameAgainstSearchString(SearchString);
-    }
-
-    return bMatchesSearchString;
-}
 
 int UItemHandle::LightCount() const
 {

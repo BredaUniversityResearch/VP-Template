@@ -37,7 +37,7 @@ UBaseLight* UToolData::GetLightByName(FString Name)
 
 	if (GEngine)
 	{
-        GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Cyan, FString::Printf(TEXT("Could not find item with name \"%s\""), *Name));
+        GEngine->AddOnScreenDebugMessage(1999, 0.5f, FColor::Cyan, FString::Printf(TEXT("Could not find item with name \"%s\" %lu"), *Name, RootItems.Num()));
 	}
 
     return nullptr;
@@ -121,6 +121,9 @@ void UToolData::ClearAllData()
     SelectionMasterLight = nullptr;
 
     ClearSelectionDelegate.ExecuteIfBound();
+
+    //GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Red, "Tooldata cleared!");
+
 }
 
 UItemHandle* UToolData::AddItem(bool bIsFolder)
@@ -237,13 +240,15 @@ void UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
 {
     bCurrentlyLoading = true;
 
-    _ASSERT(Widget);
-    _ASSERT(ClearSelectionDelegate.IsBound());
 
     FString Input;
     ClearSelectionDelegate.ExecuteIfBound();
+    //GEngine->AddOnScreenDebugMessage(328 + DataName.Len(), 60.0f, FColor::Magenta,
+    //    FString::Printf(TEXT("Trying to load data from %s"), *Path));
     if (FFileHelper::LoadFileToString(Input, *Path))
     {
+        GEngine->AddOnScreenDebugMessage(228 + DataName.Len(), 60.0f, FColor::Magenta,
+            FString::Printf(TEXT("Successfully loaded data for %s"), *DataName));
         if (bUpdatePresetPath)
             ToolPresetPath = Path;
         UE_LOG(LogTemp, Display, TEXT("Beginning light control tool state loading from %s"), *Path);
@@ -260,7 +265,7 @@ void UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
             const TSharedPtr<FJsonObject>* TreeElementObjectPtr;
             auto Success = TreeElement->TryGetObject(TreeElementObjectPtr);
             auto TreeElementObject = *TreeElementObjectPtr;
-            _ASSERT(Success);
+            check(Success);
             int Type = TreeElementObject->GetNumberField("Type");
             auto Item = AddItem(Type == 0); // If Type is 0, this element is a folder, so we add it as a folder
             auto Res = Item->LoadFromJson(TreeElementObject);
@@ -280,7 +285,7 @@ void UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
 
         for (auto TreeItem : RootItems)
         {
-            TreeItem->ExpandInTree();
+            ItemExpansionChangedDelegate.ExecuteIfBound(TreeItem, true);
         }
         OnToolDataLoaded.ExecuteIfBound(LoadingResult);
      
@@ -291,6 +296,8 @@ void UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
         ToolPresetPath = "";
     }
 
+    //GEngine->AddOnScreenDebugMessage(228 + DataName.Len(), 60.0f, FColor::Magenta,
+    //    FString::Printf(TEXT("%lu root elements loaded for %s"), RootItems.Num(), *DataName));
     bCurrentlyLoading = false;
 }
 
@@ -317,6 +324,8 @@ TSharedPtr<FJsonObject> UToolData::OpenMetaDataJson()
     auto ThisPlugin = IPluginManager::Get().FindPlugin("CradleLightControl");
     auto SavedDir = ThisPlugin->GetBaseDir() + "/Saved";
     FString Input;
+    //GEngine->AddOnScreenDebugMessage(128 + DataName.Len(), 60.0f, FColor::Magenta,
+    //    FString::Printf(TEXT("Loading metadata for %s"), *DataName));
     if (FFileHelper::LoadFileToString(Input, *(SavedDir + "/" + DataName + "MetaData.json")))
     {
         TSharedPtr<FJsonObject> JsonRoot;
@@ -360,6 +369,8 @@ void UToolData::LoadMetaData()
         MetaDataLoadExtension.ExecuteIfBound(JsonRoot);
         if (!ToolPresetPath.IsEmpty())
         {
+            //GEngine->AddOnScreenDebugMessage(238 + DataName.Len(), 60.0f, FColor::Magenta,
+            //    FString::Printf(TEXT("%s data being loaded from given path"), *DataName));
             LoadStateFromJSON(ToolPresetPath, false);
         }
         else

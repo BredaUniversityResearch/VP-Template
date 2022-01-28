@@ -9,6 +9,7 @@ void SLightItemHeader::Construct(const FArguments& Args)
 {
     check(Args._ToolData);
     ToolData = Args._ToolData;
+    TreeHierarchyWidget = Args._TreeHierarchyWidget;
     ChildSlot
         .HAlign(HAlign_Fill)
         [
@@ -211,7 +212,7 @@ void SLightItemHeader::CommitNewItemName(const FText& Text, ETextCommit::Type Co
         Item->BeginTransaction();
 
         Item->Name = Text.ToString();
-        FCradleLightControlEditorModule::Get().GenerateItemHandleWidget(Item);
+        TreeHierarchyWidget->GenerateWidgetForItem(Item);
 
         GEditor->EndTransaction();
     }

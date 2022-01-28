@@ -33,9 +33,11 @@ void FCradleLightControlModule::StartupModule()
 	// Initialization of the UToolData objects for both virtual and DMX fixture lights
 
 	VirtualLightToolData = NewObject<UToolData>();
+	VirtualLightToolData->DataName = "VirtualLight";
 	VirtualLightToolData->ItemClass = UVirtualLight::StaticClass();
 
 	DMXLightToolData = NewObject<UToolData>();
+	DMXLightToolData->DataName = "DMXLights";
 	DMXLightToolData->ItemClass = UDMXLight::StaticClass();
 
 	// Since these UObjects are being created and managed by a non-UObject, we need to manually register them
@@ -44,13 +46,15 @@ void FCradleLightControlModule::StartupModule()
 	DMXLightToolData->AddToRoot();
 
 
+	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FCradleLightControlModule::OnWorldInitialized);
+
+	FWorldDelegates::OnWorldCleanup.AddRaw(this, &FCradleLightControlModule::OnWorldCleanup);
+
+
 	if (GEngine && GEngine->IsEditor())
 	{
 		FModuleManager::Get().LoadModule("CradleLightControlEditor");
 
-		FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FCradleLightControlModule::OnWorldInitialized);
-
-		FWorldDelegates::OnWorldCleanup.AddRaw(this, &FCradleLightControlModule::OnWorldCleanup);
 
 		
 	}
@@ -93,6 +97,8 @@ void FCradleLightControlModule::OnWorldInitialized(UWorld* World, const UWorld::
 	TArray<AActor*> Lights;
 	UGameplayStatics::GetAllActorsOfClass(World, ALight::StaticClass(), Lights);
 
+	VirtualLightToolData->LoadMetaData();
+	DMXLightToolData->LoadMetaData();
 
 	for (auto& RootItem : VirtualLightToolData->RootItems)
 	{

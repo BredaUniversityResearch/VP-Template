@@ -324,7 +324,7 @@ bool UVirtualLight::GetCastShadows() const
 TSharedPtr<FJsonObject> UVirtualLight::SaveAsJson()
 {
     auto JsonObject = Super::SaveAsJson();
-    JsonObject->SetStringField("RelatedLightName", ActorPtr->GetName());
+    JsonObject->SetStringField("RelatedLightName", ActorPtr ? ActorPtr->GetName() : "");
 
     return JsonObject;
 }
