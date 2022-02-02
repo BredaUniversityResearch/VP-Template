@@ -6,11 +6,7 @@
 namespace {
 	FString GetTrackerSerialNo(int32 DeviceId)
 	{
-		if (GEngine)
-		{
-			return GEngine->XRSystem->GetTrackedDevicePropertySerialNumber(DeviceId);
-		}
-		return "Invalid Serial Number";
+		GEngine->XRSystem->GetTrackedDevicePropertySerialNumber(DeviceId);
 	}
 }
 

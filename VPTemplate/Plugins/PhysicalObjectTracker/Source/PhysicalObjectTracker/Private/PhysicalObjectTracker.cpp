@@ -3,6 +3,9 @@
 #include "ContentBrowserModule.h"
 
 #include "IXRTrackingSystem.h"
+#include "SteamVRFunctionLibrary.h"
+#include "DrawDebugHelpers.h"
+#include "PhysicalObjectTrackingReferencePoint.h"
 
 #define LOCTEXT_NAMESPACE "FPhysicalObjectTracker"
 
@@ -40,6 +43,28 @@ int32 FPhysicalObjectTracker::GetDeviceIdFromSerialId(FString SerialId)
 
 	return -1;
 		
+}
+
+void FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* ReferencePoint)
+{
+	if (ReferencePoint != nullptr)
+	{
+		TArray<int32> deviceIds;
+		USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, deviceIds);
+
+		for (int32 deviceId : deviceIds)
+		{
+			FVector position;
+			FRotator rotation;
+			if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
+			{
+				FTransform transform = ReferencePoint->ApplyTransformation(position, rotation.Quaternion());
+
+				DrawDebugBox(GWorld, transform.GetLocation(), FVector(8.0f, 8.0f, 8.0f), transform.GetRotation(), FColor::Magenta, 
+					false, -1, 0, 2);
+			}
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

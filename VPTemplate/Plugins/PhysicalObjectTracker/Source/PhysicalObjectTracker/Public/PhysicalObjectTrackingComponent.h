@@ -37,8 +37,8 @@ private:
 	AActor* WorldReferencePoint{nullptr};
 
 	UPROPERTY(Transient)
-	float DeltaTimeAccumulator;
+	float DeviceIdAcquireTimer;
 
 	UPROPERTY()
-	float TimeoutLimit {1.0f};
+	float DeviceReacquireInterval {0.5f};
 };

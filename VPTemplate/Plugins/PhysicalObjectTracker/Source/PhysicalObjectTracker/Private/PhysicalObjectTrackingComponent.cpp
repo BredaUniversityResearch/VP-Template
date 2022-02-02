@@ -12,7 +12,6 @@ UPhysicalObjectTrackingComponent::UPhysicalObjectTrackingComponent(const FObject
 
 	bTickInEditor = true;
 	bAutoActivate = true;
-
 }
 
 void UPhysicalObjectTrackingComponent::OnRegister()
@@ -32,22 +31,23 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 	}
 }
 
-//USteamVRFunctionLibrary
 void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick Tick,
 	FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, Tick, ThisTickFunction);
 
+	FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(TrackingSpaceReference);
+
 	if (CurrentTargetDeviceId == -1)
 	{		
-		DeltaTimeAccumulator += DeltaTime;
-		if (DeltaTimeAccumulator < TimeoutLimit)
+		DeviceIdAcquireTimer += DeltaTime;
+		if (DeviceIdAcquireTimer < DeviceReacquireInterval)
 		{
 			RefreshDeviceId();
+			DeviceIdAcquireTimer -= DeviceReacquireInterval;
 		}
+		return;
 	}
-
-	FMatrix deviceToWorldSpace = FRotationMatrix::Make(FQuat(FVector::YAxisVector, FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
 
 	FVector trackedPosition;
 	FQuat trackedOrientation;
@@ -56,10 +56,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		FTransform trackerFromReference;
 		if (TrackingSpaceReference != nullptr)
 		{
-			FQuat orientation = trackedOrientation * TrackingSpaceReference->GetNeutralRotationInverse();
-			FVector devicePosition = TrackingSpaceReference->GetNeutralRotationInverse() * (trackedPosition - TrackingSpaceReference->GetNeutralOffset());
-			FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);
-			trackerFromReference = FTransform(orientation, position);
+			trackerFromReference = TrackingSpaceReference->ApplyTransformation(trackedPosition, trackedOrientation);
 		}
 		else
 		{
@@ -92,7 +89,7 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 		RefreshDeviceId();
 		if (CurrentTargetDeviceId == -1)
 		{
-			DeltaTimeAccumulator = 0.0f;
+			DeviceIdAcquireTimer = 0.0f;
 		}
 		
 	}
@@ -108,7 +105,6 @@ void UPhysicalObjectTrackingComponent::SelectTracker()
 void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 {
 	CurrentTargetDeviceId = FPhysicalObjectTracker::GetDeviceIdFromSerialId(SerialId);
-
 }
 
 void UPhysicalObjectTrackingComponent::DebugCheckIfTrackingTargetExists() const
