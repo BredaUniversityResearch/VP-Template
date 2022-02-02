@@ -118,8 +118,7 @@ void SLightControlTool::Construct(const FArguments& Args, UToolData* InToolData)
         ]
     ];
 
-
-    
+    TreeWidget->Tree->RequestTreeRefresh();    
 
     FWorldDelegates::OnWorldCleanup.AddLambda([this](UWorld*, bool, bool)
         {
@@ -289,8 +288,8 @@ void SLightControlTool::UpdateLightList()
         ToolData->RootItems.Add(NewItem->Handle);
         TreeWidget->GenerateWidgetForItem(NewItem->Handle);
     }
-
-    TreeWidget->Tree->RequestTreeRefresh();
+    if (TreeWidget)
+		TreeWidget->Tree->RequestTreeRefresh();
 }
 
 void SLightControlTool::UpdateItemData(UItemHandle* ItemHandle)
