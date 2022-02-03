@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 
+class FComponentVisualizer;
 class FPhysicalObjectTrackingReferenceCalibrationHandler;
 class FDetectTrackerShakeTask;
 
@@ -25,4 +26,7 @@ private:
 
 	TUniquePtr<FDetectTrackerShakeTask> m_ShakeDetectTask;
 	TSharedPtr<SNotificationItem> m_ShakeProcessNotification;
+
+	TSharedPtr<FComponentVisualizer> m_ComponentVisualizer;
+
 };

@@ -25,7 +25,7 @@
 		{
 			"Name": "PhysicalObjectTrackerEditor",
 			"Type": "Editor",
-			"LoadingPhase": "Default",
+			"LoadingPhase": "PostEngineInit",
 			"WhitelistPlatforms": [
 				"Win64"
 			]

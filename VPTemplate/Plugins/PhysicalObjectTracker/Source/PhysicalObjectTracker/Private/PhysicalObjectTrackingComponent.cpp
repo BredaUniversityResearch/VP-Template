@@ -107,6 +107,11 @@ void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 	CurrentTargetDeviceId = FPhysicalObjectTracker::GetDeviceIdFromSerialId(SerialId);
 }
 
+const UPhysicalObjectTrackingReferencePoint* UPhysicalObjectTrackingComponent::GetTrackingReferencePoint() const
+{
+	return TrackingSpaceReference;
+}
+
 void UPhysicalObjectTrackingComponent::DebugCheckIfTrackingTargetExists() const
 {
 	TArray<int32> deviceIds{};

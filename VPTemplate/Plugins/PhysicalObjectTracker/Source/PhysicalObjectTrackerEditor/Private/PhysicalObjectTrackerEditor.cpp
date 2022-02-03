@@ -10,6 +10,9 @@
 #include "Framework/Notifications/NotificationManager.h"
 
 #include "IXRTrackingSystem.h"
+#include "PhysicalObjectTrackingComponentVisualizer.h"
+#include "UnrealEdGlobals.h"
+#include "Editor/UnrealEdEngine.h"
 
 
 #include "Styling/SlateIconFinder.h"
@@ -28,11 +31,22 @@ void FPhysicalObjectTrackerEditor::StartupModule()
 
 	TrackerEditorModule.DeviceDetectionEvent.AddRaw(this, &FPhysicalObjectTrackerEditor::OnDeviceDetectionStarted);
 
+	m_ComponentVisualizer = MakeShared<FPhysicalObjectTrackingComponentVisualizer>();
+	ensure(GUnrealEd != nullptr);
+	GUnrealEd->RegisterComponentVisualizer(UPhysicalObjectTrackingComponent::StaticClass()->GetFName(), m_ComponentVisualizer);
+	if (m_ComponentVisualizer.IsValid())
+	{
+		m_ComponentVisualizer->OnRegister();
+	}
 }
 
 void FPhysicalObjectTrackerEditor::ShutdownModule()
 {
 	m_TrackingCalibrationHandler = nullptr;
+	if (GUnrealEd != nullptr)
+	{
+		GUnrealEd->UnregisterComponentVisualizer(UPhysicalObjectTrackingComponent::StaticClass()->GetFName());
+	}
 }
 
 void FPhysicalObjectTrackerEditor::OnDeviceDetectionStarted(UPhysicalObjectTrackingComponent* TargetTrackingComponent)
