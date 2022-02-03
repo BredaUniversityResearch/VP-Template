@@ -98,6 +98,11 @@ void FBluetoothDeviceConnection::OnReceivedIncomingCameraControl(const IBuffer& 
 		const BMCCCommandHeader* command = reinterpret_cast<const BMCCCommandHeader*>(InputData.data() + bytesProcessed);
 		const uint8* data = InputData.data();
 		int bytesRemaining = static_cast<int>(InputData.Length()) - bytesProcessed;
+		if (bytesRemaining > 0 && bytesRemaining < TNumericLimits<short>::Max())
+		{
+			UE_LOG(LogBlackmagicCameraControl, Error, TEXT("Received Message %i.%i. With invalid data size %i"), command->Identifier.Category, command->Identifier.Parameter, bytesRemaining);
+			break;
+		}
 		UE_LOG(LogBlackmagicCameraControl, Display, TEXT("Received Message %i.%i. With data %s"), command->Identifier.Category, command->Identifier.Parameter, *BytesToHex(data + bytesProcessed, bytesRemaining));
 		bytesProcessed += sizeof(BMCCCommandHeader);
 
