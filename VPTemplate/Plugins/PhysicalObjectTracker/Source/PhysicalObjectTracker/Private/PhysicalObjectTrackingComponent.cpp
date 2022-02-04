@@ -66,7 +66,9 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 
 		if (WorldReferencePoint != nullptr)
 		{
-			trackerFromReference.SetLocation(trackerFromReference.GetLocation() + WorldReferencePoint->GetActorTransform().GetLocation());
+			trackerFromReference.SetLocation(WorldReferencePoint->GetActorTransform().TransformPosition(trackerFromReference.GetLocation()));
+			//trackerFromReference.SetLocation((WorldReferencePoint->GetActorTransform().GetRotation() * trackerFromReference.GetLocation()) + WorldReferencePoint->GetActorTransform().GetLocation());
+			trackerFromReference.SetRotation(WorldReferencePoint->GetActorTransform().TransformRotation(trackerFromReference.GetRotation()));
 		}
 
 		m_TransformHistory.AddSample(trackerFromReference);
