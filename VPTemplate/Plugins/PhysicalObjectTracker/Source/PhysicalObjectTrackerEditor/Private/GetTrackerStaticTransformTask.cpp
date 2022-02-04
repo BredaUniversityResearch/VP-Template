@@ -4,7 +4,7 @@
 
 FGetTrackerStaticTransformTask::FGetTrackerStaticTransformTask(int32 a_TargetTrackerId)
 	: m_TargetTrackerId(a_TargetTrackerId)
-	, m_TransformHistory(SampleSizeSeconds * SamplesPerSecond, a_TargetTrackerId)
+	, m_TransformHistory(SampleSizeSeconds * SamplesPerSecond)
 {
 }
 
@@ -21,7 +21,7 @@ void FGetTrackerStaticTransformTask::Tick(float DeltaTime)
 	{
 		SampleDeltaTimeAccumulator -= SecondsBetweenSamples;
 
-		m_TransformHistory.TakeSample();
+		m_TransformHistory.TakeSample(m_TargetTrackerId);
 		if (m_TransformHistory.HasCompleteHistory())
 		{
 			if (m_TransformHistory.GetAverageVelocity() < AverageVelocityThreshold)

@@ -16,7 +16,6 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-	static int32 GetDeviceIdFromSerialId(FString SerialId);
 	static void DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* ReferencePoint);
 	
 	FDeviceDetectionStarted DeviceDetectionEvent;

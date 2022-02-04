@@ -51,6 +51,7 @@ namespace
 
 	void DrawWireFrustrum2(FPrimitiveDrawInterface* PDI, const FMatrix& Transform, float HorizontalFOV, float Aspect, float StartDistance, float EndDistance, const FColor& Color, uint8 DepthPriorityGroup, float Thickness, float DepthBias = 0.0f, bool ScreenSpace = false)
 	{
+		//Shamelessly stolen from the UDrawFrustumComponent
 		FVector Direction(1, 0, 0);
 		FVector LeftVector(0, 1, 0);
 		FVector UpVector(0, 0, 1);

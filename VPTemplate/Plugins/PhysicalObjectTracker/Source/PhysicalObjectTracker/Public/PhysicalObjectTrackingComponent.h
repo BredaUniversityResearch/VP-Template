@@ -1,8 +1,10 @@
 #pragma once
+#include "TrackerTransformHistory.h"
 
 
 #include "PhysicalObjectTrackingComponent.generated.h"
 
+class UPhysicalObjectTrackingFilterSettings;
 class UPhysicalObjectTrackingReferencePoint;
 UCLASS(ClassGroup = (VirtualProduction), meta = (BlueprintSpawnableComponent))
 class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent: public UActorComponent
@@ -37,9 +39,12 @@ private:
 	UPhysicalObjectTrackingReferencePoint* TrackingSpaceReference{nullptr};
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent")
 	AActor* WorldReferencePoint{nullptr};
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
+	UPhysicalObjectTrackingFilterSettings* FilterSettings;
 
 	UPROPERTY(Transient)
 	float DeviceIdAcquireTimer;
+	FTrackerTransformHistory m_TransformHistory;
 
 	UPROPERTY()
 	float DeviceReacquireInterval {0.5f};

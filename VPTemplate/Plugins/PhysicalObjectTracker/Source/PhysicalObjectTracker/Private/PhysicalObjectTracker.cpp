@@ -21,30 +21,6 @@ void FPhysicalObjectTracker::ShutdownModule()
 	// we call this function before unloading the module.
 }
 
-int32 FPhysicalObjectTracker::GetDeviceIdFromSerialId(FString SerialId)
-{
-	if (GEngine && GEngine->XRSystem && !SerialId.IsEmpty())
-	{
-		auto XR = GEngine->XRSystem;
-	
-		TArray<int32> DeviceIds;
-		XR->EnumerateTrackedDevices(DeviceIds);
-
-		for (auto DeviceId : DeviceIds)
-		{
-			auto DeviceSerial = XR->GetTrackedDevicePropertySerialNumber(DeviceId);
-			if (DeviceSerial == SerialId)
-			{
-				return DeviceId;
-			}
-
-		}
-	}
-
-	return -1;
-		
-}
-
 void FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* ReferencePoint)
 {
 	if (ReferencePoint != nullptr)

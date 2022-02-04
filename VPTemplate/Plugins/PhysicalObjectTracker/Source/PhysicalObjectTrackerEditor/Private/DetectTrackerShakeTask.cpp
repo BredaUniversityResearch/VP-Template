@@ -39,8 +39,8 @@ void FDetectTrackerShakeTask::Tick(float DeltaTime)
 
 		for (int32 controllerId : controllerIds)
 		{
-			FTrackerTransformHistory& trackerHistory = m_TrackerHistory.FindOrAdd(controllerId, FTrackerTransformHistory(SampleCountPerSecond * SampleSizeSeconds, controllerId));
-			trackerHistory.TakeSample();
+			FTrackerTransformHistory& trackerHistory = m_TrackerHistory.FindOrAdd(controllerId, FTrackerTransformHistory(SampleCountPerSecond * SampleSizeSeconds));
+			trackerHistory.TakeSample(controllerId);
 
 			if (trackerHistory.HasCompleteHistory())
 			{

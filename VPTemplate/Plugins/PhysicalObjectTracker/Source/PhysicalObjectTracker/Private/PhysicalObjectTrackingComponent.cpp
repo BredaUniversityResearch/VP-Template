@@ -17,6 +17,7 @@ UPhysicalObjectTrackingComponent::UPhysicalObjectTrackingComponent(const FObject
 void UPhysicalObjectTrackingComponent::OnRegister()
 {
 	Super::OnRegister();
+	m_TransformHistory.SetFromFilterSettings(FilterSettings);
 	RefreshDeviceId();
 }
 
@@ -68,8 +69,10 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 			trackerFromReference.SetLocation(trackerFromReference.GetLocation() + WorldReferencePoint->GetActorTransform().GetLocation());
 		}
 
-		GetOwner()->SetActorTransform(trackerFromReference);
-		//SetRelativeTransform(trackerFromReference);
+		m_TransformHistory.AddSample(trackerFromReference);
+		FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
+
+		GetOwner()->SetActorTransform(filteredTransform);
 	}
 	else
 	{
@@ -104,7 +107,14 @@ void UPhysicalObjectTrackingComponent::SelectTracker()
 
 void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 {
-	CurrentTargetDeviceId = FPhysicalObjectTracker::GetDeviceIdFromSerialId(SerialId);
+	int32 foundDeviceId;
+	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(SerialId, foundDeviceId))
+	{
+		if (CurrentTargetDeviceId != foundDeviceId)
+		{
+			CurrentTargetDeviceId = foundDeviceId;
+		}
+	}
 }
 
 const UPhysicalObjectTrackingReferencePoint* UPhysicalObjectTrackingComponent::GetTrackingReferencePoint() const
