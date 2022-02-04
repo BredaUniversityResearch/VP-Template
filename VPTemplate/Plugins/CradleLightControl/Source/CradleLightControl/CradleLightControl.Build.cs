@@ -73,6 +73,7 @@ public class CradleLightControl : ModuleRules
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
+				"CradleLightControlEditor"
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);

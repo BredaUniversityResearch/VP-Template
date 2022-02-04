@@ -11,13 +11,19 @@
 #include "IDetailCustomization.h"
 #include "Chaos/AABB.h"
 
+#include "BaseLightPropertyChangeListener.h"
+
+
 class UToolData;
+class FBaseLightPropertyChangeListener;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCradleLightControl, Log, All)
 
 class CRADLELIGHTCONTROL_API FCradleLightControlModule : public IModuleInterface
 {
 public:
+
+	~FCradleLightControlModule();
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
@@ -26,9 +32,12 @@ public:
 	// Shorthand to get the module instance if it is loaded
 	static FCradleLightControlModule& Get();
 
+	static FBaseLightPropertyChangeListener& GetLightPropertyChangeListener() { return *Get().LightPropertyChangeListener; }
+
 	UToolData* GetVirtualLightToolData();
 	UToolData* GetDMXLightToolData();
 
+	
 
 private:
 
@@ -37,4 +46,6 @@ private:
 
 	UToolData* VirtualLightToolData;
 	UToolData* DMXLightToolData;
+
+	TUniquePtr<FBaseLightPropertyChangeListener> LightPropertyChangeListener;
 };

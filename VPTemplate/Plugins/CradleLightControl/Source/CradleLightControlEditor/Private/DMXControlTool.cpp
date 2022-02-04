@@ -29,7 +29,6 @@ void SDMXControlTool::Construct(const FArguments& Args)
     ToolTab = Args._ToolTab;
 
     ToolData = NewObject<UToolData>();
-    ToolData->DataName = "DMXLights";
     ToolData->ItemClass = UDMXLight::StaticClass();
     ToolData->OpenFileDialog = FLightJsonFileDialogDelegate::CreateRaw(this, &SDMXControlTool::OpenFileDialog);
     ToolData->SaveFileDialog = FLightJsonFileDialogDelegate::CreateRaw(this, &SDMXControlTool::SaveFileDialog);

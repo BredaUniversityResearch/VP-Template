@@ -19,11 +19,13 @@
 
 #include "DesktopPlatformModule.h"
 #include "IDesktopPlatform.h"
+#include "BaseLightPropertyChangeSpeaker.h"
 
 // About module: Editor-only module, contains the code for the UI
 // Separated from the core module of the plugin because it uses the editor's icons, which are unavailable in standalone 
 
 #define LOCTEXT_NAMESPACE "FCradleLightControlEditorModule"
+
 
 void FCradleLightControlEditorModule::StartupModule()
 {
@@ -62,6 +64,7 @@ void FCradleLightControlEditorModule::StartupModule()
 	// until the interaction is finished. This makes editing light properties more cumbersome if not disabled.
 	//IConsoleManager::Get().FindConsoleVariable(TEXT("Slate.bAllowThrottling"))->Set(false);
 
+	LightPropertyChangeSpeaker = MakeUnique<FBaseLightPropertyChangeSpeaker>();
 }
 
 void FCradleLightControlEditorModule::ShutdownModule()

@@ -4,6 +4,9 @@
 #include "ToolData.h"
 #include "Itemhandle.h"
 #include "BaseLight.h"
+#include "BaseLightPropertyChangeListener.h"
+#include "BaseLightPropertyChangeSpeaker.h"
+#include "CradleLightControlEditor.h"
 
 #include "Engine/SpotLight.h"
 
@@ -446,11 +449,8 @@ void SLightSpecificProperties::OnHorizontalValueChanged(float NormalizedValue)
     auto Light = ToolData->GetMasterLight();
     auto Delta = NormalizedValue - Light->Item->GetHorizontalNormalized();
 
-    for (auto SelectedLight : ToolData->LightsUnderSelection)
-    {
-        SelectedLight->BeginTransaction();
-        SelectedLight->Item->AddHorizontal(Delta);
-    }    
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Horizontal, Delta);
+        
 }
 
 void SLightSpecificProperties::BeginHorizontalTransaction()
@@ -483,11 +483,8 @@ void SLightSpecificProperties::OnVerticalValueChanged(float NormalizedValue)
 {
     auto Light = ToolData->GetMasterLight();
     auto Delta = NormalizedValue - Light->Item->GetVerticalNormalized();
-    for (auto SelectedLight : ToolData->LightsUnderSelection)
-    {
-        SelectedLight->BeginTransaction();
-        SelectedLight->Item->AddVertical(Delta);
-    }
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Vertical, Delta);
+    
 }
 
 void SLightSpecificProperties::BeginVerticalTransaction()
@@ -523,11 +520,8 @@ void SLightSpecificProperties::OnInnerAngleValueChanged(float NormalizedValue)
     auto Light = ToolData->GetMasterLight();
     auto Angle = NormalizedValue * 80.0f;
 
-    for (auto SelectedLight : ToolData->LightsUnderSelection)
-    {
-        SelectedLight->BeginTransaction();
-        SelectedLight->Item->SetInnerConeAngle(Angle);
-    }
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::InnerConeAngle, Angle);
+    
 }
 
 void SLightSpecificProperties::BeginInnerAngleTransaction()
@@ -585,11 +579,8 @@ void SLightSpecificProperties::OnOuterAngleValueChanged(float NormalizedValue)
 {
     auto Light = ToolData->GetMasterLight();
     auto Angle = NormalizedValue * 80.0f;
-    for (auto SelectedLight : ToolData->LightsUnderSelection)
-    {
-        SelectedLight->Item->SetOuterConeAngle(Angle);
-        SelectedLight->BeginTransaction();
-    }
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::OuterConeAngle, Angle);
+    
 }
 
 void SLightSpecificProperties::BeginOuterAngleTransaction()

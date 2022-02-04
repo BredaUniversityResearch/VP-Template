@@ -6,6 +6,7 @@
 #include "ToolData.h"
 #include "ItemHandle.h"
 #include "BaseLight.h"
+#include "BaseLightPropertyChangeSpeaker.h"
 
 TArray<FColor> SLightPropertyEditor::LinearGradient(TArray<FColor> ControlPoints, FVector2D Size,
     EOrientation Orientation)
@@ -488,11 +489,7 @@ void SLightPropertyEditor::EndTransaction()
 
 void SLightPropertyEditor::OnIntensityValueChanged(float Value)
 {
-    for (auto SelectedItem : ToolData->LightsUnderSelection)
-    {
-        SelectedItem->Item->BeginTransaction();
-        SelectedItem->Item->SetLightIntensity(Value);
-    }
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Intensity, Value);
 }
 
 void SLightPropertyEditor::IntensityTransactionBegin()
@@ -541,12 +538,8 @@ FText SLightPropertyEditor::GetIntensityPercentage() const
 
 void SLightPropertyEditor::OnHueValueChanged(float Value)
 {
-    for (auto SelectedItem : ToolData->GetSelectedLights())
-    {
-        SelectedItem->BeginTransaction();
-        SelectedItem->Item->SetHue(Value * 360.0f);
-        UpdateSaturationGradient(Value * 360.0F);
-    }
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Hue, Value * 360.0f);
+	UpdateSaturationGradient(Value * 360.0f);    
 }
 
 void SLightPropertyEditor::HueTransactionBegin()
@@ -587,12 +580,7 @@ FText SLightPropertyEditor::GetHuePercentage() const
 
 void SLightPropertyEditor::OnSaturationValueChanged(float Value)
 {
-    for (auto SelectedItem : ToolData->LightsUnderSelection)
-    {
-        SelectedItem->BeginTransaction();
-        SelectedItem->Item->SetSaturation(Value);
-        //SelectedItem->UpdateLightColor();
-    }
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Saturation, Value);
 }
 
 void SLightPropertyEditor::SaturationTransactionBegin()
@@ -623,11 +611,7 @@ float SLightPropertyEditor::GetSaturationValue() const
 
 void SLightPropertyEditor::OnTemperatureValueChanged(float Value)
 {
-    for (auto SelectedItem : ToolData->GetSelectedLights())
-    {
-        SelectedItem->BeginTransaction();
-        SelectedItem->Item->SetTemperature(Value);
-    }
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Temperature, Value);
 }
 
 void SLightPropertyEditor::TemperatureTransactionBegin()
