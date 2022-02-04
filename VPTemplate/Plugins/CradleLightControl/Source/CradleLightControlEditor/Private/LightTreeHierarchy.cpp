@@ -238,10 +238,10 @@ void SLightTreeHierarchy::OnActorSpawned(AActor* Actor)
             break;
         }
         DataUpdateDelegate.ExecuteIfBound(NewItemHandle);
+        GenerateWidgetForItem(NewItemHandle);
         GetWidgetForItem(NewItemHandle)->CheckNameAgainstSearchString(SearchString);
 
         ToolData->RootItems.Add(NewItemHandle);
-        GenerateWidgetForItem(NewItemHandle);
 
         Tree->RequestTreeRefresh();
     }
