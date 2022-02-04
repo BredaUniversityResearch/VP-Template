@@ -151,8 +151,8 @@
 							"camera": "DefaultViewPoint",
 							"bufferRatio": 1,
 							"gPUIndex": -1,
-							"allowCrossGPUTransfer": true,
-							"isShared": true,
+							"allowCrossGPUTransfer": false,
+							"isShared": false,
 							"region":
 							{
 								"x": 0,
@@ -174,8 +174,8 @@
 							"camera": "DefaultViewPoint",
 							"bufferRatio": 1,
 							"gPUIndex": -1,
-							"allowCrossGPUTransfer": true,
-							"isShared": true,
+							"allowCrossGPUTransfer": false,
+							"isShared": false,
 							"region":
 							{
 								"x": 0,
