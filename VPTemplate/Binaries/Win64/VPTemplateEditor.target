@@ -10,9 +10,9 @@
 	{
 		"MajorVersion": 4,
 		"MinorVersion": 27,
-		"PatchVersion": 1,
-		"Changelist": 17735300,
-		"CompatibleChangelist": 17155196,
+		"PatchVersion": 0,
+		"Changelist": 17155196,
+		"CompatibleChangelist": 0,
 		"IsLicenseeVersion": 0,
 		"IsPromotedBuild": 0,
 		"BranchName": "++UE4+Release-4.27",
@@ -22578,263 +22578,227 @@
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\cirrus.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\cirrus.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\config.json",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\config.json",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\package-lock.json",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\package-lock.json",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\package.json",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\package.json",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\favicon-16x16.png",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\favicon-16x16.png",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\favicon-32x32.png",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\favicon-32x32.png",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\favicon-96x96.png",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\favicon-96x96.png",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\favicon.ico",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\favicon.ico",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\Play.png",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\images\\Play.png",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\config.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\config.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\httpsClient.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\httpsClient.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\logging.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\logging.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\index.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\index.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\init.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\init.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\db\\index.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\db\\index.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\db\\store_password.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\db\\store_password.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\db\\users.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\modules\\authentication\\db\\users.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\Install_CoTurn.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\run.sh",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\run.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\setup.sh",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\runAWS.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\Install_CoTURN.ps1",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\runAWS_WithTurn.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\run.bat",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\runNoSetup.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\runAWS.bat",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\setup.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\runAWS_WithTURN.bat",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\Start_AWS_SignallingServer.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\runNoSetup.bat",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\Start_AWS_TURNServer.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\setup.bat",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\bash\\Start_AWS_WithTURN_SignallingServer.sh",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\Start_AWS_SignallingServer.ps1",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\Install_CoTURN.ps1",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\Start_AWS_TURNServer.ps1",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\run.bat",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\Start_AWS_WithTURN_SignallingServer.ps1",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\runAWS.bat",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\login.css",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\runAWS_WithTURN.bat",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\login.html",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\runNoSetup.bat",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\player.css",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\setup.bat",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\player.html",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\Start_AWS_SignallingServer.ps1",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\scripts\\app.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\Start_AWS_TURNServer.ps1",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\scripts\\webRtcPlayer.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\platform_scripts\\cmd\\Start_AWS_WithTURN_SignallingServer.ps1",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\bcrypt-js.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\login.css",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Bootstrap.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\login.html",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Express.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\player.css",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\expression-session.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\player.html",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\FontAwesome.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\public\\stresstest.html",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Helmet.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\scripts\\app.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\JQuery.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\scripts\\stressTest.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\passport-local.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\scripts\\webRtcPlayer.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\passport.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\bcrypt-js.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Popper.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Bootstrap.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Socket.io.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Express.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\WebRTCadapter.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\expression-session.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\WS.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\FontAwesome.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Yargs.tps",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Helmet.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\config.json",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\JQuery.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\matchmaker.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\passport-local.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\package-lock.json",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\passport.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\package.json",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Popper.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\run.bat",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Socket.io.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\setup.bat",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\WebRTCadapter.tps",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\modules\\config.js",
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\WS.tps",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\SignallingWebServer\\tps\\Yargs.tps",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\config.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\matchmaker.js",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\package-lock.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\package.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\run.bat",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\setup.bat",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\modules\\config.js",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "C:\\Program Files\\Epic Games\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\modules\\logging.js",
+			"Path": "C:\\EpicGames\\UE_4.27\\Samples\\PixelStreaming\\WebServers\\Matchmaker\\modules\\logging.js",
 			"Type": "NonUFS"
 		},
 		{
