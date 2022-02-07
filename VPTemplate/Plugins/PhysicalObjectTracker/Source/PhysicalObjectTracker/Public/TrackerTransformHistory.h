@@ -16,7 +16,9 @@ public:
 	bool HasCompleteHistory() const;
 	float GetMaxDistanceFromFirstSample() const;
 	float GetTotalDistanceTraveled() const;
+	float GetTotalRotatedDegrees() const;
 	float GetAverageVelocity() const;
+	float GetAverageRotationalVelocity() const;
 	const FTransform& GetLatest() const;
 	FTransform GetAveragedTransform(const UPhysicalObjectTrackingFilterSettings* FilterSettings) const;
 
@@ -30,5 +32,6 @@ private:
 
 	float m_MaxDistanceFromFirstSample{ 0.0f };
 	float m_TotalTraveledDistance{ 0.0f };
+	float m_TotalRotatedDegrees{ 0.0f };
 };
 

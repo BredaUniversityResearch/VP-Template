@@ -23,21 +23,24 @@ void FTrackerTransformHistory::AddSample(const FTransform& a_Transform)
 	{
 		auto it = m_History.begin();
 		FVector firstPosition = it->GetLocation();
-		FVector lastPosition = it->GetLocation();
+		FTransform lastTransform = *it;
 		++it;
 
 		m_MaxDistanceFromFirstSample = 0.0f;
 		m_TotalTraveledDistance = 0.0f;
+		m_TotalRotatedDegrees = 0.0f;
 
 		for (; it != m_History.end(); ++it)
 		{
-			FVector currentPosition = it->GetLocation();
-			float distanceLast = (lastPosition - currentPosition).Size();
+			FTransform currentTransform = *it;
+			float distanceLast = (lastTransform.GetLocation() - currentTransform.GetLocation()).Size();
 			m_TotalTraveledDistance += distanceLast;
-			float distanceFirst = (firstPosition - currentPosition).Size();
+			float distanceFirst = (firstPosition - currentTransform.GetLocation()).Size();
 			m_MaxDistanceFromFirstSample = FMath::Max(distanceFirst, m_MaxDistanceFromFirstSample);
+			FQuat deltaRotation = lastTransform.GetRotation() * currentTransform.GetRotation().Inverse();
+			m_TotalRotatedDegrees += deltaRotation.Euler().Size();
 
-			lastPosition = currentPosition;
+			lastTransform = currentTransform;
 		}
 	}
 }
@@ -77,9 +80,19 @@ float FTrackerTransformHistory::GetTotalDistanceTraveled() const
 	return m_TotalTraveledDistance;
 }
 
+float FTrackerTransformHistory::GetTotalRotatedDegrees() const
+{
+	return m_TotalRotatedDegrees;
+}
+
 float FTrackerTransformHistory::GetAverageVelocity() const
 {
 	return m_TotalTraveledDistance / m_TargetSampleCount;
+}
+
+float FTrackerTransformHistory::GetAverageRotationalVelocity() const
+{
+	return m_TotalRotatedDegrees / m_TargetSampleCount;
 }
 
 const FTransform& FTrackerTransformHistory::GetLatest() const
@@ -100,13 +113,18 @@ FTransform FTrackerTransformHistory::GetAveragedTransform(const UPhysicalObjectT
 		return GetLatest();
 	}
 
-	float curveLocation = FMath::Clamp((GetAverageVelocity() - FilterSettings->MinExpectedVelocity) / 
-		(FilterSettings->MaxExpectedVelocity - FilterSettings->MinExpectedVelocity), 0.0f, 1.0f);
+	float linearVelocityPercentage = FMath::Clamp((GetAverageVelocity() - FilterSettings->MinExpectedLinearVelocity) / 
+		(FilterSettings->MaxExpectedLinearVelocity - FilterSettings->MinExpectedLinearVelocity), 0.0f, 1.0f);
+	float rotationVelocityPercentage = FMath::Clamp((GetAverageRotationalVelocity() - FilterSettings->MinExpectedRotationalVelocity) /
+		(FilterSettings->MaxExpectedRotationalVelocity - FilterSettings->MinExpectedRotationalVelocity), 0.0f, 1.0f);
+	float curveLocation = FMath::Max(linearVelocityPercentage, rotationVelocityPercentage);
 	float sampleCountUnit = FMath::Pow(1.0f - curveLocation, FilterSettings->FilterExponent);
 	int32 sampleCount = FMath::RoundToInt(sampleCountUnit * m_TargetSampleCount);
 	sampleCount = FMath::Clamp(sampleCount, 1, m_TargetSampleCount);
 
-	GEngine->AddOnScreenDebugMessage(231231231, 0.0f, FColor::Emerald, FString::Printf(TEXT("Using %i samples"), sampleCount));
+	GEngine->AddOnScreenDebugMessage(231231231, 0.0f, FColor::Emerald, FString::Printf(TEXT("Using %i samples Loc: %f / (%f-%f) Rot: %f (%f-%f)"), sampleCount, 
+		GetAverageVelocity(), FilterSettings->MinExpectedLinearVelocity, FilterSettings->MaxExpectedLinearVelocity, 
+		GetAverageRotationalVelocity(), FilterSettings->MinExpectedRotationalVelocity, FilterSettings->MaxExpectedRotationalVelocity));
 
 	return GetAveragedTransformOverSampleCount(sampleCount);
 }
