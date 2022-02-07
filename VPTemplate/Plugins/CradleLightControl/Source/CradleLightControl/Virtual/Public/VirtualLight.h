@@ -6,8 +6,12 @@
 
 #include "VirtualLight.generated.h"
 
-UCLASS()
-class UVirtualLight : public UBaseLight
+// Extension of UBaseLight which represents a Virtual Light.
+// To be used in the virtual light tool.
+// Functions are overriden to update the values of the light actor which the object represents
+
+UCLASS(BlueprintType)
+class CRADLELIGHTCONTROL_API UVirtualLight : public UBaseLight
 {
     GENERATED_BODY()
 
@@ -16,8 +20,8 @@ public:
     UVirtualLight()
         : UBaseLight() {};
 
-    float GetIntensityNormalized() const override;
-    float GetTemperatureNormalized() const override;
+    float GetIntensityNormalized() const;
+    float GetTemperatureNormalized() const;
 
     virtual float GetHorizontalNormalized() const override;
     virtual float GetVerticalNormalized() const override;
@@ -48,12 +52,14 @@ public:
 
     union
     {
-        class AActor* ActorPtr;
+        class AActor* ActorPtr; // Generic actor pointer for when we don't care about the light type
         class ASkyLight* SkyLight;
         class APointLight* PointLight;
         class ADirectionalLight* DirectionalLight;
         class ASpotLight* SpotLight;
     };
+
+    class AActor* OriginalActor;
 
     UPROPERTY()
         bool bCastShadows;

@@ -3,6 +3,7 @@
 
 #include "AssetRegistry/AssetRegistryModule.h"
 
+#include "CradleLightControl.h"
 
 float UDMXLight::GetHorizontalNormalized() const
 {
@@ -59,11 +60,12 @@ void UDMXLight::AddVertical(float NormalizedDegrees)
 
 FPlatformTypes::uint8 UDMXLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
 {
-    auto PortGUID = JsonObject->GetStringField("OutputPortGUID");// , OutputPort.IsValid() ? OutputPort->GetPortGuid().ToString() : "");
-    bDMXEnabled = JsonObject->GetBoolField("DMXEnabled");//, bDMXEnabled);
-    auto ConfigObjectPath = JsonObject->GetStringField("ConfigObjectPath");// , ObjectPath);
-    StartingChannel = JsonObject->GetNumberField("StartingChannel");// , StartingChannel);
+    auto PortGUID = JsonObject->GetStringField("OutputPortGUID");
+    bDMXEnabled = JsonObject->GetBoolField("DMXEnabled");
+    auto ConfigObjectPath = JsonObject->GetStringField("ConfigObjectPath");
+    StartingChannel = JsonObject->GetNumberField("StartingChannel");
 
+    // The output port is identified by a GUID in the JSON file, so we find the port object by that GUID if it was specified
     if (!PortGUID.IsEmpty())
     {
         OutputPort = FDMXPortManager::Get().FindOutputPortByGuid(FGuid(PortGUID));
@@ -71,12 +73,14 @@ FPlatformTypes::uint8 UDMXLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject
     else
         OutputPort = nullptr;
 
+    // The config  reference is saved in JSON via an asset path
+    // If one was given, we need to find that asset by the path
     if (!ConfigObjectPath.IsEmpty())
     {
         FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
         auto AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(FName(ConfigObjectPath));
         if (ensure(AssetData.IsValid()))
-            UE_LOG(LogTemp, Warning, TEXT("Could not load DMX Config asset with object path: %s"), *ConfigObjectPath);
+            UE_LOG(LogCradleLightControl, Warning, TEXT("Could not load DMX Config asset with object path: %s"), *ConfigObjectPath);
 
     	Config = Cast<UDMXConfigAsset>(AssetData.GetAsset());
         Config->AssetName = AssetData.AssetName;
@@ -84,6 +88,7 @@ FPlatformTypes::uint8 UDMXLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject
     else
         Config = nullptr;
 
+    // Load the base light properties
     auto Res = Super::LoadFromJson(JsonObject);
 
 
@@ -92,27 +97,28 @@ FPlatformTypes::uint8 UDMXLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject
 
 TSharedPtr<FJsonObject> UDMXLight::SaveAsJson()
 {
-
-
-    Vertical = Config->VerticalChannel.NormalizeValue(Vertical);
-    Horizontal = Config->HorizontalChannel.NormalizeValue(Horizontal);
+	if (Config)
+	{
+        Vertical = Config->VerticalChannel.NormalizeValue(Vertical);
+        Horizontal = Config->HorizontalChannel.NormalizeValue(Horizontal);
+	}
 
     auto JsonObject = Super::SaveAsJson();
 
-    Vertical = Config->VerticalChannel.NormalizedToValue(Vertical);
-    Horizontal = Config->HorizontalChannel.NormalizedToValue(Horizontal);
+	if (Config)
+	{
+        Vertical = Config->VerticalChannel.NormalizedToValue(Vertical);
+        Horizontal = Config->HorizontalChannel.NormalizedToValue(Horizontal);		
+	}
 
     FString ObjectPath = "";
 
     if (Config)
-    {
-        /*FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-        TArray<FAssetData> AssetData;
-        AssetRegistryModule.Get().GetAssetsByClass(Config->GetClass()->GetFName(), AssetData);
-        ObjectPath = AssetData[0].ObjectPath.ToString();*/
+    {        
         ObjectPath = Config->GetAssetPath();
     }
 
+    // We leave the port GUID empty if the output port is not specified
     JsonObject->SetStringField("OutputPortGUID", OutputPort.IsValid() ? OutputPort->GetPortGuid().ToString() : "");
     JsonObject->SetBoolField("DMXEnabled", bDMXEnabled);
     JsonObject->SetStringField("ConfigObjectPath", ObjectPath);
@@ -124,6 +130,7 @@ TSharedPtr<FJsonObject> UDMXLight::SaveAsJson()
 
 void UDMXLight::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
+    // When this object is transacted, we need to send new DMX signals reflecting that. Hence this.
 	Super::PostTransacted(TransactionEvent);
 	if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo)
 	{
@@ -133,12 +140,15 @@ void UDMXLight::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 
 void UDMXLight::UpdateDMXChannels()
 {
+    // We need a specified OutputPort and Config to be able to send valid DMX signals
     if (OutputPort && bDMXEnabled && Config)
     {
         TMap<int32, uint8> DMXChannels;
 
         Config->SetChannels(this, DMXChannels);
 
+        // SendDMX() will only apply to the channels which are given values in the Map,
+    	// so it will not overwrite the channels used by other lights unless they are made to overlap
         OutputPort->SendDMX(1, DMXChannels);
     }
 }

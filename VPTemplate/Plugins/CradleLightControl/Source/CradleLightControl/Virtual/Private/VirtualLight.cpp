@@ -15,12 +15,14 @@
 #include "Components/SkyLightComponent.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "CradleLightControl.h"
+
 float UVirtualLight::GetIntensityNormalized() const
 {
     if (Handle->Type == ETreeItemType::SpotLight ||
         Handle->Type == ETreeItemType::PointLight)
     {
-        return Intensity / 2010.619f;        
+        return Intensity / 2010.619f; // The range supported by UE4 in Lumen
     }
     return 0.0f;
 }
@@ -29,14 +31,14 @@ float UVirtualLight::GetTemperatureNormalized() const
 {
     if (Handle->Type != ETreeItemType::SkyLight)
     {
-        return (Temperature - 1700.0f) / (12000.0f - 1700.0f);
+        return (Temperature - 1700.0f) / (12000.0f - 1700.0f); // Range supported by UE4 in Kelvin
     }
     return 0.0f;
 }
 
 float UVirtualLight::GetHorizontalNormalized() const
 {
-    return Horizontal / 360.0f + 0.5f;
+    return Horizontal / 360.0f + 0.5f; // UE4 provides rotations in a (-180, 180) range
 }
 
 float UVirtualLight::GetVerticalNormalized() const
@@ -49,6 +51,7 @@ void UVirtualLight::SetEnabled(bool bNewState)
     UBaseLight::SetEnabled(bNewState);
 
     BeginTransaction();
+    // We need to change the light actor's visibility differently based on its type
     switch (Handle->Type)
     {
     case ETreeItemType::SkyLight:
@@ -71,6 +74,7 @@ void UVirtualLight::SetLightIntensity(float NormalizedValue)
 
     if (Handle->Type == ETreeItemType::SkyLight)
     {
+        // TODO: Implement this for skylights and directional lights
         return;
         auto LightComp = SkyLight->GetLightComponent();
         LightComp->Intensity = NormalizedValue;
@@ -196,11 +200,13 @@ void UVirtualLight::SetCastShadows(bool bState)
 FPlatformTypes::uint8 UVirtualLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
 {
 
-
+    // The JSON file saves the light actor by its name, so we use that name to find the light which this UVirtualLight is responsible for
     auto LightName = JsonObject->GetStringField("RelatedLightName");
+
 
     UClass* ClassToFetch = AActor::StaticClass();
 
+    // Based on the type of this light, we are going to be looking at different actors in the level
     switch (Handle->Type)
     {
     case ETreeItemType::SkyLight:
@@ -216,12 +222,13 @@ FPlatformTypes::uint8 UVirtualLight::LoadFromJson(TSharedPtr<FJsonObject> JsonOb
         ClassToFetch = APointLight::StaticClass();
         break;
     default:        
-        UE_LOG(LogTemp, Error, TEXT("%s has invalid type: %n"), *Handle->Name, Handle->Type);
+        UE_LOG(LogCradleLightControl, Error, TEXT("%s has invalid type: %n"), *Handle->Name, Handle->Type);
         return UItemHandle::ELoadingResult::InvalidType;
     }
     TArray<AActor*> Actors;
     UGameplayStatics::GetAllActorsOfClass(GWorld, ClassToFetch, Actors);
 
+    // Try to find the needed light actor based on the name we know for it
     auto ActorPPtr = Actors.FindByPredicate([&LightName](AActor* Element) {
         return Element && Element->GetName() == LightName;
         });
@@ -229,7 +236,7 @@ FPlatformTypes::uint8 UVirtualLight::LoadFromJson(TSharedPtr<FJsonObject> JsonOb
 
     if (!ActorPPtr)
     {
-        UE_LOG(LogTemp, Error, TEXT("%s could not any lights in the scene named %s"), *Handle->Name, *LightName);
+        UE_LOG(LogCradleLightControl, Warning, TEXT("%s could not any lights in the scene named %s"), *Handle->Name, *LightName);
         return UItemHandle::ELoadingResult::LightNotFound;
     }
     ActorPtr = *ActorPPtr;
@@ -256,7 +263,7 @@ void UVirtualLight::AddHorizontal(float NormalizedDegrees)
     ActorPtr->SetActorRotation(Rotator);
 
     Horizontal += Degrees;
-    Horizontal = FMath::Fmod(Horizontal + 180.0f, 360.0001f) - 180.0f;
+    Horizontal = FMath::Fmod(Horizontal + 180.0f, 360) - 180.0f;
 }
 
 void UVirtualLight::AddVertical(float NormalizedDegrees)
@@ -268,13 +275,14 @@ void UVirtualLight::AddVertical(float NormalizedDegrees)
     ActorPtr->SetActorRotation(ActorRot * DeltaQuat);
 
     Vertical += Degrees;
-    Vertical = FMath::Fmod(Vertical + 180.0f, 360.0001f) - 180.0f;
+    Vertical = FMath::Fmod(Vertical + 180.0f, 360.f) - 180.0f;
 }
 
 void UVirtualLight::SetInnerConeAngle(float NewValue)
 {
-    _ASSERT(Handle->Type == ETreeItemType::SpotLight);
+    check(Handle->Type == ETreeItemType::SpotLight);
     InnerAngle = NewValue;
+    // Ensure that the inner cone angle doesn't become higher than the outer cone angle
     if (InnerAngle > OuterAngle)
     {
         SetOuterConeAngle(InnerAngle);
@@ -291,6 +299,7 @@ void UVirtualLight::SetOuterConeAngle(float NewValue)
     SpotLight->SetMobility(EComponentMobility::Movable);
     if (bLockInnerAngleToOuterAngle)
     {
+        // This allows for the inner angle to grow proportionally with the outer angle
         auto Proportion = InnerAngle / OuterAngle;
         InnerAngle = Proportion * NewValue;
         SpotLight->SpotLightComponent->SetInnerConeAngle(InnerAngle);
@@ -315,7 +324,7 @@ bool UVirtualLight::GetCastShadows() const
 TSharedPtr<FJsonObject> UVirtualLight::SaveAsJson()
 {
     auto JsonObject = Super::SaveAsJson();
-    JsonObject->SetStringField("RelatedLightName", ActorPtr->GetName());
+    JsonObject->SetStringField("RelatedLightName", ActorPtr ? ActorPtr->GetName() : "");
 
     return JsonObject;
 }

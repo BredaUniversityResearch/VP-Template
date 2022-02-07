@@ -5,10 +5,7 @@
 
 void FBaseLightPropertyChangeListener::OnPropertiesChanged(TArray<UItemHandle*>& AffectedLights, FBaseLightPropertyChangeListener::EProperty Property, float Value)
 {
-	if (GEditor)
-	{
-		//GEditor->BeginTransaction(FText::FromString("Light control light property changed"));
-	}
+	
 	for (auto& LightHandle : AffectedLights)
 	{
 		LightHandle->BeginTransaction();
@@ -45,9 +42,5 @@ void FBaseLightPropertyChangeListener::OnPropertiesChanged(TArray<UItemHandle*>&
 				LightHandle->Item->SetInnerConeAngle(Value);
 				break;
 		}
-	}
-	if (GEditor)
-	{
-		//GEditor->EndTransaction();
 	}
 }

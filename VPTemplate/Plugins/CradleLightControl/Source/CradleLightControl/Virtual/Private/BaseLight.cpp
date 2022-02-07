@@ -1,7 +1,7 @@
 #include "BaseLight.h"
 
 #include "ItemHandle.h"
-#include "LightControlTool.h"
+//#include "LightControlTool.h"
 #include "ToolData.h"
 
 #include "Engine/SkyLight.h"
@@ -37,18 +37,12 @@ uint8 UBaseLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
 
 void UBaseLight::BeginTransaction()
 {
-    
+    Modify();
 }
 
 void UBaseLight::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
-    if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo)
-    {
-        auto MasterLight = Handle->ToolData->GetMasterLight();
-        if (MasterLight == Handle)
-            Handle->ToolData->MasterLightTransactedDelegate.ExecuteIfBound(MasterLight);
-            
-    }
+    Handle->ToolData->PostLightTransacted.ExecuteIfBound(TransactionEvent, *this);
 }
 
 FLinearColor UBaseLight::GetRGBColor() const
@@ -103,7 +97,7 @@ void UBaseLight::SetTemperatureRaw(float Value)
 
 void UBaseLight::SetCastShadows(bool bState)
 {
-
+    // Exists purely for virtual lights
 }
 
 void UBaseLight::AddHorizontal(float NormalizedDegrees)
@@ -138,9 +132,7 @@ TSharedPtr<FJsonObject> UBaseLight::SaveAsJson()
     JsonItem->SetNumberField("Temperature", Temperature);
     JsonItem->SetNumberField("Horizontal", Horizontal);
     JsonItem->SetNumberField("Vertical", Vertical);
-    
-
-    TSharedPtr<FJsonValue> JsonValue = MakeShared<FJsonValueObject>(JsonItem);
+        
     return JsonItem;
 }
 
