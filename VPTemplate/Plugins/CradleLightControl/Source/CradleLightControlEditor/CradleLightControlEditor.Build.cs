@@ -37,7 +37,10 @@ public class CradleLightControlEditor : ModuleRules
                 "DMXProtocol",
                 "DMXProtocolEditor",
                 "DMXRuntime",
-				"CradleLightControl"
+				"CradleLightControl",
+				"Sockets",
+				"Networking"
+
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -65,7 +68,6 @@ public class CradleLightControlEditor : ModuleRules
 				"PropertyEditor",
 				"DetailCustomizations",
 				"AssetTools",
-				"CradleLightControl"
 
 				// ... add private dependencies that you statically link with here ...	
 			}
@@ -75,6 +77,7 @@ public class CradleLightControlEditor : ModuleRules
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
+
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);

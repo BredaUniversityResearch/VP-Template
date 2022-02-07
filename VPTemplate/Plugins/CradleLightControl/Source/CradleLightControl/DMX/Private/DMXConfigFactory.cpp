@@ -16,3 +16,8 @@ UObject* UDMXConfigFactory::FactoryCreateNew(UClass* InClass, UObject* InParent,
     
     return Asset;
 }
+//
+//uint32 UDMXConfigFactory::GetMenuCategories() const
+//{
+//    return EAssetTypeCategories::Misc;
+//}

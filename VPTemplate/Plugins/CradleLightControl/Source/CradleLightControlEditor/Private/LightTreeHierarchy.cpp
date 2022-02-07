@@ -12,6 +12,7 @@
 
 #include "Styling/SlateIconFinder.h"
 #include "ItemHandle.h"
+#include "EditorData.h"
 #include "ToolData.h"
 #include "TreeItemWidget.h"
 
@@ -30,34 +31,32 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
     LoadIcon = FSlateIconFinder::FindIcon("EnvQueryEditor.Profiler.LoadStats");
 
     FSlateFontInfo Font24(FCoreStyle::GetDefaultFont(), 20);
-    _ASSERT(Args._ToolData);
-    ToolData = Args._ToolData;
+    _ASSERT(Args._EditorData);
+    EditorData = Args._EditorData;
     DataUpdateDelegate = Args._DataUpdateDelegate;
     DataVerificationDelegate = Args._DataVerificationDelegate;
     SelectionChangedDelegate = Args._SelectionChangedDelegate;
     HeaderText = FText::FromString(Args._Name);
 
-    ToolData->OnToolDataLoaded = FOnToolDataLoadedDelegate::CreateRaw(this, &SLightTreeHierarchy::OnToolDataLoadedCallback);
-    ToolData->LoadMetaData();
-    ToolData->ItemExpansionChangedDelegate = FItemExpansionChangedDelegate::CreateLambda([this](UItemHandle* Item, bool bState)
+    EditorData->OnToolDataLoaded = FOnToolDataLoadedDelegate::CreateRaw(this, &SLightTreeHierarchy::OnToolDataLoadedCallback);
+    EditorData->LoadMetaData();
+    EditorData->ItemExpansionChangedDelegate = FItemExpansionChangedDelegate::CreateLambda([this](UItemHandle* Item, bool bState)
         {
             GetWidgetForItem(Item)->bExpanded = bState;
             UpdateExpansionForItem(Item, false);
         });
 
-    ToolData->TreeStructureChangedDelegate = FOnTreeStructureChangedDelegate::CreateLambda([this]()
+    EditorData->TreeStructureChangedDelegate = FOnTreeStructureChangedDelegate::CreateLambda([this]()
         {
             ItemWidgets.Empty();
-			for (auto& Item : ToolData->ListOfTreeItems)
+			for (auto& Item : EditorData->GetToolData()->ListOfTreeItems)
 			{
                 ItemWidgets.FindOrAdd(Item) = SNew(STreeItemWidget, Item);
 			}
     		Tree->RequestTreeRefresh();
         });
-    if (DataVerificationDelegate.IsBound())
-        LightVerificationTimer = RegisterActiveTimer(Args._DataVerificationInterval, FWidgetActiveTimerDelegate::CreateRaw(this, &SLightTreeHierarchy::VerifyLights));
-    else
-        LightVerificationTimer.Reset();
+
+	LightVerificationTimer = RegisterActiveTimer(Args._DataVerificationInterval, FWidgetActiveTimerDelegate::CreateRaw(this, &SLightTreeHierarchy::VerifyLights));
 
     // SVerticalBox slots are by default dividing the space equally between each other
     // Because of this we need to expose the slot with the search bar in order to disable that for it
@@ -111,7 +110,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
                     [
                         SNew(SButton)
                         .ButtonColorAndOpacity(FSlateColor(FColor::Transparent))
-                        .OnClicked_UObject(ToolData, &UToolData::SaveCallBack)
+                        .OnClicked_UObject(EditorData, &UEditorData::SaveCallBack)
                         .RenderTransform(FSlateRenderTransform(0.9f))
                         .ToolTipText(FText::FromString("Save"))
                         [
@@ -131,7 +130,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
                     [
                         SNew(SButton)
                         .ButtonColorAndOpacity(FSlateColor(FColor::Transparent))
-                        .OnClicked_UObject(ToolData, &UToolData::SaveAsCallback)
+                        .OnClicked_UObject(EditorData, &UEditorData::SaveAsCallback)
                         .RenderTransform(FSlateRenderTransform(0.9f))
                         .ToolTipText(FText::FromString("Save As"))
                         [
@@ -146,7 +145,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
                     [
                         SNew(SButton)
                         .ButtonColorAndOpacity(FSlateColor(FColor::Transparent))
-                        .OnClicked_UObject(ToolData, &UToolData::LoadCallBack)
+                        .OnClicked_UObject(EditorData, &UEditorData::LoadCallBack)
                         .RenderTransform(FSlateRenderTransform(0.9f))
                         .ToolTipText(FText::FromString("Load"))
                         [
@@ -167,7 +166,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
             [
                 SAssignNew(Tree, STreeView<UItemHandle*>)
                 .ItemHeight(24.0f)
-                .TreeItemsSource(&ToolData->RootItems)
+                .TreeItemsSource(&EditorData->GetToolData()->RootItems)
                 .OnSelectionChanged(this, &SLightTreeHierarchy::SelectionCallback)
                 .OnGenerateRow(this, &SLightTreeHierarchy::AddToTree)
                 .OnGetChildren(this, &SLightTreeHierarchy::GetTreeItemChildren)
@@ -216,7 +215,7 @@ void SLightTreeHierarchy::OnActorSpawned(AActor* Actor)
 
     if (Type != Invalid)
     {
-        auto NewItemHandle = ToolData->AddItem();
+        auto NewItemHandle = EditorData->GetToolData()->AddItem();
         NewItemHandle->Type = Type;
         NewItemHandle->Name = Actor->GetName();
 
@@ -241,7 +240,7 @@ void SLightTreeHierarchy::OnActorSpawned(AActor* Actor)
         GenerateWidgetForItem(NewItemHandle);
         GetWidgetForItem(NewItemHandle)->CheckNameAgainstSearchString(SearchString);
 
-        ToolData->RootItems.Add(NewItemHandle);
+        EditorData->GetToolData()->RootItems.Add(NewItemHandle);
 
         Tree->RequestTreeRefresh();
     }
@@ -249,7 +248,7 @@ void SLightTreeHierarchy::OnActorSpawned(AActor* Actor)
 
 void SLightTreeHierarchy::BeginTransaction()
 {
-    ToolData->Modify();
+    EditorData->Modify();
 }
 
 void SLightTreeHierarchy::GenerateWidgetForItem(UItemHandle* Item)
@@ -303,9 +302,9 @@ void SLightTreeHierarchy::SelectionCallback(UItemHandle* Item, ESelectInfo::Type
     {
 
         auto Objects = Tree->GetSelectedItems();
-        auto& SelectedItems = ToolData->SelectedItems;
-        auto& LightsUnderSelection = ToolData->LightsUnderSelection;
-        auto& SelectionMasterLight = ToolData->SelectionMasterLight;
+        auto& SelectedItems = EditorData->SelectedItems;
+        auto& LightsUnderSelection = EditorData->LightsUnderSelection;
+        auto& SelectionMasterLight = EditorData->SelectionMasterLight;
         SelectedItems.Empty();
 
         for (auto Object : Objects)
@@ -338,11 +337,11 @@ void SLightTreeHierarchy::SelectionCallback(UItemHandle* Item, ESelectInfo::Type
 
 FReply SLightTreeHierarchy::AddFolderToTree()
 {
-    UItemHandle* NewFolder = ToolData->AddItem(true);
+    UItemHandle* NewFolder = EditorData->GetToolData()->AddItem(true);
     NewFolder->Name = "New Group";
-    GetWidgetForItem(NewFolder)->CheckNameAgainstSearchString(SearchString);
-    ToolData->RootItems.Add(NewFolder);
     GenerateWidgetForItem(NewFolder);
+    GetWidgetForItem(NewFolder)->CheckNameAgainstSearchString(SearchString);
+    EditorData->GetToolData()->RootItems.Add(NewFolder);
 
     Tree->RequestTreeRefresh();
 
@@ -386,7 +385,7 @@ void SLightTreeHierarchy::OnToolDataLoadedCallback(uint8 LoadingResult)
         FSlateNotificationManager::Get().AddNotification(NotificationInfo);
     }
 
-    for (auto& Item : ToolData->RootItems)
+    for (auto& Item : EditorData->GetToolData()->RootItems)
     {
         RegenerateItemHandleWidgets(Item);
     }
@@ -405,15 +404,18 @@ void SLightTreeHierarchy::RegenerateItemHandleWidgets(UItemHandle* ItemHandle)
 
 EActiveTimerReturnType SLightTreeHierarchy::VerifyLights(double, float)
 {
-    DataVerificationDelegate.Execute();
-
-    return EActiveTimerReturnType::Continue;
+	if (DataVerificationDelegate.IsBound())
+	{
+		DataVerificationDelegate.Execute();		
+		return EActiveTimerReturnType::Continue;
+	}
+    return EActiveTimerReturnType::Stop;
 }
 
 FReply SLightTreeHierarchy::DragDropBegin(const FGeometry& Geometry, const FPointerEvent& MouseEvent)
 {
     TSharedRef<FItemDragDropOperation> DragDropOp = MakeShared<FItemDragDropOperation>();
-    DragDropOp->DraggedItems = ToolData->GetSelectedItems();
+    DragDropOp->DraggedItems = EditorData->GetSelectedItems();
     
     FReply Reply = FReply::Handled();
 
@@ -426,10 +428,10 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
 {
     auto DragDrop = StaticCastSharedPtr<FItemDragDropOperation>(DragDropEvent.GetOperation());
 	UItemHandle* Destination = DragDrop->Destination;
+    if (GEditor)
+        GEditor->BeginTransaction(FText::FromString("Light control tree drag and drop"));
     for (auto Target : DragDrop->DraggedItems)
     {
-
-
         //auto Target = DragDrop->DraggedItem;
         auto Source = Target->Parent;
 
@@ -442,44 +444,31 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
             return FReply::Handled();
         }
 
-        if (GEditor)
-        {
-            GEditor->BeginTransaction(FText::FromString("Light control tree drag and drop"));
-        }
 
         // The source folder and the dragged item will always be affected, so always begin transacting them
         if (Source)
             Source->BeginTransaction(false);
         else
-        {
-            ToolData->BeginTransaction();
-        }
+            EditorData->GetToolData()->BeginTransaction();
         Target->BeginTransaction(false);
         Destination->BeginTransaction(false);
         if (Destination->Type == Folder)
         {
-
             Destination = DragDrop->Destination;
-
-            Destination->BeginTransaction(false);
-
 
             if (Source)
                 Source->Children.Remove(Target);
             else
-                ToolData->RootItems.Remove(Target);
+                EditorData->GetToolData()->RootItems.Remove(Target);
             Destination->Children.Add(Target);
             Target->Parent = Destination;
-
-            /*if (Source)
-                Source->GenerateTableRow();
-            Destination->GenerateTableRow();*/
-            ToolData->ItemExpansionChangedDelegate.ExecuteIfBound(Destination, true);
+            
+            EditorData->ItemExpansionChangedDelegate.ExecuteIfBound(Destination, true);
         }
         else
         {
             auto Parent = Destination->Parent;
-            Destination = ToolData->AddItem(true);
+            Destination = EditorData->GetToolData()->AddItem(true);
             Destination->Name = DragDrop->Destination->Name + " Group";
             Destination->Parent = Parent;
 
@@ -487,9 +476,7 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
             if (Destination->Parent)
                 Destination->Parent->BeginTransaction(false);
             else
-                ToolData->BeginTransaction();
-
-            Destination->BeginTransaction(false);
+                EditorData->GetToolData()->BeginTransaction();
 
             if (Destination->Parent)
             {
@@ -498,14 +485,14 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
             }
             else
             {
-                ToolData->RootItems.Remove(DragDrop->Destination);
-                ToolData->RootItems.Add(Destination);
+                EditorData->GetToolData()->RootItems.Remove(DragDrop->Destination);
+                EditorData->GetToolData()->RootItems.Add(Destination);
             }
 
             if (Source)
                 Source->Children.Remove(Target);
             else
-                ToolData->RootItems.Remove(Target);
+                EditorData->GetToolData()->RootItems.Remove(Target);
 
             Destination->Children.Add(DragDrop->Destination);
             Destination->Children.Add(Target);
@@ -519,15 +506,15 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
             //    PrevParent->GenerateTableRow();
             //if (Source)
             //    Source->GenerateTableRow();
-            ToolData->ItemExpansionChangedDelegate.ExecuteIfBound(Destination, true);
+            EditorData->ItemExpansionChangedDelegate.ExecuteIfBound(Destination, true);
         }
         if (Source)
         {
             GenerateWidgetForItem(Source);
         }
     }
-    ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
-    //ToolData->TreeWidget->RequestTreeRefresh();
+    EditorData->TreeStructureChangedDelegate.ExecuteIfBound();
+    //EditorData->TreeWidget->RequestTreeRefresh();
 
     GEditor->EndTransaction();
     Destination->UpdateFolderIcon();
@@ -543,7 +530,7 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
 void SLightTreeHierarchy::SearchBarOnChanged(const FText& NewString)
 {
     SearchString = NewString.ToString();
-    for (auto RootItem : ToolData->RootItems)
+    for (auto RootItem : EditorData->GetToolData()->RootItems)
     {
         GetWidgetForItem(RootItem)->CheckNameAgainstSearchString(SearchString);
     }
@@ -587,12 +574,12 @@ void SLightTreeHierarchy::ChangeExpansionInTree(UItemHandle* ItemHandle, bool bN
 
 FText SLightTreeHierarchy::GetPresetFilename() const
 {
-    if (ToolData->ToolPresetPath.IsEmpty())
+    if (EditorData->ToolPresetPath.IsEmpty())
     {
         return FText::FromString("Not Saved");
     }
     FString Path, Name, Extension;
-    FPaths::Split(ToolData->ToolPresetPath, Path, Name, Extension);
+    FPaths::Split(EditorData->ToolPresetPath, Path, Name, Extension);
     return FText::FromString(Name);
 }
 

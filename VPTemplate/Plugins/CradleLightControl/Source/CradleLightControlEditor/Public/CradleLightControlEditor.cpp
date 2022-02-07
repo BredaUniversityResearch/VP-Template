@@ -49,7 +49,7 @@ void FCradleLightControlEditorModule::StartupModule()
 	// Create the tool widgets here without showing them.
 	// When they are called to show, they create their own SDockTabs and manage their lifetimes
 	VirtualLightControl = SNew(SLightControlTool, FCradleLightControlModule::Get().GetVirtualLightToolData());
-	DMXControl = SNew(SDMXControlTool);
+	DMXControl = SNew(SDMXControlTool, FCradleLightControlModule::Get().GetDMXLightToolData());
 
 	// Create an extension to the level editor toolbar 
 	TSharedRef<FExtender> ToolbarExtender(new FExtender());

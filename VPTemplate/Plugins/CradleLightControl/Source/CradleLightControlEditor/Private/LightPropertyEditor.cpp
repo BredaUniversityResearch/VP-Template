@@ -3,13 +3,13 @@
 
 #include "CradleLightControlEditor.h"
 
-#include "ToolData.h"
+#include "EditorData.h"
 #include "ItemHandle.h"
 #include "BaseLight.h"
 #include "BaseLightPropertyChangeSpeaker.h"
 
 TArray<FColor> SLightPropertyEditor::LinearGradient(TArray<FColor> ControlPoints, FVector2D Size,
-    EOrientation Orientation)
+                                                    EOrientation Orientation)
 {
     TArray<FColor> GradientPixels;
     if (ControlPoints.Num())
@@ -77,7 +77,7 @@ UTexture2D* SLightPropertyEditor::MakeGradientTexture(int X, int Y)
 void SLightPropertyEditor::Construct(const FArguments& Args)
 {
     _ASSERT(Args._ToolData);
-    ToolData = Args._ToolData;
+    EditorData = Args._EditorData;
     bDisplayIntensityInPercentage = Args._DisplayIntensityInPercentage;
     bDisplayTemperatureInPercentage = Args._DisplayTemperatureInPercentage;
 
@@ -376,7 +376,7 @@ FReply SLightPropertyEditor::OnGelPaletteButtonClicked()
 void SLightPropertyEditor::OnGelSelectionChanged(const FLinearColor& NewHSVColor)
 {
     GEditor->BeginTransaction(FText::FromString("Light gel selected"));
-	for (auto& LightHandle : ToolData->GetSelectedLights())
+	for (auto& LightHandle : EditorData->GetSelectedLights())
 	{
         LightHandle->Item->BeginTransaction();
         LightHandle->Item->SetHue(NewHSVColor.R);
@@ -474,7 +474,7 @@ void SLightPropertyEditor::UpdateSaturationGradient(float NewHue)
 
 const FSlateBrush* SLightPropertyEditor::GetSaturationGradientBrush() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
         return SaturationGradientBrush.Get();
     }
@@ -489,12 +489,12 @@ void SLightPropertyEditor::EndTransaction()
 
 void SLightPropertyEditor::OnIntensityValueChanged(float Value)
 {
-	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Intensity, Value);
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Intensity, Value);
 }
 
 void SLightPropertyEditor::IntensityTransactionBegin()
 {
-    auto MasterLight = ToolData->GetMasterLight();
+    auto MasterLight = EditorData->GetMasterLight();
     if (MasterLight)
         GEditor->BeginTransaction(FText::FromString(MasterLight->Name + " Intensity"));        
 }
@@ -503,9 +503,9 @@ void SLightPropertyEditor::IntensityTransactionBegin()
 FText SLightPropertyEditor::GetIntensityValueText() const
 {
     FString Res = "0";
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        auto Light = ToolData->SelectionMasterLight;
+        auto Light = EditorData->SelectionMasterLight;
         if (Light->Type == ETreeItemType::PointLight ||
             Light->Type == ETreeItemType::SpotLight)
         {
@@ -519,9 +519,9 @@ FText SLightPropertyEditor::GetIntensityValueText() const
 
 float SLightPropertyEditor::GetIntensityValue() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        return ToolData->SelectionMasterLight->Item->GetIntensityNormalized();
+        return EditorData->SelectionMasterLight->Item->GetIntensityNormalized();
     }
     return 0;
 }
@@ -529,41 +529,46 @@ float SLightPropertyEditor::GetIntensityValue() const
 FText SLightPropertyEditor::GetIntensityPercentage() const
 {
     FString Res = "0%";
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        Res = FString::FormatAsNumber(ToolData->SelectionMasterLight->Item->GetIntensityNormalized() * 100.0f) + "%";
+        Res = FString::FormatAsNumber(EditorData->SelectionMasterLight->Item->GetIntensityNormalized() * 100.0f) + "%";
     }
     return FText::FromString(Res);
 }
 
 void SLightPropertyEditor::OnHueValueChanged(float Value)
 {
-    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Hue, Value * 360.0f);
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Hue, Value * 360.0f);
 	UpdateSaturationGradient(Value * 360.0f);    
 }
 
 void SLightPropertyEditor::HueTransactionBegin()
 {
-    auto MasterLight = ToolData->GetMasterLight();
+    auto MasterLight = EditorData->GetMasterLight();
     if (MasterLight)
         GEditor->BeginTransaction(FText::FromString(MasterLight->Name + " Hue"));
+
+   /* for (auto& Item : EditorData->GetSelectedItems())
+    {
+        Item->BeginTransaction();
+    }*/
 }
 
 FText SLightPropertyEditor::GetHueValueText() const
 {
     FString Res = "0";
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        Res = FString::FormatAsNumber(ToolData->SelectionMasterLight->Item->Hue);
+        Res = FString::FormatAsNumber(EditorData->SelectionMasterLight->Item->Hue);
     }
     return FText::FromString(Res);
 }
 
 float SLightPropertyEditor::GetHueValue() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        return ToolData->SelectionMasterLight->Item->Hue / 360.0f;
+        return EditorData->SelectionMasterLight->Item->Hue / 360.0f;
     }
     return 0;
 }
@@ -571,21 +576,21 @@ float SLightPropertyEditor::GetHueValue() const
 FText SLightPropertyEditor::GetHuePercentage() const
 {
     FString Res = "0%";
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        Res = FString::FormatAsNumber(ToolData->SelectionMasterLight->Item->Hue / 3.6f) + "%";
+        Res = FString::FormatAsNumber(EditorData->SelectionMasterLight->Item->Hue / 3.6f) + "%";
     }
     return FText::FromString(Res);
 }
 
 void SLightPropertyEditor::OnSaturationValueChanged(float Value)
 {
-    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Saturation, Value);
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Saturation, Value);
 }
 
 void SLightPropertyEditor::SaturationTransactionBegin()
 {
-    auto MasterLight = ToolData->GetMasterLight();
+    auto MasterLight = EditorData->GetMasterLight();
     if (MasterLight)
         GEditor->BeginTransaction(FText::FromString(MasterLight->Name + " Saturation"));
 }
@@ -593,47 +598,47 @@ void SLightPropertyEditor::SaturationTransactionBegin()
 FText SLightPropertyEditor::GetSaturationValueText() const
 {
     FString Res = "0%";
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        Res = FString::FormatAsNumber(ToolData->SelectionMasterLight->Item->Saturation * 100.0f) + "%";
+        Res = FString::FormatAsNumber(EditorData->SelectionMasterLight->Item->Saturation * 100.0f) + "%";
     }
     return FText::FromString(Res);
 }
 
 float SLightPropertyEditor::GetSaturationValue() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        return ToolData->SelectionMasterLight->Item->Saturation;
+        return EditorData->SelectionMasterLight->Item->Saturation;
     }
     return 0.0f;
 }
 
 void SLightPropertyEditor::OnTemperatureValueChanged(float Value)
 {
-	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(ToolData->LightsUnderSelection, FBaseLightPropertyChangeListener::Temperature, Value);
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Temperature, Value);
 }
 
 void SLightPropertyEditor::TemperatureTransactionBegin()
 {
-    auto MasterLight = ToolData->GetMasterLight();
+    auto MasterLight = EditorData->GetMasterLight();
     if (MasterLight)
         GEditor->BeginTransaction(FText::FromString(MasterLight->Name + " Temperature"));
 }
 
 bool SLightPropertyEditor::TemperatureEnabled() const
 {
-    auto MasterLight = ToolData->GetMasterLight();
+    auto MasterLight = EditorData->GetMasterLight();
     return MasterLight && MasterLight->Type != ETreeItemType::SkyLight;
     return false;
 }
 
 void SLightPropertyEditor::OnTemperatureCheckboxChecked(ECheckBoxState NewState)
 {
-    auto MasterLight = ToolData->GetMasterLight();
+    auto MasterLight = EditorData->GetMasterLight();
     if (MasterLight)
         GEditor->BeginTransaction(FText::FromString(MasterLight->Name + " Use Temperature"));
-    for (auto SelectedItem : ToolData->GetSelectedLights())
+    for (auto SelectedItem : EditorData->GetSelectedLights())
     {
         SelectedItem->BeginTransaction();
         SelectedItem->Item->SetUseTemperature(NewState == ECheckBoxState::Checked);
@@ -645,9 +650,9 @@ void SLightPropertyEditor::OnTemperatureCheckboxChecked(ECheckBoxState NewState)
 FText SLightPropertyEditor::GetTemperatureValueText() const
 {
     FString Res = "0";
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        Res = FString::FormatAsNumber(ToolData->SelectionMasterLight->Item->Temperature) + " Kelvin";
+        Res = FString::FormatAsNumber(EditorData->SelectionMasterLight->Item->Temperature) + " Kelvin";
     }
     return FText::FromString(Res);
 }
@@ -655,18 +660,18 @@ FText SLightPropertyEditor::GetTemperatureValueText() const
 ECheckBoxState SLightPropertyEditor::GetTemperatureCheckboxChecked() const
 {
     ECheckBoxState State = ECheckBoxState::Unchecked;
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        State = ToolData->SelectionMasterLight->Item->bUseTemperature ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+        State = EditorData->SelectionMasterLight->Item->bUseTemperature ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
     }
     return State;
 }
 
 float SLightPropertyEditor::GetTemperatureValue() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        return ToolData->SelectionMasterLight->Item->GetTemperatureNormalized();
+        return EditorData->SelectionMasterLight->Item->GetTemperatureNormalized();
     }
     return 0;
 }
@@ -674,9 +679,9 @@ float SLightPropertyEditor::GetTemperatureValue() const
 FText SLightPropertyEditor::GetTemperaturePercentage() const
 {
     FString Res = "0%";
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        auto Norm = ToolData->SelectionMasterLight->Item->GetTemperatureNormalized();
+        auto Norm = EditorData->SelectionMasterLight->Item->GetTemperatureNormalized();
         Res = FString::FormatAsNumber(Norm * 100.0f) + "%";
     }
     return FText::FromString(Res);

@@ -9,7 +9,7 @@ class SLightSpecificProperties : public SCompoundWidget
 public:
     SLATE_BEGIN_ARGS(SLightSpecificProperties){};
 
-    SLATE_ARGUMENT(class UToolData*, ToolData)
+    SLATE_ARGUMENT(class UEditorData*, EditorData)
 
     SLATE_END_ARGS();
 
@@ -57,7 +57,7 @@ private:
     FText GetOuterAnglePercentage() const;
 
 
-    class UToolData* ToolData;
+    class UEditorData* EditorData;
 
     TSharedPtr<SLightControlDMX> PortSelectorTest;
 

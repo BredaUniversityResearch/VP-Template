@@ -4,118 +4,205 @@
 
 #include "AssetToolsModule.h"
 #include "LevelEditor.h"
+#include "LightControlTool.h"
 #include "DMXConfigAsset.h"
+#include "DMXControlTool.h"
 
 #include "DesktopPlatformModule.h"
-#include "DMXLight.h"
 #include "IDesktopPlatform.h"
-#include "ItemHandle.h"
 
-#include "ToolData.h"
-#include "VirtualLight.h"
-#include "Engine/Light.h"
-
-#include "Kismet/GameplayStatics.h"
-
-// Core module for the plugin
-// Main purpose of the module is to create and manage the data that the plugin uses it,
-// while the UI comes from the Editor module (CradleLightControlEditor)
-// This data can still be accessed via blueprints at runtime
+// Test code for a plugin, mainly trying to get an editor window which can be customized using the Slate Framework
+// Don't mind the extra debug-y prints and text pieces
 
 #define LOCTEXT_NAMESPACE "FCradleLightControlModule"
-
-DEFINE_LOG_CATEGORY(LogCradleLightControl)
-
-FCradleLightControlModule::~FCradleLightControlModule()
-{
-	LightPropertyChangeListener.Reset();
-}
 
 void FCradleLightControlModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-
-	// Initialization of the UToolData objects for both virtual and DMX fixture lights
-
-	VirtualLightToolData = NewObject<UToolData>();
-	VirtualLightToolData->DataName = "VirtualLight";
-	VirtualLightToolData->ItemClass = UVirtualLight::StaticClass();
-
-	DMXLightToolData = NewObject<UToolData>();
-	DMXLightToolData->DataName = "DMXLights";
-	DMXLightToolData->ItemClass = UDMXLight::StaticClass();
-
-	LightPropertyChangeListener = MakeUnique<FBaseLightPropertyChangeListener>();
-
-	// Since these UObjects are being created and managed by a non-UObject, we need to manually register them
-	// in the garbage collector's hierarchy. Otherwise they will get garbage collected at some point while still in use.
-	VirtualLightToolData->AddToRoot();
-	DMXLightToolData->AddToRoot();
-
-
-	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FCradleLightControlModule::OnWorldInitialized);
-
-	FWorldDelegates::OnWorldCleanup.AddRaw(this, &FCradleLightControlModule::OnWorldCleanup);
-
-
-	if (GEngine && GEngine->IsEditor())
-	{
-		FModuleManager::Get().LoadModule("CradleLightControlEditor");		
-	}
 	
+	auto& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+	PropertyModule.NotifyCustomizationModuleChanged();
+
+	auto& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+	auto& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+
+
+
+	CommandList = MakeShareable(new FUICommandList);
+	// Keeping it here in the scenario that we want to add a button in one of the menus
+	//TSharedRef<FExtender> MenuExtender(new FExtender());
+	//MenuExtender->AddMenuExtension("EditMain", EExtensionHook::After, CommandList, FMenuExtensionDelegate::CreateLambda(
+	//[](FMenuBuilder& MenuBuilder)
+	//{
+	//		//auto CommandInfo = MakeShareable(new FUICommandInfo());
+	//		//MenuBuilder.AddMenuEntry(CommandInfo);
+	//}));
+	//LevelEditorModule.GetMenuExtensibilityManager()->AddExtender(MenuExtender);
+	//auto AssetCategory = AssetTools.RegisterAdvancedAssetCategory("CustomCategory", FText::FromString("Custom Category"));
+	auto Action = MakeShared<FDMXConfigAssetAction>();
+	//Action.
+	
+	//AssetToolsModule.Get().
+	AssetTools.RegisterAssetTypeActions(Action);
+
+	// Create an extension to the toolbar (the one above the viewport in the level editor)
+	TSharedRef<FExtender> ToolbarExtender(new FExtender());
+	ToolbarExtender->AddToolBarExtension("Settings", EExtensionHook::After, CommandList, FToolBarExtensionDelegate::CreateLambda(
+		[this](FToolBarBuilder& MenuBuilder)
+		{
+			FUIAction Action;
+			Action.ExecuteAction = FExecuteAction::CreateLambda([this]()
+				{
+				    // I could not find a guaranteed, engine provided way to ensure that the button can spawn the tab multiple times
+				    // while also not allowing for the tab to be spawned multiple times simultaneously
+				    // So we only try to spawn the tab if one doesn't already exist, otherwise we just draw the user's attention to the existing one
+                    if (!LightTab)
+                    {
+					    RegisterTabSpawner();
+					    FGlobalTabmanager::Get()->TryInvokeTab(FTabId("LightControl"));                        
+                    }
+					else
+					    LightTab->DrawAttention();
+
+                    if (!DMXTab)
+                    {
+						RegisterDMXTabSpawner();
+						FGlobalTabmanager::Get()->TryInvokeTab(FTabId("DMXControl"));
+
+                    }
+				});
+			MenuBuilder.AddToolBarButton(Action, NAME_None, FText::FromString("Cradle Light Control"));
+		}));
+
+    LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
+
+	FCoreDelegates::OnEnginePreExit.AddLambda([this]()
+		{
+			if (LightControl)
+				LightControl->PreDestroy();
+			if (DMXControl)
+				DMXControl->PreDestroy();
+		});
+
 }
 
 void FCradleLightControlModule::ShutdownModule()
 {
+	
+
+
+
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
-
-	// We remove the objects from the garbage collector's registry so that they can be garbage collected
-
-	VirtualLightToolData->RemoveFromRoot();
-	DMXLightToolData->RemoveFromRoot();
-
 }
 
-FCradleLightControlModule& FCradleLightControlModule::Get()
-{
-	auto& Module = FModuleManager::GetModuleChecked<FCradleLightControlModule>("CradleLightControl");
 
-	return Module;
+bool FCradleLightControlModule::OpenFileDialog(FString Title, void* NativeWindowHandle, FString DefaultPath, uint32 Flags,
+	FString FileTypeList, TArray<FString>& OutFilenames)
+{
+	IDesktopPlatform* Platform = FDesktopPlatformModule::Get();
+	return Platform->OpenFileDialog(NativeWindowHandle, Title, DefaultPath, "", FileTypeList, Flags, OutFilenames);
 }
 
-UToolData* FCradleLightControlModule::GetVirtualLightToolData()
+bool FCradleLightControlModule::SaveFileDialog(FString Title, void* NativeWindowHandle, FString DefaultPath, uint32 Flags,
+                                               FString FileTypeList, TArray<FString>& OutFilenames)
 {
-	return VirtualLightToolData;
+	IDesktopPlatform* Platform = FDesktopPlatformModule::Get();
+	return Platform->SaveFileDialog(NativeWindowHandle, Title, DefaultPath, "", FileTypeList, Flags, OutFilenames);
 }
 
-UToolData* FCradleLightControlModule::GetDMXLightToolData()
+void FCradleLightControlModule::OpenGelPalette(FGelPaletteSelectionCallback SelectionCallback)
 {
-	return DMXLightToolData;
-}
-
-void FCradleLightControlModule::OnWorldInitialized(UWorld* World, const UWorld::InitializationValues)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "FWorldDelegates::OnPostDuplicate called");
-
-	TArray<AActor*> Lights;
-	UGameplayStatics::GetAllActorsOfClass(World, ALight::StaticClass(), Lights);
-
-	VirtualLightToolData->LoadMetaData();
-	DMXLightToolData->LoadMetaData();
-
-	for (auto& RootItem : VirtualLightToolData->RootItems)
+	if (!GelPalette)
 	{
-		RootItem->UpdateVirtualLights(Lights);
+		GelPalette = SNew(SGelPaletteWidget);
 	}
+	
+	if (!GelPaletteWindow)
+	{
+
+		GelPaletteWindow = SNew(SWindow)
+			.ClientSize(FVector2D(640.0f, 480.0f))
+			.Title(FText::FromString("Light Gel Palette"))
+			.CreateTitleBar(true)
+			[
+				GelPalette->AsShared()
+			];
+		GelPaletteWindow = FSlateApplication::Get().AddWindow(GelPaletteWindow.ToSharedRef());
+			//.IsPopupWindow(true)
+			
+
+
+		//GelPaletteWindow->ShowWindow();
+	}
+
+	if (!GelPaletteWindow->IsVisible())
+	{
+		GelPalette->SelectionCallback = SelectionCallback;
+		GelPaletteWindow->ShowWindow();		
+	}
+	else
+	{
+		GelPalette->SelectionCallback = SelectionCallback;
+		GelPaletteWindow->FlashWindow();
+		//GelPaletteWindow->DrawAttention()
+	}
+
+	
 }
 
-void FCradleLightControlModule::OnWorldCleanup(UWorld*, bool, bool)
+void FCradleLightControlModule::RegisterTabSpawner()
 {
-	for (auto& RootItem : VirtualLightToolData->RootItems)
-	{
-		RootItem->RestoreVirtualLightReferences();
-	}
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner("LightControl", FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)
+		{
+			LightTab = SNew(SDockTab)
+				.Label(FText::FromString("Light control tab"))
+				.TabRole(ETabRole::NomadTab)
+				.OnTabClosed_Lambda([this](TSharedRef<SDockTab>)
+					{
+						FGlobalTabmanager::Get()->UnregisterNomadTabSpawner("LightControl");
+						LightControl->PreDestroy();
+						LightControl.Reset();
+						LightTab.Reset();
+					});
+
+			LightTab->SetContent(				    
+				    SAssignNew(LightControl, SLightControlTool)
+				    .ToolTab(LightTab)
+					
+				);
+
+		    return LightTab.ToSharedRef();
+			
+		}));
+}
+
+void FCradleLightControlModule::RegisterDMXTabSpawner()
+{
+
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner("DMXControl", FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs& Args)
+		{
+			DMXTab = SNew(SDockTab)
+				.Label(FText::FromString("DMX control tab"))
+				.TabRole(ETabRole::NomadTab)
+				.OnTabClosed_Lambda([this](TSharedRef<SDockTab>)
+					{
+						FGlobalTabmanager::Get()->UnregisterNomadTabSpawner("DMXControl");
+						//DMXControl->PreDestroy();
+						DMXControl.Reset();
+						DMXTab.Reset();
+					});
+
+			DMXTab->SetContent(
+				SAssignNew(DMXControl, SDMXControlTool)
+				.ToolTab(DMXTab)
+			);
+
+			return DMXTab.ToSharedRef();
+
+		}));
+
 }
 
 

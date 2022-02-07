@@ -1,14 +1,14 @@
 #include "LightItemHeader.h"
 
-#include "ToolData.h"
+#include "EditorData.h"
 #include "ItemHandle.h"
 #include "BaseLight.h"
 #include "CradleLightControlEditor.h"
 
 void SLightItemHeader::Construct(const FArguments& Args)
 {
-    check(Args._ToolData);
-    ToolData = Args._ToolData;
+    check(Args._EditorData);
+    EditorData = Args._EditorData;
     TreeHierarchyWidget = Args._TreeHierarchyWidget;
     ChildSlot
         .HAlign(HAlign_Fill)
@@ -22,21 +22,21 @@ void SLightItemHeader::Construct(const FArguments& Args)
 
 void SLightItemHeader::Update()
 {
-    if (ToolData->IsAMasterLightSelected() || ToolData->IsSingleGroupSelected())
+    if (EditorData->IsAMasterLightSelected() || EditorData->IsSingleGroupSelected())
     {
         SHorizontalBox::FSlot* NameSlot;
         SHorizontalBox::FSlot* CheckboxSlot;
         SVerticalBox::FSlot* TopSlot;
         TEnumAsByte<ETreeItemType> IconType;
-        if (ToolData->IsSingleGroupSelected())
+        if (EditorData->IsSingleGroupSelected())
         {
-            IconType = ToolData->GetSelectedGroup()->Type;
+            IconType = EditorData->GetSelectedGroup()->Type;
         }
         else
         {
-            IconType = ToolData->GetMasterLight()->Type;
+            IconType = EditorData->GetMasterLight()->Type;
         }
-        for (auto Light : ToolData->GetSelectedLights())
+        for (auto Light : EditorData->GetSelectedLights())
         {
             if (IconType != Light->Type)
             {
@@ -88,8 +88,8 @@ void SLightItemHeader::Update()
             [
                 SNew(STextBlock)
                 .Text(this, &SLightItemHeader::LightHeaderExtraLightsText)
-            .Visibility(ToolData->IsSingleGroupSelected()
-                || ToolData->MultipleLightsInSelection() ?
+            .Visibility(EditorData->IsSingleGroupSelected()
+                || EditorData->MultipleLightsInSelection() ?
                 EVisibility::Visible : EVisibility::Collapsed)
             ]
         );
@@ -113,10 +113,10 @@ void SLightItemHeader::Update()
 
 void SLightItemHeader::OnLightHeaderCheckStateChanged(ECheckBoxState NewState)
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        GEditor->BeginTransaction(FText::FromString(ToolData->GetMasterLight()->Name + " State Changed"));
-        for (auto Light : ToolData->GetSelectedLights())
+        GEditor->BeginTransaction(FText::FromString(EditorData->GetMasterLight()->Name + " State Changed"));
+        for (auto Light : EditorData->GetSelectedLights())
         {
             Light->Item->SetEnabled(NewState == ECheckBoxState::Checked); // Use the callback used by the tree to modify the state
         }
@@ -127,21 +127,21 @@ void SLightItemHeader::OnLightHeaderCheckStateChanged(ECheckBoxState NewState)
 
 ECheckBoxState SLightItemHeader::GetLightHeaderCheckState() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        return ToolData->GetMasterLight()->Item->IsEnabled() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+        return EditorData->GetMasterLight()->Item->IsEnabled() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
     }
     return ECheckBoxState::Undetermined;
 }
 
 FText SLightItemHeader::LightHeaderExtraLightsText() const
 {
-    if (ToolData->MultipleItemsSelected())
+    if (EditorData->MultipleItemsSelected())
     {
         int GroupCount = 0;
         int LightCount = 0;
         int TotalLightCount = 0;
-        for (auto SelectedItem : ToolData->SelectedItems)
+        for (auto SelectedItem : EditorData->SelectedItems)
         {
             if (SelectedItem->Type == Folder)
             {
@@ -161,7 +161,7 @@ FText SLightItemHeader::LightHeaderExtraLightsText() const
 
 void SLightItemHeader::UpdateItemNameBox()
 {
-    auto Item = ToolData->GetSingleSelectedItem();
+    auto Item = EditorData->GetSingleSelectedItem();
     if (Item)
     {
         if (bItemRenameInProgress)
@@ -195,19 +195,19 @@ FReply SLightItemHeader::StartItemNameChange(const FGeometry&, const FPointerEve
 
 FText SLightItemHeader::ItemNameText() const
 {
-    if (ToolData->IsSingleGroupSelected())
+    if (EditorData->IsSingleGroupSelected())
     {
-        return FText::FromString(ToolData->GetSelectedGroup()->Name);
+        return FText::FromString(EditorData->GetSelectedGroup()->Name);
 
     }
-    return FText::FromString(ToolData->GetMasterLight()->Name);
+    return FText::FromString(EditorData->GetMasterLight()->Name);
 }
 
 void SLightItemHeader::CommitNewItemName(const FText& Text, ETextCommit::Type CommitType)
 {
     if (CommitType == ETextCommit::OnEnter && !Text.IsEmpty())
     {
-        auto Item = ToolData->GetSingleSelectedItem();
+        auto Item = EditorData->GetSingleSelectedItem();
         GEditor->BeginTransaction(FText::FromString(Item->Name + " Rename"));
         Item->BeginTransaction();
 
@@ -222,15 +222,15 @@ void SLightItemHeader::CommitNewItemName(const FText& Text, ETextCommit::Type Co
 void SLightItemHeader::UpdateExtraNoteBox()
 {
     ExtraNoteBox->SetVisibility(EVisibility::Visible);
-    if (ToolData->IsSingleGroupSelected())
+    if (EditorData->IsSingleGroupSelected())
     {
         ExtraNoteBox->SetContent(
             SNew(STextBlock)
             .Text(FText::FromString("Group")));
     }
-    else if (ToolData->IsAMasterLightSelected())
+    else if (EditorData->IsAMasterLightSelected())
     {
-        auto MasterLight = ToolData->GetMasterLight();
+        auto MasterLight = EditorData->GetMasterLight();
         if (MasterLight->Note.IsEmpty() && !bItemNoteChangeInProgress)
         {
             ExtraNoteBox->SetContent(
@@ -269,19 +269,19 @@ FReply SLightItemHeader::StartItemNoteChange(const FGeometry&, const FPointerEve
 
 FText SLightItemHeader::ItemNoteText() const
 {
-    auto Item = ToolData->GetMasterLight();
+    auto Item = EditorData->GetMasterLight();
     if (Item->Note.IsEmpty())
     {
         return FText::FromString("Note");
     }
-    return FText::FromString(ToolData->GetMasterLight()->Note);
+    return FText::FromString(EditorData->GetMasterLight()->Note);
 }
 
 void SLightItemHeader::CommitNewItemNote(const FText& Text, ETextCommit::Type CommitType)
 {
     if (CommitType == ETextCommit::OnEnter)
     {
-        auto Item = ToolData->GetMasterLight();
+        auto Item = EditorData->GetMasterLight();
         GEditor->BeginTransaction(FText::FromString(Item->Name + " Note changed"));
         Item->BeginTransaction();
 

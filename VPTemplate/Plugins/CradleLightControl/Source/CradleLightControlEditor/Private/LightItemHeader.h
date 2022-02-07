@@ -7,7 +7,7 @@ class SLightItemHeader : public SCompoundWidget
 public:
     SLATE_BEGIN_ARGS(SLightItemHeader) {}
 
-    SLATE_ARGUMENT(UToolData*, ToolData)
+    SLATE_ARGUMENT(class UEditorData*, EditorData)
 
     SLATE_ARGUMENT(TSharedPtr<class SLightTreeHierarchy>, TreeHierarchyWidget)
 
@@ -33,7 +33,7 @@ public:
     FText ItemNoteText() const;
     void CommitNewItemNote(const FText& Text, ETextCommit::Type CommitType);
 
-    UToolData* ToolData;
+    UEditorData* EditorData;
     TSharedPtr<class SLightTreeHierarchy> TreeHierarchyWidget;
 
     TSharedPtr<SBox> ContentBox;

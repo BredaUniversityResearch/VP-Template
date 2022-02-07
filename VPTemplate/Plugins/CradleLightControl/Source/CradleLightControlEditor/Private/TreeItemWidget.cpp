@@ -194,7 +194,7 @@ void STreeItemWidget::EndRename(const FText& Text, ETextCommit::Type CommitType)
 void STreeItemWidget::ExpandInTree()
 {
 	OwningWidgetRef->UpdateExpansionForItem(ItemHandleRef);
-	//ItemHandleRef->ToolData->ItemExpansionChangedDelegate.ExecuteIfBound(this, bExpanded);
+	//ItemHandleRef->EditorData->ItemExpansionChangedDelegate.ExecuteIfBound(this, bExpanded);
 
 	for (auto Child : ItemHandleRef->Children)
 	{

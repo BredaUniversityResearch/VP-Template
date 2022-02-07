@@ -27,10 +27,8 @@
 #include "ItemHandle.h"
 #include "BaseLight.h"
 
-#include "CradleLightControlEditor.h"
-#include "DesktopPlatform/Public/IDesktopPlatform.h"
-
-#include "GelPaletteWidget.h"
+#include "EditorData.h"
+#include "LightEditorWidget.h"
 
 #include "VirtualLight.h"
 
@@ -38,91 +36,34 @@
 
 void SLightControlTool::Construct(const FArguments& Args, UToolData* InToolData)
 {
-    
+    EditorData = NewObject<UEditorData>();
+    EditorData->MetaDataSaveExtension = FMetaDataExtension::CreateRaw(this, &SLightControlTool::MetaDataSaveExtension);
+    EditorData->MetaDataLoadExtension = FMetaDataExtension::CreateRaw(this, &SLightControlTool::MetaDataLoadExtension);
 
-    LoadResources();
-
-    ToolTab = Args._ToolTab;
-    ToolData = InToolData;
-    ToolData->DataName = "VirtualLight";
-    ToolData->OpenFileDialog = FLightJsonFileDialogDelegate::CreateRaw(this, &SLightControlTool::OpenFileDialog);
-    ToolData->SaveFileDialog = FLightJsonFileDialogDelegate::CreateRaw(this, &SLightControlTool::SaveFileDialog);
-    ToolData->MasterLightTransactedDelegate = FOnMasterLightTransactedDelegate::CreateLambda([this](UItemHandle* ItemHandle)
-        {
-            LightPropertyWidget->UpdateSaturationGradient(ItemHandle->Item->GetHue());
-        });
-
-    ToolData->MetaDataSaveExtension = FMetaDataExtension::CreateRaw(this, &SLightControlTool::MetaDataSaveExtension);
-    ToolData->MetaDataLoadExtension = FMetaDataExtension::CreateRaw(this, &SLightControlTool::MetaDataLoadExtension);
-    
-    ToolData->LoadMetaData();
+    SLightEditorWidget::Construct(Args, InToolData);
 
 
     // Build a database from what is in the level if there wasn't a file to recover from
-    if (ToolData->RootItems.Num() == 0)
+    if (EditorData->GetToolData()->RootItems.Num() == 0)
     {
         UpdateLightList();
     }
 
     DataAutoSaveTimer = RegisterActiveTimer(300.0f, FWidgetActiveTimerDelegate::CreateLambda([this](double, float)
         {
-            ToolData->AutoSave();
+            EditorData->AutoSave();
 
             return EActiveTimerReturnType::Continue;
         }));
 
-    ToolData->AddToRoot();
+    EditorData->AddToRoot();
 
-    SSplitter::FSlot* SplitterSlot;
-    ChildSlot
-        [
-            SNew(SOverlay)
-            + SOverlay::Slot()
-        .HAlign(HAlign_Fill)
-        .VAlign(VAlign_Top)
-        [
-            SNew(SSplitter)
-            .PhysicalSplitterHandleSize(5.0f)
-        .HitDetectionSplitterHandleSize(15.0f)
-        + SSplitter::Slot()
-        .Expose(SplitterSlot)
-        .Value(0.5f)
-        //.SizeRule(SSplitter::ESizeRule::SizeToContent)
-        [
-            SAssignNew(TreeWidget, SLightTreeHierarchy)
-            .ToolData(ToolData)
-            .Name("Virtual Lights")
-            .DataVerificationDelegate(FItemDataVerificationDelegate::CreateRaw(this, &SLightControlTool::VerifyTreeData))
-            .DataVerificationInterval(2.0f)
-            .DataUpdateDelegate(FUpdateItemDataDelegate::CreateStatic(&SLightControlTool::UpdateItemData))
-            .SelectionChangedDelegate(FTreeSelectionChangedDelegate::CreateRaw(this, &SLightControlTool::OnTreeSelectionChanged))
-            ]
-            + SSplitter::Slot()
-            [
-                SNew(SHorizontalBox)
-                /*+ SHorizontalBox::Slot()
-                .Expose(SeparatorSlot)
-                .Padding(0.0f, 0.0f, 30.0f, 0.0f)
-                [
-                    SNew(SSeparator)
-                    .Orientation(EOrientation::Orient_Vertical)
-                ]         */
-                + SHorizontalBox::Slot()
-                [
-                    SNew(SVerticalBox)                
-                    + LightHeader()
-                    + LightPropertyEditor()
-					
-                ]
-            ]
-        ]
-    ];
-
-    TreeWidget->Tree->RequestTreeRefresh();    
+    TreeWidget->DataVerificationDelegate.BindRaw(this, &SLightControlTool::VerifyTreeData);
+    TreeWidget->DataUpdateDelegate.BindStatic(&SLightControlTool::UpdateItemData);
 
     FWorldDelegates::OnWorldCleanup.AddLambda([this](UWorld*, bool, bool)
         {
-            ToolData->SaveMetaData();
+            EditorData->SaveMetaData();
             if (ActorSpawnedListenerHandle.IsValid())
             {
                 GWorld->RemoveOnActorSpawnedHandler(ActorSpawnedListenerHandle);
@@ -132,15 +73,14 @@ void SLightControlTool::Construct(const FArguments& Args, UToolData* InToolData)
 
     FEditorDelegates::OnMapOpened.AddLambda([this](const FString&, bool)
     {
-    /*OnWorldChangedDelegateHandle = FWorldDelegates::OnPostWorldInitialization.AddLambda([this](UWorld*, const UWorld::InitializationValues&)
-        {*/
+    
             ClearSelection();
 			// Load the metadata for the current world
-            ToolData->LoadMetaData();
+            EditorData->LoadMetaData();
             
 			// If there is no concrete file associated with the current world, generate the data from scratch.
 			// This way we avoid the tool using invalid data 
-            if (ToolData->ToolPresetPath.IsEmpty())
+            if (EditorData->ToolPresetPath.IsEmpty())
             {
                 UpdateLightList();
             }
@@ -154,18 +94,17 @@ void SLightControlTool::Construct(const FArguments& Args, UToolData* InToolData)
             else
                 GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Could not set actor spawned callback");
 
-            ToolData->bCurrentlyLoading = false;
+            EditorData->bCurrentlyLoading = false;
         });
 }
 
 SLightControlTool::~SLightControlTool()
 {
-    //PreDestroy();
 }
 
 void SLightControlTool::PreDestroy()
 {
-    ToolData->AutoSave();
+    EditorData->AutoSave();
     if (TreeWidget)
         TreeWidget->PreDestroy();
     if (LightPropertyWidget)
@@ -182,112 +121,34 @@ void SLightControlTool::ActorSpawnedCallback(AActor* Actor)
     TreeWidget->OnActorSpawned(Actor);
 }
 
-void SLightControlTool::OnTreeSelectionChanged()
-{
-    if (ToolData->IsAMasterLightSelected())
-    {
-        LightPropertyWidget->UpdateSaturationGradient(ToolData->SelectionMasterLight->Item->Hue);
-        UpdateExtraLightDetailBox();
-        ItemHeader->Update();
-        LightSpecificWidget->UpdateToolState();
-    }
-
-}
-
-TWeakPtr<SLightTreeHierarchy> SLightControlTool::GetTreeWidget()
-{
-    return TreeWidget;
-}
-
-TWeakPtr<SLightPropertyEditor> SLightControlTool::GetLightPropertyEditor()
-{
-    return LightPropertyWidget;
-}
-
-FString SLightControlTool::OpenFileDialog(FString Title, FString StartingPath)
-{
-
-    TArray<FString> Res;
-    if (FCradleLightControlEditorModule::OpenFileDialog(Title, ToolTab->GetParentWindow()->GetNativeWindow()->GetOSWindowHandle(),
-        StartingPath, EFileDialogFlags::None, "JSON Data Table|*.json", Res))
-    {
-        return Res[0];
-    }
-    return "";
-}
-
-FString SLightControlTool::SaveFileDialog(FString Title, FString StartingPath)
-{
-    TArray<FString> Res;
-    if (FCradleLightControlEditorModule::SaveFileDialog(Title, ToolTab->GetParentWindow()->GetNativeWindow()->GetOSWindowHandle(),
-        StartingPath, EFileDialogFlags::None, "JSON Data Table|*.json", Res))
-    {
-        return Res[0];
-    }
-    return "";
-}
-
 void SLightControlTool::UpdateLightList()
 {
-    ToolData->ClearAllData();
+    EditorData->ClearAllData();
     TArray<AActor*> Actors;
     // Fetch Point Lights
-    UGameplayStatics::GetAllActorsOfClass(GWorld, APointLight::StaticClass(), Actors);
+
+    UGameplayStatics::GetAllActorsOfClass(GWorld, ALight::StaticClass(), Actors);
     for (auto Light : Actors)
     {
-        auto* NewItem = Cast<UVirtualLight>(ToolData->AddItem()->Item);
-        NewItem->Handle->Type = ETreeItemType::PointLight;
+        auto* NewItem = Cast<UVirtualLight>(EditorData->GetToolData()->AddItem()->Item);
+
+        if (Cast<APointLight>(Light))
+			NewItem->Handle->Type = ETreeItemType::PointLight;
+        else if (Cast<ADirectionalLight>(Light))
+            NewItem->Handle->Type = ETreeItemType::DirectionalLight;
+        else if (Cast<ASpotLight>(Light))
+            NewItem->Handle->Type = ETreeItemType::SpotLight;
+        else if (Cast<ASkyLight>(Light))
+            NewItem->Handle->Type = ETreeItemType::SkyLight;
+
         NewItem->Handle->Name = Light->GetName();
-        NewItem->PointLight = Cast<APointLight>(Light);
+        NewItem->ActorPtr = Light;
         UpdateItemData(NewItem->Handle);
 
-        ToolData->RootItems.Add(NewItem->Handle);
+        EditorData->GetToolData()->RootItems.Add(NewItem->Handle);
         TreeWidget->GenerateWidgetForItem(NewItem->Handle);
     }
-
-    // Fetch Sky Lights
-    UGameplayStatics::GetAllActorsOfClass(GWorld, ASkyLight::StaticClass(), Actors);
-    for (auto Light : Actors)
-    {
-        auto* NewItem = Cast<UVirtualLight>(ToolData->AddItem()->Item);
-        NewItem->Handle->Type = ETreeItemType::SkyLight;
-        NewItem->Handle->Name = Light->GetName();
-        NewItem->SkyLight = Cast<ASkyLight>(Light);
-        UpdateItemData(NewItem->Handle);
-
-        ToolData->RootItems.Add(NewItem->Handle);
-        TreeWidget->GenerateWidgetForItem(NewItem->Handle);
-    }
-
-    // Fetch Directional Lights
-    UGameplayStatics::GetAllActorsOfClass(GWorld, ADirectionalLight::StaticClass(), Actors);
-    for (auto Light : Actors)
-    {
-        auto* NewItem = Cast<UVirtualLight>(ToolData->AddItem()->Item);
-
-        NewItem->Handle->Type = ETreeItemType::DirectionalLight;
-        NewItem->Handle->Name = Light->GetName();
-        NewItem->DirectionalLight = Cast<ADirectionalLight>(Light);
-        UpdateItemData(NewItem->Handle);
-
-        ToolData->RootItems.Add(NewItem->Handle);
-        TreeWidget->GenerateWidgetForItem(NewItem->Handle);
-    }
-
-    // Fetch Spot Lights
-    UGameplayStatics::GetAllActorsOfClass(GWorld, ASpotLight::StaticClass(), Actors);
-    for (auto Light : Actors)
-    {
-        auto* NewItem = Cast<UVirtualLight>(ToolData->AddItem()->Item);
-
-        NewItem->Handle->Type = ETreeItemType::SpotLight;
-        NewItem->Handle->Name = Light->GetName();
-        NewItem->SpotLight = Cast<ASpotLight>(Light);
-        UpdateItemData(NewItem->Handle);
-
-        ToolData->RootItems.Add(NewItem->Handle);
-        TreeWidget->GenerateWidgetForItem(NewItem->Handle);
-    }
+    
     if (TreeWidget)
 		TreeWidget->Tree->RequestTreeRefresh();
 }
@@ -368,12 +229,12 @@ void SLightControlTool::UpdateItemData(UItemHandle* ItemHandle)
 
 void SLightControlTool::VerifyTreeData()
 {
-    if (ToolData->bCurrentlyLoading)
+    if (EditorData->bCurrentlyLoading)
         return;
     
     GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, "Cleaning invalid lights");
     TArray<UItemHandle*> ToRemove;
-    for (auto ItemHandle : ToolData->ListOfLightItems)
+    for (auto ItemHandle : EditorData->GetToolData()->ListOfLightItems)
     {
         auto Item = Cast<UVirtualLight>(ItemHandle->Item);
         if (!Item->ActorPtr || !IsValid(Item->SkyLight))
@@ -381,7 +242,7 @@ void SLightControlTool::VerifyTreeData()
             if (ItemHandle->Parent)
                 ItemHandle->Parent->Children.Remove(ItemHandle);
             else
-                ToolData->RootItems.Remove(ItemHandle);
+                EditorData->GetToolData()->RootItems.Remove(ItemHandle);
 
 
             ToRemove.Add(ItemHandle);
@@ -394,8 +255,8 @@ void SLightControlTool::VerifyTreeData()
 
     for (auto Item : ToRemove)
     {
-        ToolData->ListOfTreeItems.Remove(Item);
-        ToolData->ListOfLightItems.Remove(Item);
+        EditorData->GetToolData()->ListOfTreeItems.Remove(Item);
+        EditorData->GetToolData()->ListOfLightItems.Remove(Item);
     }
 
     if (ToRemove.Num())
@@ -404,70 +265,12 @@ void SLightControlTool::VerifyTreeData()
     }
 }
 
-UToolData* SLightControlTool::GetToolData() const
-{
-	return ToolData;
-}
-
-TSharedRef<SDockTab> SLightControlTool::Show()
-{
-    if (!ToolTab)
-    {
-        ToolTab = SNew(SDockTab)
-            .Label(FText::FromString("Virtual Light Control"))
-            .TabRole(ETabRole::NomadTab)
-            .OnTabClosed_Lambda([this](TSharedRef<SDockTab>)
-                {
-                    FGlobalTabmanager::Get()->UnregisterNomadTabSpawner("LightControl");
-                    ToolTab.Reset();
-                })
-    	[
-            SharedThis(this)
-        ];
-    }
-    else
-        ToolTab->FlashTab();
-
-    
-
-    return ToolTab.ToSharedRef();
-}
-
-void SLightControlTool::Hide()
-{
-}
-
-
-void SLightControlTool::LoadResources()
-{
-    
-}
-
-SVerticalBox::FSlot& SLightControlTool::LightHeader()
-{
-    auto& Slot = SVerticalBox::Slot();
-
-    Slot.SizeParam.SizeRule = FSizeParam::SizeRule_Auto;
-
-    Slot
-    .HAlign(HAlign_Fill)
-        [
-            SAssignNew(ItemHeader, SLightItemHeader)
-            .ToolData(ToolData)
-			.TreeHierarchyWidget(TreeWidget)
-        ];
-
-    //UpdateLightHeader();
-
-    return Slot;
-
-}
 
 void SLightControlTool::MetaDataSaveExtension(TSharedPtr<FJsonObject> RootJson)
 {
 	if (GWorld)
 	{
-        auto OpenedJson = ToolData->OpenMetaDataJson();
+        auto OpenedJson = EditorData->OpenMetaDataJson();
         if (OpenedJson)
             *RootJson = *OpenedJson; // Replace whatever was done by the default saving with the current file state
         else
@@ -475,7 +278,7 @@ void SLightControlTool::MetaDataSaveExtension(TSharedPtr<FJsonObject> RootJson)
 
         auto MapName = GWorld->GetMapName();
 
-        RootJson->SetStringField(MapName, ToolData->ToolPresetPath);
+        RootJson->SetStringField(MapName, EditorData->ToolPresetPath);
 		
 	}
 
@@ -490,56 +293,16 @@ void SLightControlTool::MetaDataLoadExtension(TSharedPtr<FJsonObject> RootJson)
 
         if (RootJson->HasField(MapName))
         {
-            ToolData->ToolPresetPath = RootJson->GetStringField(MapName);	        
+            EditorData->ToolPresetPath = RootJson->GetStringField(MapName);	        
         }
 	}
 }
 
-
-SVerticalBox::FSlot& SLightControlTool::LightPropertyEditor()
-{
-    auto& Slot = SVerticalBox::Slot();
-
-    TSharedPtr<SVerticalBox> Box;
-
-    SVerticalBox::FSlot* ExtraLightBoxSlot;
-
-    Slot
-        .Padding(20.0f, 30.0f, 20.0f, 0.0f)
-        .VAlign(VAlign_Fill)
-        .HAlign(HAlign_Fill)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot() // General light properties + extra light properties or group controls
-            [
-                SNew(SVerticalBox)
-                + SVerticalBox::Slot()
-                [
-                    SAssignNew(LightPropertyWidget, SLightPropertyEditor)
-                    .ToolData(ToolData)
-                ]
-                + SVerticalBox::Slot()
-                .Expose(ExtraLightBoxSlot)
-                [
-                    SAssignNew(ExtraLightDetailBox, SBox)
-                    .Padding(FMargin(0.0f, 5.0f, 0.0f, 0.0f))                
-                ]
-            ]
-        + LightSpecificPropertyEditor()
-    ];
-
-    ExtraLightBoxSlot->SizeParam.SizeRule = FSizeParam::SizeRule_Auto;
-
-    UpdateExtraLightDetailBox();
-
-    return Slot;
-}
-
 void SLightControlTool::UpdateExtraLightDetailBox()
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        if (ToolData->MultipleLightsInSelection())
+        if (EditorData->MultipleLightsInSelection())
         {
             ExtraLightDetailBox->SetContent(GroupControls());
         }
@@ -551,22 +314,6 @@ void SLightControlTool::UpdateExtraLightDetailBox()
     else
         ExtraLightDetailBox->SetContent(SNew(SBox));
 }
-
-void SLightControlTool::ClearSelection()
-{
-    if (TreeWidget)
-    {
-        ToolData->SelectedItems.Empty();
-        TreeWidget->Tree->ClearSelection();
-        ToolData->SelectionMasterLight = nullptr;
-        ToolData->LightsUnderSelection.Empty();
-    }
-    ItemHeader->Update();
-    //UpdateLightHeader();
-    UpdateExtraLightDetailBox();
-    LightSpecificWidget->UpdateToolState();
-}
-
 
 TSharedRef<SBox> SLightControlTool::LightTransformViewer()
 {
@@ -691,10 +438,10 @@ TSharedRef<SBox> SLightControlTool::LightTransformViewer()
 
 FReply SLightControlTool::SelectItemInScene()
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
         GEditor->SelectNone(true, true);
-        GEditor->SelectActor(Cast<UVirtualLight>(ToolData->SelectionMasterLight->Item)->ActorPtr, true, true, false, true);
+        GEditor->SelectActor(Cast<UVirtualLight>(EditorData->SelectionMasterLight->Item)->ActorPtr, true, true, false, true);
     }
 
     return FReply::Handled();
@@ -703,48 +450,48 @@ FReply SLightControlTool::SelectItemInScene()
 FReply SLightControlTool::SelectItemParent()
 {
     GEditor->SelectNone(true, true);
-    GEditor->SelectActor(Cast<UVirtualLight>(ToolData->SelectionMasterLight->Item)->ActorPtr->GetAttachParentActor(), true, true, false, true);
+    GEditor->SelectActor(Cast<UVirtualLight>(EditorData->SelectionMasterLight->Item)->ActorPtr->GetAttachParentActor(), true, true, false, true);
 
     return FReply::Handled();
 }
 
 bool SLightControlTool::SelectItemParentButtonEnable() const
 {
-    return ToolData->IsAMasterLightSelected() && Cast<UVirtualLight>(ToolData->SelectionMasterLight->Item)->ActorPtr->GetAttachParentActor();
+    return EditorData->IsAMasterLightSelected() && Cast<UVirtualLight>(EditorData->SelectionMasterLight->Item)->ActorPtr->GetAttachParentActor();
 }
 
 FText SLightControlTool::GetItemParentName() const
 {
-    if (ToolData->IsAMasterLightSelected() && Cast<UVirtualLight>(ToolData->SelectionMasterLight->Item)->ActorPtr->GetAttachParentActor())
+    if (EditorData->IsAMasterLightSelected() && Cast<UVirtualLight>(EditorData->SelectionMasterLight->Item)->ActorPtr->GetAttachParentActor())
     {
-        return FText::FromString(Cast<UVirtualLight>(ToolData->SelectionMasterLight->Item)->ActorPtr->GetAttachParentActor()->GetName());
+        return FText::FromString(Cast<UVirtualLight>(EditorData->SelectionMasterLight->Item)->ActorPtr->GetAttachParentActor()->GetName());
     }
     return FText::FromString("None");
 }
 
 FText SLightControlTool::GetItemPosition() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        return FText::FromString(Cast<UVirtualLight>(ToolData->SelectionMasterLight->Item)->ActorPtr->GetActorLocation().ToString());
+        return FText::FromString(Cast<UVirtualLight>(EditorData->SelectionMasterLight->Item)->ActorPtr->GetActorLocation().ToString());
     }
     return FText::FromString("");
 }
 
 FText SLightControlTool::GetItemRotation() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        return FText::FromString(Cast<UVirtualLight>(ToolData->SelectionMasterLight->Item)->ActorPtr->GetActorRotation().ToString());
+        return FText::FromString(Cast<UVirtualLight>(EditorData->SelectionMasterLight->Item)->ActorPtr->GetActorRotation().ToString());
     }
     return FText::FromString("");
 }
 
 FText SLightControlTool::GetItemScale() const
 {
-    if (ToolData->IsAMasterLightSelected())
+    if (EditorData->IsAMasterLightSelected())
     {
-        return FText::FromString(Cast<UVirtualLight>(ToolData->SelectionMasterLight->Item)->ActorPtr->GetActorScale().ToString());
+        return FText::FromString(Cast<UVirtualLight>(EditorData->SelectionMasterLight->Item)->ActorPtr->GetActorScale().ToString());
     }
     return FText::FromString("");
 }
@@ -773,10 +520,10 @@ TSharedRef<SBox> SLightControlTool::GroupControls()
                 + SHorizontalBox::Slot()
                 [
                     SNew(SComboBox<UItemHandle*>)
-                    .OptionsSource(&ToolData->LightsUnderSelection)
+                    .OptionsSource(&EditorData->LightsUnderSelection)
                     .OnGenerateWidget(this, &SLightControlTool::GroupControlDropDownLabel)
                     .OnSelectionChanged(this, &SLightControlTool::GroupControlDropDownSelection)
-                    .InitiallySelectedItem(ToolData->SelectionMasterLight)[
+                    .InitiallySelectedItem(EditorData->SelectionMasterLight)[
                         SNew(STextBlock).Text(this, &SLightControlTool::GroupControlDropDownDefaultLabel)
                     ]
                 ]
@@ -816,45 +563,28 @@ TSharedRef<SWidget> SLightControlTool::GroupControlDropDownLabel(UItemHandle* It
 
 void SLightControlTool::GroupControlDropDownSelection(UItemHandle* Item, ESelectInfo::Type SelectInfoType)
 {
-    ToolData->SelectionMasterLight = Item;
+    EditorData->SelectionMasterLight = Item;
     LightSpecificWidget->UpdateToolState();
 }
 
 FText SLightControlTool::GroupControlDropDownDefaultLabel() const
 {
-    if (ToolData->SelectionMasterLight)
+    if (EditorData->SelectionMasterLight)
     {
-        return FText::FromString(ToolData->SelectionMasterLight->Name);
+        return FText::FromString(EditorData->SelectionMasterLight->Name);
     }
     return FText::FromString("");
 }
 
 FText SLightControlTool::GroupControlLightList() const
 {
-    FString LightList = ToolData->LightsUnderSelection[0]->Name;
+    FString LightList = EditorData->LightsUnderSelection[0]->Name;
 
-    for (size_t i = 1; i < ToolData->LightsUnderSelection.Num(); i++)
+    for (size_t i = 1; i < EditorData->LightsUnderSelection.Num(); i++)
     {
         LightList += ", ";
-        LightList += ToolData->LightsUnderSelection[i]->Name;
+        LightList += EditorData->LightsUnderSelection[i]->Name;
     }
 
     return FText::FromString(LightList);
 }
-
-SHorizontalBox::FSlot& SLightControlTool::LightSpecificPropertyEditor()
-{
-    auto& Slot = SHorizontalBox::Slot();
-    Slot.SizeParam.SizeRule = FSizeParam::SizeRule_Auto;
-
-
-    Slot
-    .Padding(5.0f, 0.0f, 0.0f, 0.0f)
-    [
-        SAssignNew(LightSpecificWidget, SLightSpecificProperties)
-        .ToolData(ToolData)
-    ];
-
-    return Slot;
-}
-

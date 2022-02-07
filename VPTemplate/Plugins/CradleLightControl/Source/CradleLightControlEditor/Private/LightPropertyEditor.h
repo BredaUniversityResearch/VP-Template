@@ -12,7 +12,7 @@ public:
 	    , _DisplayTemperatureInPercentage(false)
 	{}
 
-    SLATE_ARGUMENT(class UToolData*, ToolData)
+    SLATE_ARGUMENT(class UEditorData*, EditorData)
 
     SLATE_ARGUMENT(bool, DisplayIntensityInPercentage)
 
@@ -66,7 +66,7 @@ public:
     FText GetTemperaturePercentage() const;
 
     //class SLightControlTool* CoreToolPtr;
-    UToolData* ToolData;
+    UEditorData* EditorData;
 
 
     TSharedPtr<FSlateImageBrush> IntensityGradientBrush;

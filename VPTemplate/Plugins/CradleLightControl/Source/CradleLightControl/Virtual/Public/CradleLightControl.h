@@ -4,48 +4,46 @@
 
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
-//#include "LightControlTool.h"
+#include "LightControlTool.h"
 
-//#include "GelPaletteWidget.h"
+#include "GelPaletteWidget.h"
 
 #include "IDetailCustomization.h"
 #include "Chaos/AABB.h"
 
-#include "BaseLightPropertyChangeListener.h"
-
-
-class UToolData;
-class FBaseLightPropertyChangeListener;
-
-DECLARE_LOG_CATEGORY_EXTERN(LogCradleLightControl, Log, All)
-
-class CRADLELIGHTCONTROL_API FCradleLightControlModule : public IModuleInterface
+class FCradleLightControlModule : public IModuleInterface
 {
 public:
-
-	~FCradleLightControlModule();
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-	// Shorthand to get the module instance if it is loaded
-	static FCradleLightControlModule& Get();
 
-	static FBaseLightPropertyChangeListener& GetLightPropertyChangeListener() { return *Get().LightPropertyChangeListener; }
+	static bool OpenFileDialog(FString Title, void*
+                        NativeWindowHandle, FString DefaultPath, uint32 Flags, FString FileTypeList, TArray<FString>& OutFilenames);
+	static bool SaveFileDialog(FString Title, void*
+                        NativeWindowHandle, FString DefaultPath, uint32 Flags, FString FileTypeList, TArray<FString>& OutFilenames);
 
-	UToolData* GetVirtualLightToolData();
-	UToolData* GetDMXLightToolData();
+	void OpenGelPalette(FGelPaletteSelectionCallback SelectionCallback);
 
-	
+	void RegisterTabSpawner();
+	void RegisterDMXTabSpawner();
+
+
+
+	TSharedPtr<FUICommandList> CommandList;
+
+	TSharedPtr<SDockTab> LightTab;
+	TSharedPtr<SDockTab> DMXTab;
+
+	TSharedPtr<SLightControlTool> LightControl;
+	TSharedPtr<class SDMXControlTool> DMXControl;
+
+	TSharedPtr<SGelPaletteWidget> GelPalette;
+	TSharedPtr<SWindow> GelPaletteWindow;
+
 
 private:
 
-	void OnWorldInitialized(UWorld* World, const UWorld::InitializationValues);
-	void OnWorldCleanup(UWorld*, bool, bool);
-
-	UToolData* VirtualLightToolData;
-	UToolData* DMXLightToolData;
-
-	TUniquePtr<FBaseLightPropertyChangeListener> LightPropertyChangeListener;
 };

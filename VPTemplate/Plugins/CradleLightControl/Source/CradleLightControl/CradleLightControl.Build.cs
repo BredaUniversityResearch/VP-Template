@@ -15,8 +15,9 @@ public class CradleLightControl : ModuleRules
 
         PublicIncludePaths.AddRange(
 			new string[] {
-				SourceCodeDir() + "Virtual/Public",
-				SourceCodeDir() + "DMX/Public",
+				"Editor/Blutility/Classes/",
+				"/Source/CradleLightControl/Virtual/Public",
+				"/Source/CradleLightControl/DMX/Public",
 				//"../Virtual/Public"
                 // ... add public include paths required here ...
 			}
@@ -25,6 +26,9 @@ public class CradleLightControl : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
+				"Editor/Blutility/Classes/",
+				SourceCodeDir() + "Virtual/Public",
+				SourceCodeDir() + "DMX/Public",
 				// ... add other private include paths required here ...
 			}
 			);
@@ -73,7 +77,6 @@ public class CradleLightControl : ModuleRules
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
-				"CradleLightControlEditor"
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);

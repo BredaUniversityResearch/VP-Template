@@ -23,7 +23,7 @@ public:
         : _Name("Unnamed tree view")
     {}
 
-    SLATE_ARGUMENT(class UToolData*, ToolData)
+    SLATE_ARGUMENT(class UEditorData*, EditorData)
 
     SLATE_ARGUMENT(FString, Name)
 
@@ -67,7 +67,7 @@ public:
     FText GetPresetFilename() const;
 
 
-    UToolData* ToolData;
+    UEditorData* EditorData;
     TMap<UItemHandle*, TSharedPtr<STreeItemWidget>> ItemWidgets;
 
     FSlateIcon SaveIcon;
