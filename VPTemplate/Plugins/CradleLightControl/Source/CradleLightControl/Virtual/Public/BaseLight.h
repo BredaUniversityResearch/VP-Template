@@ -83,8 +83,9 @@ public:
     virtual uint8 LoadFromJson(TSharedPtr<FJsonObject> JsonObject);
 
     virtual void BeginTransaction();
+#if WITH_EDITOR
     virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;
-
+#endif
     // Get the RGB color of the light based on its hue and saturation
     FLinearColor GetRGBColor() const;
 

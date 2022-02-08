@@ -2,13 +2,9 @@
 
 #include "CradleLightControl.h"
 
-#include "AssetToolsModule.h"
-#include "LevelEditor.h"
 #include "DMXConfigAsset.h"
 
-#include "DesktopPlatformModule.h"
 #include "DMXLight.h"
-#include "IDesktopPlatform.h"
 #include "ItemHandle.h"
 
 #include "ToolData.h"
@@ -60,9 +56,9 @@ void FCradleLightControlModule::StartupModule()
 
 	if (GEngine && GEngine->IsEditor())
 	{
-		FModuleManager::Get().LoadModule("CradleLightControlEditor");		
+		FModuleManager::Get().LoadModule("CradleLightControlEditor");
 	}
-	
+
 }
 
 void FCradleLightControlModule::ShutdownModule()
@@ -120,5 +116,5 @@ void FCradleLightControlModule::OnWorldCleanup(UWorld*, bool, bool)
 
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FCradleLightControlModule, CradleLightControl)

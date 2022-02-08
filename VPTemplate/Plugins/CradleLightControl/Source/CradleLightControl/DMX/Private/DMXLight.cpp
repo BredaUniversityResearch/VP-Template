@@ -21,25 +21,25 @@ float UDMXLight::GetVerticalNormalized() const
 
 void UDMXLight::SetEnabled(bool bNewState)
 {
-	Super::SetEnabled(bNewState);
+    Super::SetEnabled(bNewState);
     UpdateDMXChannels();
 }
 
 void UDMXLight::SetLightIntensity(float NormalizedValue)
 {
-	Super::SetLightIntensity(NormalizedValue);
+    Super::SetLightIntensity(NormalizedValue);
     UpdateDMXChannels();
 }
 
 void UDMXLight::SetHue(float NewValue)
 {
-	Super::SetHue(NewValue);
+    Super::SetHue(NewValue);
     UpdateDMXChannels();
 }
 
 void UDMXLight::SetSaturation(float NewValue)
 {
-	Super::SetSaturation(NewValue);
+    Super::SetSaturation(NewValue);
     UpdateDMXChannels();
 }
 
@@ -82,7 +82,7 @@ FPlatformTypes::uint8 UDMXLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject
         if (ensure(AssetData.IsValid()))
             UE_LOG(LogCradleLightControl, Warning, TEXT("Could not load DMX Config asset with object path: %s"), *ConfigObjectPath);
 
-    	Config = Cast<UDMXConfigAsset>(AssetData.GetAsset());
+        Config = Cast<UDMXConfigAsset>(AssetData.GetAsset());
         Config->AssetName = AssetData.AssetName;
     }
     else
@@ -97,24 +97,24 @@ FPlatformTypes::uint8 UDMXLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject
 
 TSharedPtr<FJsonObject> UDMXLight::SaveAsJson()
 {
-	if (Config)
-	{
+    if (Config)
+    {
         Vertical = Config->VerticalChannel.NormalizeValue(Vertical);
         Horizontal = Config->HorizontalChannel.NormalizeValue(Horizontal);
-	}
+    }
 
     auto JsonObject = Super::SaveAsJson();
 
-	if (Config)
-	{
+    if (Config)
+    {
         Vertical = Config->VerticalChannel.NormalizedToValue(Vertical);
-        Horizontal = Config->HorizontalChannel.NormalizedToValue(Horizontal);		
-	}
+        Horizontal = Config->HorizontalChannel.NormalizedToValue(Horizontal);
+    }
 
     FString ObjectPath = "";
 
     if (Config)
-    {        
+    {
         ObjectPath = Config->GetAssetPath();
     }
 
@@ -128,16 +128,17 @@ TSharedPtr<FJsonObject> UDMXLight::SaveAsJson()
     return JsonObject;
 }
 
+#if WITH_EDITOR
 void UDMXLight::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
     // When this object is transacted, we need to send new DMX signals reflecting that. Hence this.
-	Super::PostTransacted(TransactionEvent);
-	if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo)
-	{
+    Super::PostTransacted(TransactionEvent);
+    if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo)
+    {
         UpdateDMXChannels();
-	}
+    }
 }
-
+#endif
 void UDMXLight::UpdateDMXChannels()
 {
     // We need a specified OutputPort and Config to be able to send valid DMX signals
@@ -148,7 +149,7 @@ void UDMXLight::UpdateDMXChannels()
         Config->SetChannels(this, DMXChannels);
 
         // SendDMX() will only apply to the channels which are given values in the Map,
-    	// so it will not overwrite the channels used by other lights unless they are made to overlap
+        // so it will not overwrite the channels used by other lights unless they are made to overlap
         OutputPort->SendDMX(1, DMXChannels);
     }
 }

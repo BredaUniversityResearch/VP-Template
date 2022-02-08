@@ -43,12 +43,12 @@ UBaseLight* UToolData::GetLightByName(FString Name)
     return nullptr;
 }
 
-
+#if WITH_EDITOR
 void UToolData::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
     OnTransacted.ExecuteIfBound(TransactionEvent);
 }
-
+#endif
 void UToolData::BeginTransaction()
 {
     Modify();

@@ -8,7 +8,6 @@
 
 //#include "GelPaletteWidget.h"
 
-#include "IDetailCustomization.h"
 #include "Chaos/AABB.h"
 
 #include "BaseLightPropertyChangeListener.h"

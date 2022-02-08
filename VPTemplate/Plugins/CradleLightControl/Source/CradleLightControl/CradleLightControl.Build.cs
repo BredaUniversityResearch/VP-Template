@@ -37,7 +37,6 @@ public class CradleLightControl : ModuleRules
 			{
 				"Core",
                 "DMXProtocol",
-                "DMXProtocolEditor",
                 "DMXRuntime"
 				// ... add other public dependencies that you statically link with here ...
 			}
@@ -49,23 +48,15 @@ public class CradleLightControl : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-				"UnrealEd",
 				"Slate",
-				"SlateCore",
                 "InputCore", 
 				"Projects",
 				"RHI",
 				"RenderCore",
 				"AppFramework",
 				"Json",
-				"EditorStyle",
-				"DesktopPlatform",
                 "DMXProtocol",
-                "DMXProtocolEditor",
                 "DMXRuntime",
-				"PropertyEditor",
-				"DetailCustomizations",
-				"AssetTools"
 
 				// ... add private dependencies that you statically link with here ...	
 			}

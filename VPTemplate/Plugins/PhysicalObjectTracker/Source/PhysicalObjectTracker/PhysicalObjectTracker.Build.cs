@@ -25,7 +25,8 @@ public class PhysicalObjectTracker : ModuleRules
 				"Core",
                 "CoreUObject",
 				"SteamVR", 
-				"Engine"
+				"Engine",
+				"HeadMountedDisplay"
 			}
 			);
 			

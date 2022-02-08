@@ -5,7 +5,6 @@
 #include "../Public/DMXConfigAsset.h"
 
 #include "DMXLight.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 
 float FDMXLinearChannel::NormalizedToValue(float Normalized)
 {
@@ -69,44 +68,6 @@ void FDMXToggleChannel::SetChannel(TMap<int32, uint8>& Channels, void* ValuePtr,
 	}
 }
 
-FDMXConfigAssetAction::FDMXConfigAssetAction()
-{
-    // Register asset types
-    IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-
-    // register AI category so that AI assets can register to it
-    AssetCategoryBit = AssetTools.FindAdvancedAssetCategory(FName("DMX"));
-    //AssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("DMX")), FText::FromString("DMX"));
-}
-
-FText FDMXConfigAssetAction::GetName() const
-{
-    return FText::FromString("DMX Light Config");
-}
-
-FColor FDMXConfigAssetAction::GetTypeColor() const
-{
-    return FColor::Cyan;
-}
-
-uint32 FDMXConfigAssetAction::GetCategories()
-{
-    return AssetCategoryBit;
-}
-
-UClass* FDMXConfigAssetAction::GetSupportedClass() const
-{
-    return UDMXConfigAsset::StaticClass();
-}
-
-void FDMXConfigAssetAction::OpenAssetEditor(const TArray<UObject*>& InObjects,
-    TSharedPtr<IToolkitHost> EditWithinLevelEditor)
-{
-    FSimpleAssetEditor::CreateEditor(EToolkitMode::Standalone, EditWithinLevelEditor, InObjects);
-
-
-}
-
 UDMXConfigAsset::UDMXConfigAsset()
 {
     // Default the max value for the horizontal and vertical channels to 360 instead of 1
@@ -118,26 +79,26 @@ UDMXConfigAsset::UDMXConfigAsset()
     // Code to collect all fields which are representative of a DMX channel and add them to an array
     // for them to be applied in a specific order. Issue is finding a way get the data to the channels we are building the DMX channel map.
     // As such, just keeping it here for now as it is not a very important feature, but it would take a while to implement well.
-    for (TFieldIterator<FStructProperty> It(GetClass(), EFieldIteratorFlags::ExcludeSuper); It; ++It)
-    {
-        auto Prop = *It;
-        if (Prop->HasMetaData("DMXChannel"))
-        {
-            FDMXChannel* Channel;
+    //for (TFieldIterator<FStructProperty> It(GetClass(), EFieldIteratorFlags::ExcludeSuper); It; ++It)
+    //{
+    //    auto Prop = *It;
+    //    if (Prop->HasMetaData("DMXChannel"))
+    //    {
+    //        FDMXChannel* Channel;
 
-            auto FieldClass = Prop->GetClass();
+    //        auto FieldClass = Prop->GetClass();
 
-            Channel = Prop->ContainerPtrToValuePtr<FDMXChannel>(this);
-            //auto ScriptStruct = Prop->Struct;
-            //ScriptStruct.value
-            UE_LOG(LogTemp, Warning, TEXT("%d"), Channel->Channel/*->GetFName().ToString()*/);
-            SortedChannels.Add(Channel);
-        }
-    }
-    SortedChannels.Sort([](FDMXChannel& Left, FDMXChannel& Right)
-        {
-            return Left.ApplicationOrder > Right.ApplicationOrder;
-        });
+    //        Channel = Prop->ContainerPtrToValuePtr<FDMXChannel>(this);
+    //        //auto ScriptStruct = Prop->Struct;
+    //        //ScriptStruct.value
+    //        UE_LOG(LogTemp, Warning, TEXT("%d"), Channel->Channel/*->GetFName().ToString()*/);
+    //        SortedChannels.Add(Channel);
+    //    }
+    //}
+    //SortedChannels.Sort([](FDMXChannel& Left, FDMXChannel& Right)
+    //    {
+    //        return Left.ApplicationOrder > Right.ApplicationOrder;
+    //    });
 }
 
 void UDMXConfigAsset::SetChannels(UDMXLight* DMXLight, TMap<int32, uint8>& Channels)
@@ -170,7 +131,7 @@ void UDMXConfigAsset::SetupChannels(UDMXLight* DMXLight)
 
 FString UDMXConfigAsset::GetAssetPath()
 {
-    FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+    /*FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
     TArray<FAssetData> AssetData;
     auto Res = AssetRegistryModule.Get().GetAssetsByClass(GetClass()->GetFName(), AssetData);
     check(Res)
@@ -183,5 +144,6 @@ FString UDMXConfigAsset::GetAssetPath()
     {
 		return TargetAsset->ObjectPath.ToString();	    
     }
-    return "";
+    return "";*/
+    return"";
 }

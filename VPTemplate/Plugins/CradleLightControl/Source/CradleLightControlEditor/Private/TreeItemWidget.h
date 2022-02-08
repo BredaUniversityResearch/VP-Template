@@ -16,6 +16,7 @@ class STreeItemWidget : public SCompoundWidget
 
 	void Construct(const FArguments Args, class UItemHandle* ItemHandle);
 
+    void OnCheck(ECheckBoxState NewState);
 
     FReply StartRename(const FGeometry&, const FPointerEvent&);
     void EndRename(const FText& Text, ETextCommit::Type CommitType);
@@ -24,6 +25,9 @@ class STreeItemWidget : public SCompoundWidget
 
     // Check if the name of the handle matches the search string. Not case sensitive.
     bool CheckNameAgainstSearchString(const FString& SearchString);
+
+
+    FReply RemoveFromTreeButtonClicked();
 
 
     UItemHandle* ItemHandleRef;

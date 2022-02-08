@@ -24,10 +24,10 @@ void UItemHandle::UpdateVirtualLights(TArray<AActor*>& ActorLights)
     }
     else
     {
-	    for (auto& Child : Children)
-	    {
+        for (auto& Child : Children)
+        {
             Child->UpdateVirtualLights(ActorLights);
-	    }
+        }
     }
 }
 
@@ -36,7 +36,7 @@ void UItemHandle::RestoreVirtualLightReferences()
     auto VLight = Cast<UVirtualLight>(Item);
     if (VLight && VLight->ActorPtr)
     {
-    	VLight->ActorPtr = VLight->OriginalActor;
+        VLight->ActorPtr = VLight->OriginalActor;
     }
     else
     {
@@ -81,30 +81,21 @@ ECheckBoxState UItemHandle::IsLightEnabled() const
 
 }
 
-void UItemHandle::OnCheck(ECheckBoxState NewState)
+void UItemHandle::EnableGrouped(bool NewState)
 {
-    bool B = false;
-    if (NewState == ECheckBoxState::Checked)
-        B = true;
-
-    GEditor->BeginTransaction(FText::FromString(Name + " State change"));
-
     if (Type != Folder)
     {
-		Item->SetEnabled(B);	    
+        Item->SetEnabled(NewState);
     }
     else
     {
         // Change the state of all children if this is a group, recursively
-	    for (auto& Child : Children)
-	    {
-            Child->OnCheck(NewState);
-	    }
+        for (auto& Child : Children)
+        {
+            Child->EnableGrouped(NewState);
+        }
     }
-
-    GEditor->EndTransaction();
 }
-
 
 bool UItemHandle::VerifyDragDrop(UItemHandle* Dragged, UItemHandle* Destination)
 {
@@ -168,7 +159,7 @@ TSharedPtr<FJsonValue> UItemHandle::SaveToJson()
     if (Type != Folder)
     {
         // If this is not a group, we save the item held by the handle
-        JsonItem->SetObjectField("Item", Item->SaveAsJson());    
+        JsonItem->SetObjectField("Item", Item->SaveAsJson());
     }
     else
     {
@@ -218,7 +209,7 @@ UItemHandle::ELoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> Js
 
             auto ChildObject = *ChildObjectPtr;
             int ChildType = ChildObject->GetNumberField("Type");
-            auto ChildItem = ToolData->AddItem(ChildType == Folder); 
+            auto ChildItem = ToolData->AddItem(ChildType == Folder);
 
             ChildItem->Parent = this;
 
@@ -239,42 +230,6 @@ UItemHandle::ELoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> Js
 
 
     return Success;
-}
-
-FReply UItemHandle::RemoveFromTree()
-{
-    GEditor->BeginTransaction(FText::FromString("Delete Light control folder"));
-    BeginTransaction(false);
-    if (Parent)
-    {
-        // If this handle has a parent, we move all of its children to the parent
-        Parent->BeginTransaction(false);
-        for (auto Child : Children)
-        {
-            Child->BeginTransaction(false);
-            Child->Parent = Parent;
-            Parent->Children.Add(Child);
-
-        }
-        Parent->Children.Remove(this);
-    }
-    else
-    {
-        // If the handle is a root item, we make its children root items as well
-        ToolData->BeginTransaction();
-        for (auto Child : Children)
-        {
-            Child->BeginTransaction(false);
-            Child->Parent = nullptr;
-            ToolData->RootItems.Add(Child);
-        }
-        ToolData->RootItems.Remove(this);
-    }
-    GEditor->EndTransaction();
-    Children.Empty();
-    ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
-
-    return FReply::Handled();
 }
 
 void UItemHandle::GetLights(TArray<UItemHandle*>& Array)
@@ -351,6 +306,7 @@ void UItemHandle::BeginTransaction(bool bAffectItem, bool bAffectParent)
     }
 }
 
+#if WITH_EDITOR
 void UItemHandle::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
     UObject::PostTransacted(TransactionEvent);
@@ -359,6 +315,7 @@ void UItemHandle::PostTransacted(const FTransactionObjectEvent& TransactionEvent
     {
         if (Type == Folder)
             ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
-        
+
     }
 }
+#endif

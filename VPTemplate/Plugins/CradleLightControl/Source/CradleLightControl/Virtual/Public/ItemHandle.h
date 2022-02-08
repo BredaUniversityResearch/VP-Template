@@ -59,7 +59,7 @@ public:
 
     // Used for checkboxes because checkboxes have 3 states
     ECheckBoxState IsLightEnabled() const;
-    void OnCheck(ECheckBoxState NewState);
+    void EnableGrouped(bool NewState);
 
     // Check if the attempted drag drop operation is valid.
 	// An invalid operation is trying to drag a parent into one of its children
@@ -78,8 +78,6 @@ public:
     };
 
     ELoadingResult LoadFromJson(TSharedPtr<FJsonObject> JsonObject);
-    // Update the handle's expansion in the hierarchy it belongs to
-    FReply RemoveFromTree();
 
     // Returns all lights under this handle, including children of children
     void GetLights(TArray<UItemHandle*>& Array);
@@ -91,8 +89,9 @@ public:
     int LightCount() const;
 
     void BeginTransaction(bool bAffectItem = true, bool bAffectParent = false);
+#if WITH_EDITOR
     virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;
-
+#endif
     UPROPERTY()
         TArray<UItemHandle*> Children;
 

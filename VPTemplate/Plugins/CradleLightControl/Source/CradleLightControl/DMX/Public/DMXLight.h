@@ -19,7 +19,7 @@ class CRADLELIGHTCONTROL_API UDMXLight : public UBaseLight
 {
 public:
     GENERATED_BODY()
-    UDMXLight()
+        UDMXLight()
         : StartingChannel(1)
         , bDMXEnabled(true)
         , Config(nullptr)
@@ -39,9 +39,9 @@ public:
 
     virtual FPlatformTypes::uint8 LoadFromJson(TSharedPtr<FJsonObject> JsonObject) override;
     virtual TSharedPtr<FJsonObject> SaveAsJson() override;
-
+#if WITH_EDITOR
     virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;
-
+#endif
     void UpdateDMXChannels();
 
     // The first channel to be affected by this DMX fixture. NOT 0-based.
@@ -59,5 +59,5 @@ public:
 
     // The output port by which to the DMX signal can reach the physical DMX fixture.
     TSharedPtr<FDMXOutputPort, ESPMode::ThreadSafe> OutputPort;
-    
+
 };

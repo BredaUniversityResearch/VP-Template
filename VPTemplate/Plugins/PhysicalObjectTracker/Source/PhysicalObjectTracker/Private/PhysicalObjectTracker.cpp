@@ -1,8 +1,5 @@
 #include "PhysicalObjectTracker.h"
 
-#include "ContentBrowserModule.h"
-
-#include "IXRTrackingSystem.h"
 #include "SteamVRFunctionLibrary.h"
 #include "DrawDebugHelpers.h"
 #include "PhysicalObjectTrackingReferencePoint.h"

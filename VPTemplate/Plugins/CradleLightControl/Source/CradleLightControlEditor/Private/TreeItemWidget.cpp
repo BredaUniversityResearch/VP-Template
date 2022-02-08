@@ -3,6 +3,7 @@
 #include "ItemHandle.h"
 #include "CradleLightControlEditor.h"
 #include "LightTreeHierarchy.h"
+#include "ToolData.h"
 
 void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
 {
@@ -53,7 +54,7 @@ void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
 			[
 				SNew(SCheckBox)
 				.IsChecked_UObject(ItemHandleRef, &UItemHandle::IsLightEnabled)
-			.OnCheckStateChanged_UObject(ItemHandleRef, &UItemHandle::OnCheck)
+			.OnCheckStateChanged_Raw(this, &STreeItemWidget::OnCheck)
 			.Style(&CheckBoxStyle)
 			]
 			+ SHorizontalBox::Slot() // Name slot
@@ -92,7 +93,7 @@ void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
 			[
 				SNew(SButton)
 				.Text(FText::FromString("Delete"))
-				.OnClicked_UObject(ItemHandleRef, &UItemHandle::RemoveFromTree)
+				.OnClicked_Raw(this, &STreeItemWidget::RemoveFromTreeButtonClicked)
 			]
 			+ SHorizontalBox::Slot() // On/Off toggle button
 			.Expose(CheckBoxSlot)
@@ -100,7 +101,7 @@ void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
 			[
 				SAssignNew(StateCheckbox, SCheckBox)
 				.IsChecked_UObject(ItemHandleRef, &UItemHandle::IsLightEnabled)
-				.OnCheckStateChanged_UObject(ItemHandleRef, &UItemHandle::OnCheck)
+				.OnCheckStateChanged_Raw(this, &STreeItemWidget::OnCheck)
 				.Style(&CheckBoxStyle)
 				.RenderTransform(FSlateRenderTransform(FScale2D(1.1f)))
 			]
@@ -173,6 +174,18 @@ void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
 		SetVisibility(EVisibility::Collapsed);
 }
 
+void STreeItemWidget::OnCheck(ECheckBoxState NewState)
+{
+	bool B = false;
+	if (NewState == ECheckBoxState::Checked)
+		B = true;
+	GEditor->BeginTransaction(FText::FromString(ItemHandleRef->Name + " State change"));
+
+	ItemHandleRef->EnableGrouped(B);
+
+	GEditor->EndTransaction();
+}
+
 
 FReply STreeItemWidget::StartRename(const FGeometry&, const FPointerEvent&)
 {
@@ -220,4 +233,42 @@ bool STreeItemWidget::CheckNameAgainstSearchString(const FString& SearchString)
 	}
 
 	return bMatchesSearchString;
+}
+
+FReply STreeItemWidget::RemoveFromTreeButtonClicked()
+{
+	GEditor->BeginTransaction(FText::FromString("Delete Light control folder"));
+
+	ItemHandleRef->BeginTransaction(false);
+	if (ItemHandleRef->Parent)
+	{
+		// If this handle has a parent, we move all of its children to the parent
+		ItemHandleRef->Parent->BeginTransaction(false);
+		for (auto Child : ItemHandleRef->Children)
+		{
+			Child->BeginTransaction(false);
+			Child->Parent = ItemHandleRef->Parent;
+			ItemHandleRef->Parent->Children.Add(Child);
+
+		}
+		ItemHandleRef->Parent->Children.Remove(ItemHandleRef);
+	}
+	else
+	{
+		// If the handle is a root item, we make its children root items as well
+		ItemHandleRef->ToolData->BeginTransaction();
+		for (auto Child : ItemHandleRef->Children)
+		{
+			Child->BeginTransaction(false);
+			Child->Parent = nullptr;
+			ItemHandleRef->ToolData->RootItems.Add(Child);
+		}
+		ItemHandleRef->ToolData->RootItems.Remove(ItemHandleRef);
+	}
+	GEditor->EndTransaction();
+
+	ItemHandleRef->Children.Empty();
+	ItemHandleRef->ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
+
+	return FReply::Handled();
 }

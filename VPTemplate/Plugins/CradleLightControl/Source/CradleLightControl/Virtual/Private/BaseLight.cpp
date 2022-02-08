@@ -40,11 +40,12 @@ void UBaseLight::BeginTransaction()
     Modify();
 }
 
+#if WITH_EDITOR
 void UBaseLight::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
     Handle->ToolData->PostLightTransacted.ExecuteIfBound(TransactionEvent, *this);
 }
-
+#endif
 FLinearColor UBaseLight::GetRGBColor() const
 {
     uint8 Hue8 = StaticCast<uint8>(Hue / 360.0f * 255.0f);

@@ -20,6 +20,7 @@
 #include "DesktopPlatformModule.h"
 #include "IDesktopPlatform.h"
 #include "BaseLightPropertyChangeSpeaker.h"
+#include "DMXConfigAssetActions.h"
 
 // About module: Editor-only module, contains the code for the UI
 // Separated from the core module of the plugin because it uses the editor's icons, which are unavailable in standalone 

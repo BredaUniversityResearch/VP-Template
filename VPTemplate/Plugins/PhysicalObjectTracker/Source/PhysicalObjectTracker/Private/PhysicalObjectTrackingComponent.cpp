@@ -83,7 +83,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 	}
 
 }
-
+#if WITH_EDITOR
 void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -99,7 +99,7 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 		
 	}
 }
-
+#endif
 void UPhysicalObjectTrackingComponent::SelectTracker()
 {
 	auto& TrackerEditorModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");

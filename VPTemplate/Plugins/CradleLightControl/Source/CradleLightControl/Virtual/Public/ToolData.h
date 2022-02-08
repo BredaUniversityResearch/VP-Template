@@ -34,9 +34,9 @@ public:
 
     UFUNCTION(BlueprintPure)
     UBaseLight* GetLightByName(FString Name);
-
+#if WITH_EDITOR
     void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;
-
+#endif
     void ClearAllData();
     // Adds an empty item handle. Must be filled out by the invoker.
     UItemHandle* AddItem(bool bIsFolder = false);
