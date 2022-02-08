@@ -211,7 +211,7 @@ void SDMXControlTool::OnSetDMXConfigAsset(const FAssetData& AssetData)
     auto MasterDMX = Cast<UDMXLight>(EditorData->GetMasterLight()->Item);
     GEditor->BeginTransaction(FText::FromString(MasterDMX->Handle->Name + "DMX config changed"));
     MasterDMX->BeginTransaction();
-    MasterDMX->Config = DuplicateObject(Cast<UDMXConfigAsset>(AssetData.GetAsset()), MasterDMX);
+    MasterDMX->Config = Cast<UDMXConfigAsset>(AssetData.GetAsset());
     MasterDMX->Config->AssetName = AssetData.AssetName;
     //MasterDMX->Config
 }
