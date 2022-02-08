@@ -52,13 +52,6 @@ void FCradleLightControlModule::StartupModule()
 	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FCradleLightControlModule::OnWorldInitialized);
 
 	FWorldDelegates::OnWorldCleanup.AddRaw(this, &FCradleLightControlModule::OnWorldCleanup);
-
-
-	if (GEngine && GEngine->IsEditor())
-	{
-		FModuleManager::Get().LoadModule("CradleLightControlEditor");
-	}
-
 }
 
 void FCradleLightControlModule::ShutdownModule()

@@ -18,12 +18,12 @@
 		{
 			"Name": "CradleLightControl",
 			"Type": "Runtime",
-			"LoadingPhase": "PostEngineInit"
+			"LoadingPhase": "PostDefault"
 		},
 		{
 			"Name": "CradleLightControlEditor",
 			"Type": "Editor",
-			"LoadingPhase": "None"
+			"LoadingPhase": "PostEngineInit"
 		}
 	],
 	"Plugins": [
