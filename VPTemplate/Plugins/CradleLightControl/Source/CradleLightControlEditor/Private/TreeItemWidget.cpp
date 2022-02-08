@@ -138,34 +138,10 @@ void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
 	}
 	CheckBoxSlot->SizeParam.SizeRule = FSizeParam::SizeRule_Auto;
 
-	auto Font = FSlateFontInfo(FCoreStyle::GetDefaultFont(), 10);
-	if (ItemHandleRef->Type == Folder) // Slightly larger font for group items
-		Font.Size = 12;
 
 	// Fill in the name slot differently based on whether the item is being renamed or not
-	if (bInRename)
-	{
-		RowNameBox->SetContent(
-			SNew(SEditableText)
-			.Text(FText::FromString(ItemHandleRef->Name))
-			.Font(Font)
-			.OnTextChanged_Lambda([this](FText Input)
-				{
-					ItemHandleRef->Name = Input.ToString();
-				})
-			.OnTextCommitted(this, &STreeItemWidget::EndRename));
-
-	}
-	else
-	{
-		RowNameBox->SetContent(
-			SNew(STextBlock)
-			.Text(FText::FromString(ItemHandleRef->Name))
-			.Font(Font)
-			.ShadowColorAndOpacity(FLinearColor::Blue)
-			.ShadowOffset(FIntPoint(-1, 1))
-			.OnDoubleClicked(this, &STreeItemWidget::StartRename));
-	}
+	UpdateNameBox();
+	
 
 	// If the search string used in the tool does not match the name of the item, we hide it
 	if (bMatchesSearchString)
@@ -190,6 +166,7 @@ void STreeItemWidget::OnCheck(ECheckBoxState NewState)
 FReply STreeItemWidget::StartRename(const FGeometry&, const FPointerEvent&)
 {
 	bInRename = true;
+	UpdateNameBox();
 	return FReply::Handled();
 }
 
@@ -198,8 +175,12 @@ void STreeItemWidget::EndRename(const FText& Text, ETextCommit::Type CommitType)
 {
 	if (ETextCommit::Type::OnEnter == CommitType)
 	{
+		GEditor->BeginTransaction(FText::FromString("Light control item rename"));
+		ItemHandleRef->BeginTransaction(false);
 		ItemHandleRef->Name = Text.ToString();
+		GEditor->EndTransaction();
 	}
+	UpdateNameBox();
 
 	bInRename = false;
 }
@@ -271,4 +252,39 @@ FReply STreeItemWidget::RemoveFromTreeButtonClicked()
 	ItemHandleRef->ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
 
 	return FReply::Handled();
+}
+
+void STreeItemWidget::UpdateNameBox()
+{
+	auto Font = FSlateFontInfo(FCoreStyle::GetDefaultFont(), 10);
+	if (ItemHandleRef->Type == Folder) // Slightly larger font for group items
+		Font.Size = 12;
+	if (bInRename)
+	{
+		RowNameBox->SetContent(
+			SNew(SEditableText)
+			.Text(FText::FromString(ItemHandleRef->Name))
+			.Font(Font)
+			.OnTextChanged_Lambda([this](FText Input)
+				{
+					//ItemHandleRef->Name = Input.ToString();
+				})
+			.OnTextCommitted(this, &STreeItemWidget::EndRename));
+
+	}
+	else
+	{
+		RowNameBox->SetContent(
+			SNew(STextBlock)
+			.Text(this, &STreeItemWidget::GetItemName)
+			.Font(Font)
+			.ShadowColorAndOpacity(FLinearColor::Blue)
+			.ShadowOffset(FIntPoint(-1, 1))
+			.OnDoubleClicked(this, &STreeItemWidget::StartRename));
+	}
+}
+
+FText STreeItemWidget::GetItemName() const
+{
+	return FText::FromString(ItemHandleRef->Name);
 }

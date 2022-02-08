@@ -20,7 +20,7 @@
 
 #include "VirtualLight.h"
 
-void SLightTreeHierarchy::Construct(const FArguments& Args)
+void SLightHierarchyWidget::Construct(const FArguments& Args)
 {
     
 
@@ -38,7 +38,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
     SelectionChangedDelegate = Args._SelectionChangedDelegate;
     HeaderText = FText::FromString(Args._Name);
 
-    EditorData->OnToolDataLoaded = FOnToolDataLoadedDelegate::CreateRaw(this, &SLightTreeHierarchy::OnToolDataLoadedCallback);
+    EditorData->OnToolDataLoaded = FOnToolDataLoadedDelegate::CreateRaw(this, &SLightHierarchyWidget::OnToolDataLoadedCallback);
     EditorData->LoadMetaData();
     EditorData->ItemExpansionChangedDelegate = FItemExpansionChangedDelegate::CreateLambda([this](UItemHandle* Item, bool bState)
         {
@@ -56,7 +56,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
     		Tree->RequestTreeRefresh();
         });
 
-	LightVerificationTimer = RegisterActiveTimer(Args._DataVerificationInterval, FWidgetActiveTimerDelegate::CreateRaw(this, &SLightTreeHierarchy::VerifyLights));
+	LightVerificationTimer = RegisterActiveTimer(Args._DataVerificationInterval, FWidgetActiveTimerDelegate::CreateRaw(this, &SLightHierarchyWidget::VerifyLights));
 
     // SVerticalBox slots are by default dividing the space equally between each other
     // Because of this we need to expose the slot with the search bar in order to disable that for it
@@ -80,8 +80,8 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
             .VAlign(VAlign_Top)
             [
                 SNew(SSearchBox)
-                //.OnSearch(this, &SLightTreeHierarchy::SearchBarSearch)
-                .OnTextChanged(this, &SLightTreeHierarchy::SearchBarOnChanged)
+                //.OnSearch(this, &SLightHierarchyWidget::SearchBarSearch)
+                .OnTextChanged(this, &SLightHierarchyWidget::SearchBarOnChanged)
                 // Search bar for light
             ]
             +SVerticalBox::Slot()
@@ -100,7 +100,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
                     .VAlign(VAlign_Center)
                     [
                         SNew(STextBlock)
-                        .Text(this, &SLightTreeHierarchy::GetPresetFilename)
+                        .Text(this, &SLightHierarchyWidget::GetPresetFilename)
                         .Font(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 14))
                     ]
                     +SHorizontalBox::Slot()
@@ -167,10 +167,10 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
                 SAssignNew(Tree, STreeView<UItemHandle*>)
                 .ItemHeight(24.0f)
                 .TreeItemsSource(&EditorData->GetToolData()->RootItems)
-                .OnSelectionChanged(this, &SLightTreeHierarchy::SelectionCallback)
-                .OnGenerateRow(this, &SLightTreeHierarchy::AddToTree)
-                .OnGetChildren(this, &SLightTreeHierarchy::GetTreeItemChildren)
-                .OnExpansionChanged(this, &SLightTreeHierarchy::ExpansionChangedCallback)
+                .OnSelectionChanged(this, &SLightHierarchyWidget::SelectionCallback)
+                .OnGenerateRow(this, &SLightHierarchyWidget::AddToTree)
+                .OnGetChildren(this, &SLightHierarchyWidget::GetTreeItemChildren)
+                .OnExpansionChanged(this, &SLightHierarchyWidget::ExpansionChangedCallback)
                 
             ]
         ]
@@ -181,7 +181,7 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
         [
             SNew(SButton)
             .Text(FText::FromString("Add New Group"))
-            .OnClicked_Raw(this, &SLightTreeHierarchy::AddFolderToTree)
+            .OnClicked_Raw(this, &SLightHierarchyWidget::AddFolderToTree)
         ]
     ];
 
@@ -194,13 +194,13 @@ void SLightTreeHierarchy::Construct(const FArguments& Args)
 
 }
 
-void SLightTreeHierarchy::PreDestroy()
+void SLightHierarchyWidget::PreDestroy()
 {
     if (LightVerificationTimer)
         UnRegisterActiveTimer(LightVerificationTimer.ToSharedRef());
 }
 
-void SLightTreeHierarchy::OnActorSpawned(AActor* Actor)
+void SLightHierarchyWidget::OnActorSpawned(AActor* Actor)
 {
     auto Type = Invalid;
 
@@ -246,17 +246,17 @@ void SLightTreeHierarchy::OnActorSpawned(AActor* Actor)
     }
 }
 
-void SLightTreeHierarchy::BeginTransaction()
+void SLightHierarchyWidget::BeginTransaction()
 {
     EditorData->Modify();
 }
 
-void SLightTreeHierarchy::GenerateWidgetForItem(UItemHandle* Item)
+void SLightHierarchyWidget::GenerateWidgetForItem(UItemHandle* Item)
 {
     ItemWidgets.FindOrAdd(Item) = SNew(STreeItemWidget, Item);
 }
 
-TSharedRef<ITableRow> SLightTreeHierarchy::AddToTree(UItemHandle* ItemPtr,
+TSharedRef<ITableRow> SLightHierarchyWidget::AddToTree(UItemHandle* ItemPtr,
                                                      const TSharedRef<STableViewBase>& OwnerTable)
 {
     SHorizontalBox::FSlot& CheckBoxSlot = SHorizontalBox::Slot();
@@ -268,11 +268,13 @@ TSharedRef<ITableRow> SLightTreeHierarchy::AddToTree(UItemHandle* ItemPtr,
     {
 	    Widget = SNew(STreeItemWidget, ItemPtr);
     }
-    
+
+    ItemWidgets.FindOrAdd(ItemPtr) = Widget;
+
     auto Row =
         SNew(STableRow<UItemHandle*>, OwnerTable)
         .Padding(2.0f)
-        .OnDragDetected_Raw(this, &SLightTreeHierarchy::DragDropBegin)
+        .OnDragDetected_Raw(this, &SLightHierarchyWidget::DragDropBegin)
         .OnDrop_Lambda([ItemPtr, this](const FDragDropEvent& DragDropEvent)
         {
             StaticCastSharedPtr<FItemDragDropOperation>(DragDropEvent.GetOperation())->Destination = ItemPtr;
@@ -288,12 +290,12 @@ TSharedRef<ITableRow> SLightTreeHierarchy::AddToTree(UItemHandle* ItemPtr,
     return Row;
 }
 
-void SLightTreeHierarchy::GetTreeItemChildren(UItemHandle* Item, TArray<UItemHandle*>& Children)
+void SLightHierarchyWidget::GetTreeItemChildren(UItemHandle* Item, TArray<UItemHandle*>& Children)
 {
     Children.Append(Item->Children);
 }
 
-void SLightTreeHierarchy::SelectionCallback(UItemHandle* Item, ESelectInfo::Type SelectType)
+void SLightHierarchyWidget::SelectionCallback(UItemHandle* Item, ESelectInfo::Type SelectType)
 {
     // Strangely, this callback is triggered when an redo is done that brings back a deleted group
     // When that happens, the tree widget is considered to have no selected items, which will incorrectly make the masterlight a nullptr
@@ -335,7 +337,7 @@ void SLightTreeHierarchy::SelectionCallback(UItemHandle* Item, ESelectInfo::Type
     }
 }
 
-FReply SLightTreeHierarchy::AddFolderToTree()
+FReply SLightHierarchyWidget::AddFolderToTree()
 {
     UItemHandle* NewFolder = EditorData->GetToolData()->AddItem(true);
     NewFolder->Name = "New Group";
@@ -349,7 +351,7 @@ FReply SLightTreeHierarchy::AddFolderToTree()
     return FReply::Handled();
 }
 
-void SLightTreeHierarchy::OnToolDataLoadedCallback(uint8 LoadingResult)
+void SLightHierarchyWidget::OnToolDataLoadedCallback(uint8 LoadingResult)
 {
     if (LoadingResult == UItemHandle::ELoadingResult::Success)
     {
@@ -391,7 +393,7 @@ void SLightTreeHierarchy::OnToolDataLoadedCallback(uint8 LoadingResult)
     }
 }
 
-void SLightTreeHierarchy::RegenerateItemHandleWidgets(UItemHandle* ItemHandle)
+void SLightHierarchyWidget::RegenerateItemHandleWidgets(UItemHandle* ItemHandle)
 {
     GenerateWidgetForItem(ItemHandle);
 
@@ -402,7 +404,7 @@ void SLightTreeHierarchy::RegenerateItemHandleWidgets(UItemHandle* ItemHandle)
 }
 
 
-EActiveTimerReturnType SLightTreeHierarchy::VerifyLights(double, float)
+EActiveTimerReturnType SLightHierarchyWidget::VerifyLights(double, float)
 {
 	if (DataVerificationDelegate.IsBound())
 	{
@@ -412,7 +414,7 @@ EActiveTimerReturnType SLightTreeHierarchy::VerifyLights(double, float)
     return EActiveTimerReturnType::Stop;
 }
 
-FReply SLightTreeHierarchy::DragDropBegin(const FGeometry& Geometry, const FPointerEvent& MouseEvent)
+FReply SLightHierarchyWidget::DragDropBegin(const FGeometry& Geometry, const FPointerEvent& MouseEvent)
 {
     TSharedRef<FItemDragDropOperation> DragDropOp = MakeShared<FItemDragDropOperation>();
     DragDropOp->DraggedItems = EditorData->GetSelectedItems();
@@ -424,7 +426,7 @@ FReply SLightTreeHierarchy::DragDropBegin(const FGeometry& Geometry, const FPoin
     return Reply;
 }
 
-FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
+FReply SLightHierarchyWidget::DragDropEnd(const FDragDropEvent& DragDropEvent)
 {
     auto DragDrop = StaticCastSharedPtr<FItemDragDropOperation>(DragDropEvent.GetOperation());
 	UItemHandle* Destination = DragDrop->Destination;
@@ -527,7 +529,7 @@ FReply SLightTreeHierarchy::DragDropEnd(const FDragDropEvent& DragDropEvent)
 }
 
 
-void SLightTreeHierarchy::SearchBarOnChanged(const FText& NewString)
+void SLightHierarchyWidget::SearchBarOnChanged(const FText& NewString)
 {
     SearchString = NewString.ToString();
     for (auto RootItem : EditorData->GetToolData()->RootItems)
@@ -539,12 +541,12 @@ void SLightTreeHierarchy::SearchBarOnChanged(const FText& NewString)
     Tree->RebuildList();
 }
 
-TSharedPtr<STreeItemWidget> SLightTreeHierarchy::GetWidgetForItem(UItemHandle* ItemHandle)
+TSharedPtr<STreeItemWidget> SLightHierarchyWidget::GetWidgetForItem(UItemHandle* ItemHandle)
 {
     return ItemWidgets.FindOrAdd(ItemHandle);
 }
 
-void SLightTreeHierarchy::UpdateExpansionForItem(UItemHandle* ItemHandle, bool bContinueRecursively)
+void SLightHierarchyWidget::UpdateExpansionForItem(UItemHandle* ItemHandle, bool bContinueRecursively)
 {
     check(ItemWidgets.Find(ItemHandle));
     Tree->SetItemExpansion(ItemHandle, ItemWidgets[ItemHandle]->bExpanded);
@@ -558,21 +560,21 @@ void SLightTreeHierarchy::UpdateExpansionForItem(UItemHandle* ItemHandle, bool b
     }
 }
 
-void SLightTreeHierarchy::ExpansionChangedCallback(UItemHandle* ItemHandle, bool bNewState)
+void SLightHierarchyWidget::ExpansionChangedCallback(UItemHandle* ItemHandle, bool bNewState)
 {
     check(ItemWidgets.Find(ItemHandle));
     ItemWidgets[ItemHandle]->bExpanded = bNewState;
 
 }
 
-void SLightTreeHierarchy::ChangeExpansionInTree(UItemHandle* ItemHandle, bool bNewState)
+void SLightHierarchyWidget::ChangeExpansionInTree(UItemHandle* ItemHandle, bool bNewState)
 {
     check(ItemWidgets.Find(ItemHandle));
     ItemWidgets[ItemHandle]->bExpanded = bNewState;
     Tree->SetItemExpansion(ItemHandle, bNewState);
 }
 
-FText SLightTreeHierarchy::GetPresetFilename() const
+FText SLightHierarchyWidget::GetPresetFilename() const
 {
     if (EditorData->ToolPresetPath.IsEmpty())
     {

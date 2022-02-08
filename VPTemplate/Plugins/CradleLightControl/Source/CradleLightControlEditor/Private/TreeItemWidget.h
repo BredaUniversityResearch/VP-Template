@@ -29,9 +29,12 @@ class STreeItemWidget : public SCompoundWidget
 
     FReply RemoveFromTreeButtonClicked();
 
+    void UpdateNameBox();
+    FText GetItemName() const;
+
 
     UItemHandle* ItemHandleRef;
-    class SLightTreeHierarchy* OwningWidgetRef;
+    class SLightHierarchyWidget* OwningWidgetRef;
 
     // Top widget which contains all other widgets for the handle's widget
     TSharedPtr<SBox> TableRowBox;

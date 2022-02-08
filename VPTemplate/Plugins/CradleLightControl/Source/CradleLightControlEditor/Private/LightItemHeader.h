@@ -9,7 +9,7 @@ public:
 
     SLATE_ARGUMENT(class UEditorData*, EditorData)
 
-    SLATE_ARGUMENT(TSharedPtr<class SLightTreeHierarchy>, TreeHierarchyWidget)
+    SLATE_ARGUMENT(TSharedPtr<class SLightHierarchyWidget>, TreeHierarchyWidget)
 
     SLATE_END_ARGS()
 
@@ -34,7 +34,7 @@ public:
     void CommitNewItemNote(const FText& Text, ETextCommit::Type CommitType);
 
     UEditorData* EditorData;
-    TSharedPtr<class SLightTreeHierarchy> TreeHierarchyWidget;
+    TSharedPtr<class SLightHierarchyWidget> TreeHierarchyWidget;
 
     TSharedPtr<SBox> ContentBox;
     FCheckBoxStyle LightHeaderCheckboxStyle;

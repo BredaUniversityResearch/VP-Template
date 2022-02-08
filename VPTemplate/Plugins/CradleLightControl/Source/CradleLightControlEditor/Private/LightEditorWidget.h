@@ -33,7 +33,7 @@ public:
 
     void ClearSelection();
 
-    TWeakPtr<SLightTreeHierarchy> GetTreeWidget();
+    TWeakPtr<SLightHierarchyWidget> GetTreeWidget();
     TWeakPtr<SLightPropertyEditor> GetLightPropertyEditor();
 
     FString OpenFileDialog(FString Title, FString StartingPath);
@@ -59,10 +59,10 @@ protected:
     TSharedPtr<SBox> ExtraLightDetailBox;
 
     TSharedPtr<SDockTab> ToolTab;
-    TSharedPtr<SLightTreeHierarchy> TreeWidget;
+    TSharedPtr<SLightHierarchyWidget> LightHierarchyWidget;
     TSharedPtr<SLightPropertyEditor> LightPropertyWidget;
-    TSharedPtr<SLightSpecificProperties> LightSpecificWidget;
-    TSharedPtr<SLightItemHeader> ItemHeader;
+    TSharedPtr<SLightSpecificProperties> LightSpecificPropertiesWidget;
+    TSharedPtr<SLightItemHeader> LightHeaderWidget;
     TSharedPtr<FActiveTimerHandle> DataAutoSaveTimer;
 
     TSharedPtr<SVerticalBox> HierarchyVerticalBox; // Vertical box widget encompassing the selection hierarchy.

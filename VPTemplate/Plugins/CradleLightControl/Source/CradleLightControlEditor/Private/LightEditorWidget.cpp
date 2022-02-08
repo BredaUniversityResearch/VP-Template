@@ -26,8 +26,8 @@ void SLightEditorWidget::Construct(const FArguments& Args, UToolData* InToolData
     EditorData->GetToolData()->PostLightTransacted.BindUObject(EditorData, &UEditorData::PostLightTransacted);
     EditorData->GetToolData()->TreeStructureChangedDelegate.BindLambda([this]()
         {
-	        if (TreeWidget && TreeWidget->Tree)
-				TreeWidget->Tree->RequestTreeRefresh();
+	        if (LightHierarchyWidget && LightHierarchyWidget->Tree)
+				LightHierarchyWidget->Tree->RequestTreeRefresh();
         });
     
     EditorData->LoadMetaData();      
@@ -59,7 +59,7 @@ void SLightEditorWidget::Construct(const FArguments& Args, UToolData* InToolData
                     SAssignNew(HierarchyVerticalBox, SVerticalBox)
                     +SVerticalBox::Slot()
                     [
-                        SAssignNew(TreeWidget, SLightTreeHierarchy)
+                        SAssignNew(LightHierarchyWidget, SLightHierarchyWidget)
                         .EditorData(EditorData)
                         .Name(InToolData->DataName)
                         .SelectionChangedDelegate(FTreeSelectionChangedDelegate::CreateRaw(this, &SLightEditorWidget::OnTreeSelectionChanged))
@@ -75,9 +75,8 @@ void SLightEditorWidget::Construct(const FArguments& Args, UToolData* InToolData
             ]
         ];
 
-
-    TreeWidget->Tree->RequestTreeRefresh();
-    
+    LightHierarchyWidget->Tree->RequestTreeRefresh();
+    LightHeaderWidget->TreeHierarchyWidget = LightHierarchyWidget;
 }
 
 SLightEditorWidget::~SLightEditorWidget()
@@ -88,8 +87,8 @@ SLightEditorWidget::~SLightEditorWidget()
 void SLightEditorWidget::PreDestroy()
 {
     EditorData->AutoSave();
-    if (TreeWidget)
-        TreeWidget->PreDestroy();
+    if (LightHierarchyWidget)
+        LightHierarchyWidget->PreDestroy();
     if (LightPropertyWidget)
         LightPropertyWidget->PreDestroy();
     
@@ -102,15 +101,15 @@ void SLightEditorWidget::OnTreeSelectionChanged()
     {
         LightPropertyWidget->UpdateSaturationGradient(EditorData->SelectionMasterLight->Item->Hue);
         UpdateExtraLightDetailBox();
-        ItemHeader->Update();
-        LightSpecificWidget->UpdateToolState();
+        LightHeaderWidget->Update();
+        LightSpecificPropertiesWidget->UpdateToolState();
     }
 
 }
 
-TWeakPtr<SLightTreeHierarchy> SLightEditorWidget::GetTreeWidget()
+TWeakPtr<SLightHierarchyWidget> SLightEditorWidget::GetTreeWidget()
 {
-    return TreeWidget;
+    return LightHierarchyWidget;
 }
 
 TWeakPtr<SLightPropertyEditor> SLightEditorWidget::GetLightPropertyEditor()
@@ -188,9 +187,9 @@ SVerticalBox::FSlot& SLightEditorWidget::LightHeader()
     Slot
         .HAlign(HAlign_Fill)
         [
-            SAssignNew(ItemHeader, SLightItemHeader)
+            SAssignNew(LightHeaderWidget, SLightItemHeader)
             .EditorData(EditorData)
-        .TreeHierarchyWidget(TreeWidget)
+			.TreeHierarchyWidget(LightHierarchyWidget)
         ];
 
     //UpdateLightHeader();
@@ -244,17 +243,17 @@ void SLightEditorWidget::UpdateExtraLightDetailBox()
 
 void SLightEditorWidget::ClearSelection()
 {
-    if (TreeWidget)
+    if (LightHierarchyWidget)
     {
         EditorData->SelectedItems.Empty();
-        TreeWidget->Tree->ClearSelection();
+        LightHierarchyWidget->Tree->ClearSelection();
         EditorData->SelectionMasterLight = nullptr;
         EditorData->LightsUnderSelection.Empty();
     }
-    ItemHeader->Update();
+    LightHeaderWidget->Update();
     //UpdateLightHeader();
     UpdateExtraLightDetailBox();
-    LightSpecificWidget->UpdateToolState();
+    LightSpecificPropertiesWidget->UpdateToolState();
 }
 
 SHorizontalBox::FSlot& SLightEditorWidget::LightSpecificPropertyEditor()
@@ -266,7 +265,7 @@ SHorizontalBox::FSlot& SLightEditorWidget::LightSpecificPropertyEditor()
     Slot
         .Padding(5.0f, 0.0f, 0.0f, 0.0f)
         [
-            SAssignNew(LightSpecificWidget, SLightSpecificProperties)
+            SAssignNew(LightSpecificPropertiesWidget, SLightSpecificProperties)
             .EditorData(EditorData)
         ];
 

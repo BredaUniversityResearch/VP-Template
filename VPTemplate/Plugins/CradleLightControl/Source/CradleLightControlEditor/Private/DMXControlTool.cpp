@@ -75,7 +75,7 @@ FReply SDMXControlTool::AddLightButtonCallback()
         EditorData->GetSelectedGroup()->Children.Add(NewItemHandle);
     else
         EditorData->GetToolData()->RootItems.Add(NewItemHandle);
-	TreeWidget->GenerateWidgetForItem(NewItemHandle);
+	LightHierarchyWidget->GenerateWidgetForItem(NewItemHandle);
     EditorData->TreeStructureChangedDelegate.ExecuteIfBound();
 
     return FReply::Handled();

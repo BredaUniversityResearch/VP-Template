@@ -184,6 +184,7 @@ void SLightItemHeader::UpdateItemNameBox()
             );
         }
     }
+    TreeHierarchyWidget->Tree->RequestTreeRefresh();
 }
 
 FReply SLightItemHeader::StartItemNameChange(const FGeometry&, const FPointerEvent&)
@@ -217,6 +218,7 @@ void SLightItemHeader::CommitNewItemName(const FText& Text, ETextCommit::Type Co
         GEditor->EndTransaction();
     }
     bItemRenameInProgress = false;
+    UpdateItemNameBox();
 }
 
 void SLightItemHeader::UpdateExtraNoteBox()

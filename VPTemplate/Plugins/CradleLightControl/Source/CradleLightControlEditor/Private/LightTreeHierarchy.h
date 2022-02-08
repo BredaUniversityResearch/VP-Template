@@ -14,12 +14,12 @@ DECLARE_DELEGATE(FItemDataVerificationDelegate);
 DECLARE_DELEGATE(FTreeSelectionChangedDelegate);
 
 
-class SLightTreeHierarchy : public SCompoundWidget
+class SLightHierarchyWidget : public SCompoundWidget
 {
 public:
 
 
-    SLATE_BEGIN_ARGS(SLightTreeHierarchy)
+    SLATE_BEGIN_ARGS(SLightHierarchyWidget)
         : _Name("Unnamed tree view")
     {}
 

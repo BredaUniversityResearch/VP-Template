@@ -58,8 +58,8 @@ void SLightControlTool::Construct(const FArguments& Args, UToolData* InToolData)
 
     EditorData->AddToRoot();
 
-    TreeWidget->DataVerificationDelegate.BindRaw(this, &SLightControlTool::VerifyTreeData);
-    TreeWidget->DataUpdateDelegate.BindStatic(&SLightControlTool::UpdateItemData);
+    LightHierarchyWidget->DataVerificationDelegate.BindRaw(this, &SLightControlTool::VerifyTreeData);
+    LightHierarchyWidget->DataUpdateDelegate.BindStatic(&SLightControlTool::UpdateItemData);
 
     FWorldDelegates::OnWorldCleanup.AddLambda([this](UWorld*, bool, bool)
         {
@@ -105,8 +105,8 @@ SLightControlTool::~SLightControlTool()
 void SLightControlTool::PreDestroy()
 {
     EditorData->AutoSave();
-    if (TreeWidget)
-        TreeWidget->PreDestroy();
+    if (LightHierarchyWidget)
+        LightHierarchyWidget->PreDestroy();
     if (LightPropertyWidget)
         LightPropertyWidget->PreDestroy();
 
@@ -118,7 +118,7 @@ void SLightControlTool::PreDestroy()
 
 void SLightControlTool::ActorSpawnedCallback(AActor* Actor)
 {
-    TreeWidget->OnActorSpawned(Actor);
+    LightHierarchyWidget->OnActorSpawned(Actor);
 }
 
 void SLightControlTool::UpdateLightList()
@@ -146,11 +146,11 @@ void SLightControlTool::UpdateLightList()
         UpdateItemData(NewItem->Handle);
 
         EditorData->GetToolData()->RootItems.Add(NewItem->Handle);
-        TreeWidget->GenerateWidgetForItem(NewItem->Handle);
+        LightHierarchyWidget->GenerateWidgetForItem(NewItem->Handle);
     }
     
-    if (TreeWidget)
-		TreeWidget->Tree->RequestTreeRefresh();
+    if (LightHierarchyWidget)
+		LightHierarchyWidget->Tree->RequestTreeRefresh();
 }
 
 void SLightControlTool::UpdateItemData(UItemHandle* ItemHandle)
@@ -261,7 +261,7 @@ void SLightControlTool::VerifyTreeData()
 
     if (ToRemove.Num())
     {
-        TreeWidget->Tree->RequestTreeRefresh();
+        LightHierarchyWidget->Tree->RequestTreeRefresh();
     }
 }
 
@@ -564,7 +564,7 @@ TSharedRef<SWidget> SLightControlTool::GroupControlDropDownLabel(UItemHandle* It
 void SLightControlTool::GroupControlDropDownSelection(UItemHandle* Item, ESelectInfo::Type SelectInfoType)
 {
     EditorData->SelectionMasterLight = Item;
-    LightSpecificWidget->UpdateToolState();
+    LightSpecificPropertiesWidget->UpdateToolState();
 }
 
 FText SLightControlTool::GroupControlDropDownDefaultLabel() const
