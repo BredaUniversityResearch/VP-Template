@@ -366,7 +366,7 @@ void SLightPropertyEditor::PreDestroy()
 
 FReply SLightPropertyEditor::OnGelPaletteButtonClicked()
 {
-    auto& ThisModule = FModuleManager::LoadModuleChecked<FCradleLightControlEditorModule>("CradleLightControl");
+    auto& ThisModule = FModuleManager::LoadModuleChecked<FCradleLightControlEditorModule>("CradleLightControlEditor");
 
     ThisModule.OpenGelPalette(FGelPaletteSelectionCallback::CreateRaw(this, &SLightPropertyEditor::OnGelSelectionChanged));
 
