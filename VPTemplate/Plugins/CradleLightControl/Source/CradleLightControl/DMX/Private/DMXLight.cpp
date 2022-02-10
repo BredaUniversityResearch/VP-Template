@@ -4,6 +4,8 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 
 #include "CradleLightControl.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
 
 float UDMXLight::GetHorizontalNormalized() const
 {
@@ -58,7 +60,7 @@ void UDMXLight::AddVertical(float NormalizedDegrees)
     UpdateDMXChannels();
 }
 
-FPlatformTypes::uint8 UDMXLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
+::ELightControlLoadingResult UDMXLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
 {
     auto PortGUID = JsonObject->GetStringField("OutputPortGUID");
     bDMXEnabled = JsonObject->GetBoolField("DMXEnabled");

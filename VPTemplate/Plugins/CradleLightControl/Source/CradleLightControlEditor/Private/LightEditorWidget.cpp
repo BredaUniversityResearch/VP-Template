@@ -150,7 +150,7 @@ TSharedRef<SDockTab> SLightEditorWidget::Show()
     if (!ToolTab)
     {
         ToolTab = SNew(SDockTab)
-            .Label(FText::FromString("Virtual Light Control"))
+            .Label(FText::FromString(EditorData->GetToolData()->DataName))
             .TabRole(ETabRole::NomadTab)
             .OnTabClosed_Lambda([this](TSharedRef<SDockTab>)
                 {

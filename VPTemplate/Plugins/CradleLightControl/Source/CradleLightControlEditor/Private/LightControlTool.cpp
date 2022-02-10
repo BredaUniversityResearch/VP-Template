@@ -44,7 +44,7 @@ void SLightControlTool::Construct(const FArguments& Args, UToolData* InToolData)
 
 
     // Build a database from what is in the level if there wasn't a file to recover from
-    if (EditorData->GetToolData()->RootItems.Num() == 0)
+    if (EditorData->RootItems.Num() == 0)
     {
         UpdateLightList();
     }
@@ -130,99 +130,104 @@ void SLightControlTool::UpdateLightList()
     UGameplayStatics::GetAllActorsOfClass(GWorld, ALight::StaticClass(), Actors);
     for (auto Light : Actors)
     {
-        auto* NewItem = Cast<UVirtualLight>(EditorData->GetToolData()->AddItem()->Item);
+        auto* NewItem = Cast<UVirtualLight>(EditorData->GetToolData()->AddItem());
 
         if (Cast<APointLight>(Light))
-			NewItem->Handle->Type = ETreeItemType::PointLight;
+			NewItem->Type = ELightType::PointLight;
         else if (Cast<ADirectionalLight>(Light))
-            NewItem->Handle->Type = ETreeItemType::DirectionalLight;
+            NewItem->Type = ELightType::DirectionalLight;
         else if (Cast<ASpotLight>(Light))
-            NewItem->Handle->Type = ETreeItemType::SpotLight;
+            NewItem->Type = ELightType::SpotLight;
         else if (Cast<ASkyLight>(Light))
-            NewItem->Handle->Type = ETreeItemType::SkyLight;
+            NewItem->Type = ELightType::SkyLight;
 
-        NewItem->Handle->Name = Light->GetName();
+        NewItem->Name = Light->GetName();
         NewItem->ActorPtr = Light;
-        UpdateItemData(NewItem->Handle);
+        UpdateItemData(NewItem);
 
-        EditorData->GetToolData()->RootItems.Add(NewItem->Handle);
-        LightHierarchyWidget->GenerateWidgetForItem(NewItem->Handle);
+        // Need to create new handle here
+        auto NewItemHandle = EditorData->AddItem();
+        NewItemHandle->Name = NewItem->Name;
+        NewItemHandle->Item = NewItem;
+        EditorData->RootItems.Add(NewItemHandle);
+        EditorData->ListOfLightItems.Add(NewItemHandle);
+        LightHierarchyWidget->GenerateWidgetForItem(NewItemHandle);
     }
     
     if (LightHierarchyWidget)
 		LightHierarchyWidget->Tree->RequestTreeRefresh();
 }
 
-void SLightControlTool::UpdateItemData(UItemHandle* ItemHandle)
+void SLightControlTool::UpdateItemData(UBaseLight* BaseLight)
 {
-    check(ItemHandle->Type != Folder);
-    auto Item = Cast<UVirtualLight>(ItemHandle->Item);
+    check(BaseLight);
+    auto VirtualLight = Cast<UVirtualLight>(BaseLight);
     FLinearColor RGB;
 
-    Item->Intensity = 0.0f;
-    Item->Saturation = 0.0f;
-    Item->Temperature = 0.0f;
+    BaseLight->Intensity = 0.0f;
+    BaseLight->Saturation = 0.0f;
+    BaseLight->Temperature = 0.0f;
 
-    if (ItemHandle->Type == ETreeItemType::SkyLight)
+    if (BaseLight->Type == ELightType::SkyLight)
     {
-        RGB = Item->SkyLight->GetLightComponent()->GetLightColor();
-        Item->bIsEnabled = Item->SkyLight->GetLightComponent()->IsVisible();
+        RGB = VirtualLight->SkyLight->GetLightComponent()->GetLightColor();
+        BaseLight->bIsEnabled = VirtualLight->SkyLight->GetLightComponent()->IsVisible();
     }
     else
     {
-        ALight* LightPtr = Cast<ALight>(Item->ActorPtr);
+        ALight* LightPtr = Cast<ALight>(VirtualLight->ActorPtr);
         RGB = LightPtr->GetLightColor();
-        Item->bIsEnabled = LightPtr->GetLightComponent()->IsVisible();
+        BaseLight->bIsEnabled = LightPtr->GetLightComponent()->IsVisible();
     }
     auto HSV = RGB.LinearRGBToHSV();
-    Item->Saturation = HSV.G;
+    BaseLight->Saturation = HSV.G;
 
     // If Saturation is 0, the color is white. The RGB => HSV conversion calculates the Hue to be 0 in that case, even if it's not supposed to be.
     // Do this to preserve the Hue previously used rather than it getting reset to 0.
-    if (Item->Saturation != 0.0f)
-        Item->Hue = HSV.R;
+    if (BaseLight->Saturation != 0.0f)
+        BaseLight->Hue = HSV.R;
 
-    if (ItemHandle->Type == ETreeItemType::PointLight)
+    if (BaseLight->Type == ELightType::PointLight)
     {
-        auto Comp = Item->PointLight->PointLightComponent;
-        Item->Intensity = Comp->Intensity;
+        auto Comp = VirtualLight->PointLight->PointLightComponent;
+        BaseLight->Intensity = Comp->Intensity;
     }
-    else if (ItemHandle->Type == ETreeItemType::SpotLight)
+    else if (BaseLight->Type == ELightType::SpotLight)
     {
-        auto Comp = Item->SpotLight->SpotLightComponent;
-        Item->Intensity = Comp->Intensity;
+        auto Comp = VirtualLight->SpotLight->SpotLightComponent;
+        BaseLight->Intensity = Comp->Intensity;
     }
 
-    if (ItemHandle->Type != ETreeItemType::SkyLight)
+    if (BaseLight->Type != ELightType::SkyLight)
     {
-        auto LightPtr = Cast<ALight>(Item->ActorPtr);
+        auto LightPtr = Cast<ALight>(VirtualLight->ActorPtr);
         auto LightComp = LightPtr->GetLightComponent();
-        Item->bUseTemperature = LightComp->bUseTemperature;
-        Item->Temperature = LightComp->Temperature;
+        BaseLight->bUseTemperature = LightComp->bUseTemperature;
+        BaseLight->Temperature = LightComp->Temperature;
 
-        Item->bCastShadows = LightComp->CastShadows;
+        VirtualLight->bCastShadows = LightComp->CastShadows;
     }
     else
     {
-        Item->bCastShadows = Item->SkyLight->GetLightComponent()->CastShadows;
+        VirtualLight->bCastShadows = VirtualLight->SkyLight->GetLightComponent()->CastShadows;
     }
 
-    auto CurrentFwd = FQuat::MakeFromEuler(FVector(0.0f, Item->Vertical, Item->Horizontal)).GetForwardVector();
-    auto ActorQuat = Item->ActorPtr->GetTransform().GetRotation().GetNormalized();
+    auto CurrentFwd = FQuat::MakeFromEuler(FVector(0.0f, BaseLight->Vertical, BaseLight->Horizontal)).GetForwardVector();
+    auto ActorQuat = VirtualLight->ActorPtr->GetTransform().GetRotation().GetNormalized();
     auto ActorFwd = ActorQuat.GetForwardVector();
 
     if (CurrentFwd.Equals(ActorFwd))
     {
         auto Euler = ActorQuat.Euler();
-        Item->Horizontal = Euler.Z;
-        Item->Vertical = Euler.Y;
+        BaseLight->Horizontal = Euler.Z;
+        BaseLight->Vertical = Euler.Y;
     }
 
 
-    if (ItemHandle->Type == ETreeItemType::SpotLight)
+    if (BaseLight->Type == ELightType::SpotLight)
     {
-        Item->InnerAngle = Item->SpotLight->SpotLightComponent->InnerConeAngle;
-        Item->OuterAngle = Item->SpotLight->SpotLightComponent->OuterConeAngle;
+        BaseLight->InnerAngle = VirtualLight->SpotLight->SpotLightComponent->InnerConeAngle;
+        BaseLight->OuterAngle = VirtualLight->SpotLight->SpotLightComponent->OuterConeAngle;
     }
 
 }
@@ -234,7 +239,7 @@ void SLightControlTool::VerifyTreeData()
     
     GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, "Cleaning invalid lights");
     TArray<UItemHandle*> ToRemove;
-    for (auto ItemHandle : EditorData->GetToolData()->ListOfLightItems)
+    for (auto ItemHandle : EditorData->ListOfLightItems)
     {
         auto Item = Cast<UVirtualLight>(ItemHandle->Item);
         if (!Item->ActorPtr || !IsValid(Item->SkyLight))
@@ -242,21 +247,23 @@ void SLightControlTool::VerifyTreeData()
             if (ItemHandle->Parent)
                 ItemHandle->Parent->Children.Remove(ItemHandle);
             else
-                EditorData->GetToolData()->RootItems.Remove(ItemHandle);
+                EditorData->RootItems.Remove(ItemHandle);
 
 
             ToRemove.Add(ItemHandle);
         }
         else
         {
-            UpdateItemData(ItemHandle);
+            UpdateItemData(ItemHandle->Item);
         }
     }
 
-    for (auto Item : ToRemove)
+    for (auto ItemHandle : ToRemove)
     {
-        EditorData->GetToolData()->ListOfTreeItems.Remove(Item);
-        EditorData->GetToolData()->ListOfLightItems.Remove(Item);
+        EditorData->GetToolData()->Lights.Remove(ItemHandle->Item);
+        EditorData->RootItems.Remove(ItemHandle);
+        EditorData->ListOfTreeItems.Remove(ItemHandle);
+        EditorData->ListOfLightItems.Remove(ItemHandle);
     }
 
     if (ToRemove.Num())
@@ -552,13 +559,13 @@ TSharedRef<SBox> SLightControlTool::GroupControls()
     return Box.ToSharedRef();
 }
 
-TSharedRef<SWidget> SLightControlTool::GroupControlDropDownLabel(UItemHandle* Item)
+TSharedRef<SWidget> SLightControlTool::GroupControlDropDownLabel(UItemHandle* ItemHandle)
 {
-    if (Item->Type == ETreeItemType::Folder)
+    if (!ItemHandle->Item)
     {
         return SNew(SBox);
     }
-    return SNew(STextBlock).Text(FText::FromString(Item->Name));
+    return SNew(STextBlock).Text(FText::FromString(ItemHandle->Name));
 }
 
 void SLightControlTool::GroupControlDropDownSelection(UItemHandle* Item, ESelectInfo::Type SelectInfoType)

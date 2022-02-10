@@ -4,22 +4,14 @@
 
 #include "Json.h"
 
+#include "Slate.h"
+
+#include "LightControlLoadingResult.h"
+
 #include "ItemHandle.generated.h"
 
 // Enum of the types of possible lights in the tool
 // This is made to work together with the EIconType enum from the editor module, so they need to be changed together
-UENUM()
-enum ETreeItemType
-{
-    Folder = 0,
-    Mixed = Folder,
-    SkyLight,
-    SpotLight,
-    DirectionalLight,
-    PointLight,
-    Invalid
-};
-
 
 class FItemDragDropOperation : public FDragDropOperation
 {
@@ -34,7 +26,7 @@ public:
 
 
 UCLASS(BlueprintType)
-class CRADLELIGHTCONTROL_API UItemHandle : public UObject
+class UItemHandle : public UObject
 {
     GENERATED_BODY()
 
@@ -48,14 +40,7 @@ public:
         SetFlags(GetFlags() | RF_Transactional);
     };
 
-    // For use with the virtual light control tool. Used when starting a play session to update the light actor references.
-    // This is necessary because when a play session is started, levels are duplicated, so all actor references are technically invalid in the context of the play session.
-    // Takes an array of AActor*, for ease of use with UGameplayStatics::GetAllActorsOfClass();
-    void UpdateVirtualLights(TArray<AActor*>& ActorLights);
-
-    // FOr use with the virtual light control tool. Used when a play session is ended and the engine returns to the level editor.
-    // Necessary in order to restore the light actor pointers in the tool to the ones from the original level.
-    void RestoreVirtualLightReferences();
+    
 
     // Used for checkboxes because checkboxes have 3 states
     ECheckBoxState IsLightEnabled() const;
@@ -68,16 +53,8 @@ public:
     bool HasAsIndirectChild(UItemHandle* Item);
 
     TSharedPtr<FJsonValue> SaveToJson();
-    enum ELoadingResult : uint8
-    {
-        Success = 0,
-        InvalidType,
-        LightNotFound,
-        EngineError,
-        MultipleErrors
-    };
 
-    ELoadingResult LoadFromJson(TSharedPtr<FJsonObject> JsonObject);
+    ELightControlLoadingResult LoadFromJson(TSharedPtr<FJsonObject> JsonObject);
 
     // Returns all lights under this handle, including children of children
     void GetLights(TArray<UItemHandle*>& Array);
@@ -107,23 +84,8 @@ public:
     UPROPERTY()
         class UBaseLight* Item;
 
-    // The type of the data the handle represents. If it's not a Folder, it represent a light item.
-    TEnumAsByte<ETreeItemType> Type;
-
     // Reference to the ToolData instance which has created and owns the handle
-    class UToolData* ToolData;
+    class UEditorData* EditorData;
 
-    //// Top widget which contains all other widgets for the handle's widget
-    //TSharedPtr<SBox> TableRowBox;
-
-    //TSharedPtr<SCheckBox> StateCheckbox;
-    //// SBox containing the widget for the name of the handle, or editable text if it is being renamed
-    //TSharedPtr<SBox> RowNameBox;
-    //FCheckBoxStyle CheckBoxStyle;
-
-
-    //bool bExpanded;
-    //bool bMatchesSearchString;
-
-    //bool bInRename;
+   
 };

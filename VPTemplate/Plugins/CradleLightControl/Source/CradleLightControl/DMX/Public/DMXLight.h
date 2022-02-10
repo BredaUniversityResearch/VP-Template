@@ -6,6 +6,8 @@
 #include "BaseLight.h"
 #include "Chaos/AABB.h"
 #include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
 #include "IO/DMXOutputPort.h"
 
 #include "DMXLight.generated.h"
@@ -37,7 +39,7 @@ public:
     virtual void AddHorizontal(float NormalizedDegrees) override;
     virtual void AddVertical(float NormalizedDegrees) override;
 
-    virtual FPlatformTypes::uint8 LoadFromJson(TSharedPtr<FJsonObject> JsonObject) override;
+    virtual ::ELightControlLoadingResult LoadFromJson(TSharedPtr<FJsonObject> JsonObject) override;
     virtual TSharedPtr<FJsonObject> SaveAsJson() override;
 #if WITH_EDITOR
     virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;

@@ -13,6 +13,7 @@
 #include "Styling/SlateIconFinder.h"
 #include "ItemHandle.h"
 #include "EditorData.h"
+#include "LightControlLoadingResult.h"
 #include "ToolData.h"
 #include "TreeItemWidget.h"
 
@@ -49,9 +50,9 @@ void SLightHierarchyWidget::Construct(const FArguments& Args)
     EditorData->TreeStructureChangedDelegate = FOnTreeStructureChangedDelegate::CreateLambda([this]()
         {
             ItemWidgets.Empty();
-			for (auto& Item : EditorData->GetToolData()->ListOfTreeItems)
+			for (auto& Item : EditorData->ListOfTreeItems)
 			{
-                ItemWidgets.FindOrAdd(Item) = SNew(STreeItemWidget, Item);
+                ItemWidgets.FindOrAdd(Item) = SNew(STreeItemWidget, Item, EditorData);
 			}
     		Tree->RequestTreeRefresh();
         });
@@ -166,7 +167,7 @@ void SLightHierarchyWidget::Construct(const FArguments& Args)
             [
                 SAssignNew(Tree, STreeView<UItemHandle*>)
                 .ItemHeight(24.0f)
-                .TreeItemsSource(&EditorData->GetToolData()->RootItems)
+                .TreeItemsSource(&EditorData->RootItems)
                 .OnSelectionChanged(this, &SLightHierarchyWidget::SelectionCallback)
                 .OnGenerateRow(this, &SLightHierarchyWidget::AddToTree)
                 .OnGetChildren(this, &SLightHierarchyWidget::GetTreeItemChildren)
@@ -205,21 +206,21 @@ void SLightHierarchyWidget::OnActorSpawned(AActor* Actor)
     auto Type = Invalid;
 
     if (Cast<ASkyLight>(Actor))
-        Type = ETreeItemType::SkyLight;
+        Type = ELightType::SkyLight;
     else if (Cast<ASpotLight>(Actor))
-        Type = ETreeItemType::SpotLight;
+        Type = ELightType::SpotLight;
     else if (Cast<ADirectionalLight>(Actor))
-        Type = ETreeItemType::DirectionalLight;
+        Type = ELightType::DirectionalLight;
     else if (Cast<APointLight>(Actor))
-        Type = ETreeItemType::PointLight;
+        Type = ELightType::PointLight;
 
     if (Type != Invalid)
     {
-        auto NewItemHandle = EditorData->GetToolData()->AddItem();
-        NewItemHandle->Type = Type;
-        NewItemHandle->Name = Actor->GetName();
+        auto NewLight = EditorData->GetToolData()->AddItem();
+        NewLight->Type = Type;
+        NewLight->Name = Actor->GetName();
 
-        auto Item = Cast<UVirtualLight>(NewItemHandle->Item);
+        auto Item = Cast<UVirtualLight>(NewLight);
 
         switch (Type)
         {
@@ -236,11 +237,16 @@ void SLightHierarchyWidget::OnActorSpawned(AActor* Actor)
             Item->PointLight = Cast<APointLight>(Actor);
             break;
         }
-        DataUpdateDelegate.ExecuteIfBound(NewItemHandle);
-        GenerateWidgetForItem(NewItemHandle);
-        GetWidgetForItem(NewItemHandle)->CheckNameAgainstSearchString(SearchString);
+        auto NewHandle = EditorData->AddItem();
+        NewHandle->Name = NewLight->Name;
+        NewHandle->Item = NewLight;
+        NewHandle->Parent = nullptr;
+        DataUpdateDelegate.ExecuteIfBound(NewLight);
+        GenerateWidgetForItem(NewHandle);
+        GetWidgetForItem(NewHandle)->CheckNameAgainstSearchString(SearchString);
 
-        EditorData->GetToolData()->RootItems.Add(NewItemHandle);
+        EditorData->RootItems.Add(NewHandle);
+        EditorData->ListOfLightItems.Add(NewHandle);
 
         Tree->RequestTreeRefresh();
     }
@@ -253,7 +259,7 @@ void SLightHierarchyWidget::BeginTransaction()
 
 void SLightHierarchyWidget::GenerateWidgetForItem(UItemHandle* Item)
 {
-    ItemWidgets.FindOrAdd(Item) = SNew(STreeItemWidget, Item);
+    ItemWidgets.FindOrAdd(Item) = SNew(STreeItemWidget, Item, EditorData);
 }
 
 TSharedRef<ITableRow> SLightHierarchyWidget::AddToTree(UItemHandle* ItemPtr,
@@ -266,7 +272,7 @@ TSharedRef<ITableRow> SLightHierarchyWidget::AddToTree(UItemHandle* ItemPtr,
 
     if (!Widget)
     {
-	    Widget = SNew(STreeItemWidget, ItemPtr);
+	    Widget = SNew(STreeItemWidget, ItemPtr, EditorData);
     }
 
     ItemWidgets.FindOrAdd(ItemPtr) = Widget;
@@ -339,11 +345,11 @@ void SLightHierarchyWidget::SelectionCallback(UItemHandle* Item, ESelectInfo::Ty
 
 FReply SLightHierarchyWidget::AddFolderToTree()
 {
-    UItemHandle* NewFolder = EditorData->GetToolData()->AddItem(true);
+    UItemHandle* NewFolder = EditorData->AddItem();
     NewFolder->Name = "New Group";
     GenerateWidgetForItem(NewFolder);
     GetWidgetForItem(NewFolder)->CheckNameAgainstSearchString(SearchString);
-    EditorData->GetToolData()->RootItems.Add(NewFolder);
+    EditorData->RootItems.Add(NewFolder);
 
     Tree->RequestTreeRefresh();
 
@@ -351,9 +357,9 @@ FReply SLightHierarchyWidget::AddFolderToTree()
     return FReply::Handled();
 }
 
-void SLightHierarchyWidget::OnToolDataLoadedCallback(uint8 LoadingResult)
+void SLightHierarchyWidget::OnToolDataLoadedCallback(ELightControlLoadingResult LoadingResult)
 {
-    if (LoadingResult == UItemHandle::ELoadingResult::Success)
+    if (LoadingResult == ELightControlLoadingResult::Success)
     {
         UE_LOG(LogTemp, Display, TEXT("Light control state loaded successfully"));
     }
@@ -363,16 +369,16 @@ void SLightHierarchyWidget::OnToolDataLoadedCallback(uint8 LoadingResult)
 
         switch (LoadingResult)
         {
-        case UItemHandle::ELoadingResult::LightNotFound:
+        case ELightControlLoadingResult::LightNotFound:
             ErrorMessage = "At least one light could not be found. Please ensure all lights exist and haven't been renamed since the w.";
             break;
-        case UItemHandle::ELoadingResult::EngineError:
+        case ELightControlLoadingResult::EngineError:
             ErrorMessage = "There was an error with the engine. Please try loading again. If the error persists, restart the engine.";
             break;
-        case UItemHandle::ELoadingResult::InvalidType:
+        case ELightControlLoadingResult::InvalidType:
             ErrorMessage = "The item type that was tried to be loaded was not valid. Please ensure that the item type in the .json file is between 0 and 4.";
             break;
-        case UItemHandle::ELoadingResult::MultipleErrors:
+        case ELightControlLoadingResult::MultipleErrors:
             ErrorMessage = "Multiple errors occurred. See output log for more details.";
             break;
         }
@@ -387,7 +393,7 @@ void SLightHierarchyWidget::OnToolDataLoadedCallback(uint8 LoadingResult)
         FSlateNotificationManager::Get().AddNotification(NotificationInfo);
     }
 
-    for (auto& Item : EditorData->GetToolData()->RootItems)
+    for (auto& Item : EditorData->RootItems)
     {
         RegenerateItemHandleWidgets(Item);
     }
@@ -454,14 +460,14 @@ FReply SLightHierarchyWidget::DragDropEnd(const FDragDropEvent& DragDropEvent)
             EditorData->GetToolData()->BeginTransaction();
         Target->BeginTransaction(false);
         Destination->BeginTransaction(false);
-        if (Destination->Type == Folder)
+        if (!Destination->Item)
         {
             Destination = DragDrop->Destination;
 
             if (Source)
                 Source->Children.Remove(Target);
             else
-                EditorData->GetToolData()->RootItems.Remove(Target);
+                EditorData->RootItems.Remove(Target);
             Destination->Children.Add(Target);
             Target->Parent = Destination;
             
@@ -470,15 +476,17 @@ FReply SLightHierarchyWidget::DragDropEnd(const FDragDropEvent& DragDropEvent)
         else
         {
             auto Parent = Destination->Parent;
-            Destination = EditorData->GetToolData()->AddItem(true);
+            Destination = EditorData->AddItem();
             Destination->Name = DragDrop->Destination->Name + " Group";
             Destination->Parent = Parent;
+            Destination->BeginTransaction(false);
+            GenerateWidgetForItem(Destination);
 
 
             if (Destination->Parent)
                 Destination->Parent->BeginTransaction(false);
             else
-                EditorData->GetToolData()->BeginTransaction();
+                EditorData->BeginTransaction();
 
             if (Destination->Parent)
             {
@@ -487,14 +495,14 @@ FReply SLightHierarchyWidget::DragDropEnd(const FDragDropEvent& DragDropEvent)
             }
             else
             {
-                EditorData->GetToolData()->RootItems.Remove(DragDrop->Destination);
-                EditorData->GetToolData()->RootItems.Add(Destination);
+                EditorData->RootItems.Remove(DragDrop->Destination);
+                EditorData->RootItems.Add(Destination);
             }
 
             if (Source)
                 Source->Children.Remove(Target);
             else
-                EditorData->GetToolData()->RootItems.Remove(Target);
+                EditorData->RootItems.Remove(Target);
 
             Destination->Children.Add(DragDrop->Destination);
             Destination->Children.Add(Target);
@@ -532,7 +540,7 @@ FReply SLightHierarchyWidget::DragDropEnd(const FDragDropEvent& DragDropEvent)
 void SLightHierarchyWidget::SearchBarOnChanged(const FText& NewString)
 {
     SearchString = NewString.ToString();
-    for (auto RootItem : EditorData->GetToolData()->RootItems)
+    for (auto RootItem : EditorData->RootItems)
     {
         GetWidgetForItem(RootItem)->CheckNameAgainstSearchString(SearchString);
     }

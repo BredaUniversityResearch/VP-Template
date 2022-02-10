@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LightControlLoadingResult.h"
 
 #include "EditorData.generated.h"
 
@@ -14,7 +15,7 @@ DECLARE_DELEGATE_RetVal_TwoParams(FString, FLightJsonFileDialogDelegate, FString
 DECLARE_DELEGATE(FOnTreeStructureChangedDelegate);
 DECLARE_DELEGATE_TwoParams(FItemExpansionChangedDelegate, UItemHandle* /*ItemHandle*/, bool /*bContinueRecursively*/);
 DECLARE_DELEGATE_OneParam(FOnMasterLightTransactedDelegate, UItemHandle& /*MasterLightHandle*/); // Pass by reference to ensure it's not nullptr 
-DECLARE_DELEGATE_OneParam(FOnToolDataLoadedDelegate, uint8 /*LoadingResult*/);
+DECLARE_DELEGATE_OneParam(FOnToolDataLoadedDelegate, ELightControlLoadingResult /*LoadingResult*/);
 
 DECLARE_DELEGATE_OneParam(FMetaDataExtension, TSharedPtr<FJsonObject> /*RootJsonObject*/)
 
@@ -30,9 +31,8 @@ public:
     UEditorData();
 
     ~UEditorData();
-
-    UFUNCTION(BlueprintPure)
-        UBaseLight* GetLightByName(FString Name);
+    
+    UItemHandle* AddItem();
 
     void SetToolData(UToolData* ToolData);
     void SetWidgetRef(class SLightEditorWidget& Widget);
@@ -86,6 +86,19 @@ public:
     FOnToolDataLoadedDelegate OnToolDataLoaded; // Callback when the tool data is loaded. Used to generate the necessary widgets for the items.
 
     FTimerHandle AutoSaveTimer;
+
+    // List of all the root items in the dataset. Each root item may or may not have children.
+    UPROPERTY()
+        TArray<UItemHandle*> RootItems;
+
+    // 1D list of all items in the tree, no matter if they are parented or not
+    UPROPERTY()
+        TArray<UItemHandle*> ListOfTreeItems;
+    
+    // 1D list of all handles which hold lights items as opposed to being groups.
+    UPROPERTY()
+        TArray<UItemHandle*> ListOfLightItems;
+
 
     // List of all items selected by the user via the UI
     UPROPERTY()

@@ -1,7 +1,5 @@
 #include "VirtualLight.h"
 
-#include "ItemHandle.h"
-#include "Chaos/AABB.h"
 #include "Chaos/AABB.h"
 
 #include "Engine/Light.h"
@@ -16,11 +14,41 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "CradleLightControl.h"
+#include "LightControlLoadingResult.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
+
+
+void UVirtualLight::UpdateVirtualLights(TArray<AActor*>& ActorLights)
+{
+    if (ActorPtr)
+    {
+        auto LightName = ActorPtr->GetName();
+        for (auto& L : ActorLights)
+        {
+            if (LightName == L->GetName())
+            {
+                OriginalActor = ActorPtr;
+                ActorPtr = L;
+                break;
+            }
+        }
+    }
+}
+
+void UVirtualLight::RestoreVirtualLightReferences()
+{
+    if (ActorPtr)
+    {
+        ActorPtr = OriginalActor;
+    }
+}
+
 
 float UVirtualLight::GetIntensityNormalized() const
 {
-    if (Handle->Type == ETreeItemType::SpotLight ||
-        Handle->Type == ETreeItemType::PointLight)
+    if (Type == ELightType::SpotLight ||
+        Type == ELightType::PointLight)
     {
         return Intensity / 2010.619f; // The range supported by UE4 in Lumen
     }
@@ -29,7 +57,7 @@ float UVirtualLight::GetIntensityNormalized() const
 
 float UVirtualLight::GetTemperatureNormalized() const
 {
-    if (Handle->Type != ETreeItemType::SkyLight)
+    if (Type != ELightType::SkyLight)
     {
         return (Temperature - 1700.0f) / (12000.0f - 1700.0f); // Range supported by UE4 in Kelvin
     }
@@ -52,18 +80,18 @@ void UVirtualLight::SetEnabled(bool bNewState)
 
     BeginTransaction();
     // We need to change the light actor's visibility differently based on its type
-    switch (Handle->Type)
+    switch (Type)
     {
-    case ETreeItemType::SkyLight:
+    case ELightType::SkyLight:
         SkyLight->GetLightComponent()->SetVisibility(bNewState);
         break;
-    case ETreeItemType::SpotLight:
+    case ELightType::SpotLight:
         SpotLight->GetLightComponent()->SetVisibility(bNewState);
         break;
-    case ETreeItemType::DirectionalLight:
+    case ELightType::DirectionalLight:
         DirectionalLight->GetLightComponent()->SetVisibility(bNewState);
         break;
-    case ETreeItemType::PointLight:
+    case ELightType::PointLight:
         PointLight->GetLightComponent()->SetVisibility(bNewState);
         break;
     }
@@ -72,7 +100,7 @@ void UVirtualLight::SetEnabled(bool bNewState)
 void UVirtualLight::SetLightIntensity(float NormalizedValue)
 {
 
-    if (Handle->Type == ETreeItemType::SkyLight)
+    if (Type == ELightType::SkyLight)
     {
         // TODO: Implement this for skylights and directional lights
         return;
@@ -83,14 +111,14 @@ void UVirtualLight::SetLightIntensity(float NormalizedValue)
     else
     {
         auto ValLumen = NormalizedValue * 2010.619f;
-        if (Handle->Type == ETreeItemType::PointLight)
+        if (Type == ELightType::PointLight)
         {
             auto PointLightComp = Cast<UPointLightComponent>(PointLight->GetLightComponent());
             PointLightComp->SetIntensityUnits(ELightUnits::Lumens);
             PointLightComp->SetIntensity(ValLumen);
             Intensity = ValLumen;
         }
-        else if (Handle->Type == ETreeItemType::SpotLight)
+        else if (Type == ELightType::SpotLight)
         {
             auto SpotLightComp = Cast<USpotLightComponent>(SpotLight->GetLightComponent());
             SpotLightComp->SetIntensityUnits(ELightUnits::Lumens);
@@ -104,7 +132,7 @@ void UVirtualLight::SetLightIntensity(float NormalizedValue)
 void UVirtualLight::SetLightIntensityRaw(float Value)
 {
     Intensity = Value;
-    if (Handle->Type == ETreeItemType::SkyLight)
+    if (Type == ELightType::SkyLight)
     {
         return;
         auto LightComp = SkyLight->GetLightComponent();
@@ -113,14 +141,14 @@ void UVirtualLight::SetLightIntensityRaw(float Value)
     else
     {
         auto ValLumen = Value;
-        if (Handle->Type == ETreeItemType::PointLight)
+        if (Type == ELightType::PointLight)
         {
             auto PointLightComp = Cast<UPointLightComponent>(PointLight->GetLightComponent());
             PointLightComp->SetIntensityUnits(ELightUnits::Lumens);
             PointLightComp->SetIntensity(ValLumen);
             Intensity = ValLumen;
         }
-        else if (Handle->Type == ETreeItemType::SpotLight)
+        else if (Type == ELightType::SpotLight)
         {
             auto SpotLightComp = Cast<USpotLightComponent>(SpotLight->GetLightComponent());
             SpotLightComp->SetIntensityUnits(ELightUnits::Lumens);
@@ -135,7 +163,7 @@ void UVirtualLight::SetLightIntensityRaw(float Value)
 void UVirtualLight::SetHue(float NewValue)
 {
     Super::SetHue(NewValue);
-    if (Handle->Type == ETreeItemType::SkyLight)
+    if (Type == ELightType::SkyLight)
         SkyLight->GetLightComponent()->SetLightColor(GetRGBColor());
     else
         Cast<ALight>(ActorPtr)->SetLightColor(GetRGBColor());
@@ -145,7 +173,7 @@ void UVirtualLight::SetSaturation(float NewValue)
 {
     Super::SetSaturation(NewValue);
 
-    if (Handle->Type == ETreeItemType::SkyLight)
+    if (Type == ELightType::SkyLight)
         SkyLight->GetLightComponent()->SetLightColor(GetRGBColor());
     else
         Cast<ALight>(ActorPtr)->SetLightColor(GetRGBColor());
@@ -153,7 +181,7 @@ void UVirtualLight::SetSaturation(float NewValue)
 
 void UVirtualLight::SetUseTemperature(bool NewState)
 {
-    if (Handle->Type != ETreeItemType::SkyLight)
+    if (Type != ELightType::SkyLight)
     {
         UBaseLight::SetUseTemperature(NewState);
         auto LightPtr = Cast<ALight>(ActorPtr);
@@ -163,7 +191,7 @@ void UVirtualLight::SetUseTemperature(bool NewState)
 
 void UVirtualLight::SetTemperature(float NormalizedValue)
 {
-    if (Handle->Type != ETreeItemType::SkyLight)
+    if (Type != ELightType::SkyLight)
     {
         Temperature = NormalizedValue * (12000.0f - 1700.0f) + 1700.0f;
         auto LightPtr = Cast<ALight>(ActorPtr);
@@ -174,7 +202,7 @@ void UVirtualLight::SetTemperature(float NormalizedValue)
 
 void UVirtualLight::SetTemperatureRaw(float Value)
 {
-    if (Handle->Type != ETreeItemType::SkyLight)
+    if (Type != ELightType::SkyLight)
     {
         Temperature = Value;
         auto LightPtr = Cast<ALight>(ActorPtr);
@@ -184,7 +212,7 @@ void UVirtualLight::SetTemperatureRaw(float Value)
 
 void UVirtualLight::SetCastShadows(bool bState)
 {
-    if (Handle->Type != ETreeItemType::SkyLight)
+    if (Type != ELightType::SkyLight)
     {
         auto Light = Cast<ALight>(ActorPtr);
         Light->SetCastShadows(bState);
@@ -197,33 +225,34 @@ void UVirtualLight::SetCastShadows(bool bState)
     }
 }
 
-FPlatformTypes::uint8 UVirtualLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
+::ELightControlLoadingResult UVirtualLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
 {
 
     // The JSON file saves the light actor by its name, so we use that name to find the light which this UVirtualLight is responsible for
     auto LightName = JsonObject->GetStringField("RelatedLightName");
 
+    Type = ELightType::SkyLight;
 
     UClass* ClassToFetch = AActor::StaticClass();
 
     // Based on the type of this light, we are going to be looking at different actors in the level
-    switch (Handle->Type)
+    switch (Type)
     {
-    case ETreeItemType::SkyLight:
+    case ELightType::SkyLight:
         ClassToFetch = ASkyLight::StaticClass();
         break;
-    case ETreeItemType::SpotLight:
+    case ELightType::SpotLight:
         ClassToFetch = ASpotLight::StaticClass();
         break;
-    case ETreeItemType::DirectionalLight:
+    case ELightType::DirectionalLight:
         ClassToFetch = ADirectionalLight::StaticClass();
         break;
-    case ETreeItemType::PointLight:
+    case ELightType::PointLight:
         ClassToFetch = APointLight::StaticClass();
         break;
     default:        
-        UE_LOG(LogCradleLightControl, Error, TEXT("%s has invalid type: %n"), *Handle->Name, Handle->Type);
-        return UItemHandle::ELoadingResult::InvalidType;
+        UE_LOG(LogCradleLightControl, Error, TEXT("%s has invalid type: %n"), *Name, Type);
+        return ELightControlLoadingResult::InvalidType;
     }
     TArray<AActor*> Actors;
     UGameplayStatics::GetAllActorsOfClass(GWorld, ClassToFetch, Actors);
@@ -236,8 +265,8 @@ FPlatformTypes::uint8 UVirtualLight::LoadFromJson(TSharedPtr<FJsonObject> JsonOb
 
     if (!ActorPPtr)
     {
-        UE_LOG(LogCradleLightControl, Warning, TEXT("%s could not any lights in the scene named %s"), *Handle->Name, *LightName);
-        return UItemHandle::ELoadingResult::LightNotFound;
+        UE_LOG(LogCradleLightControl, Warning, TEXT("%s could not any lights in the scene named %s"), *Name, *LightName);
+        return ELightControlLoadingResult::LightNotFound;
     }
     ActorPtr = *ActorPPtr;
     // Load the default properties
@@ -280,7 +309,7 @@ void UVirtualLight::AddVertical(float NormalizedDegrees)
 
 void UVirtualLight::SetInnerConeAngle(float NewValue)
 {
-    check(Handle->Type == ETreeItemType::SpotLight);
+    check(Type == ELightType::SpotLight);
     InnerAngle = NewValue;
     // Ensure that the inner cone angle doesn't become higher than the outer cone angle
     if (InnerAngle > OuterAngle)
@@ -295,7 +324,7 @@ void UVirtualLight::SetInnerConeAngle(float NewValue)
 
 void UVirtualLight::SetOuterConeAngle(float NewValue)
 {
-    _ASSERT(Handle->Type == ETreeItemType::SpotLight);
+    _ASSERT(Type == ETreeItemType::SpotLight);
     SpotLight->SetMobility(EComponentMobility::Movable);
     if (bLockInnerAngleToOuterAngle)
     {

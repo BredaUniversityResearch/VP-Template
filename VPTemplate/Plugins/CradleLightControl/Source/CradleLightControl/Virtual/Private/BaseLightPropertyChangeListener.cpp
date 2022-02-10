@@ -1,9 +1,8 @@
 #include "BaseLightPropertyChangeListener.h"
 
 #include "BaseLight.h"
-#include "ItemHandle.h"
 
-void FBaseLightPropertyChangeListener::OnPropertiesChanged(TArray<UItemHandle*>& AffectedLights, FBaseLightPropertyChangeListener::EProperty Property, float Value)
+void FBaseLightPropertyChangeListener::OnPropertiesChanged(TArray<UBaseLight*>& AffectedLights, FBaseLightPropertyChangeListener::EProperty Property, float Value)
 {
 	
 	for (auto& LightHandle : AffectedLights)
@@ -12,34 +11,34 @@ void FBaseLightPropertyChangeListener::OnPropertiesChanged(TArray<UItemHandle*>&
 		switch (Property)
 		{
 			case State:
-				LightHandle->Item->SetEnabled(Value > 0.9f);
+				LightHandle->SetEnabled(Value > 0.9f);
 				break;
 			case Intensity:
-				LightHandle->Item->SetLightIntensity(Value);
+				LightHandle->SetLightIntensity(Value);
 				break;
 			case Hue:
-				LightHandle->Item->SetHue(Value);
+				LightHandle->SetHue(Value);
 				break;
 			case Saturation:
-				LightHandle->Item->SetSaturation(Value);
+				LightHandle->SetSaturation(Value);
 				break;
 			case UseTemperature:
-				LightHandle->Item->SetUseTemperature(Value > 0.9f);
+				LightHandle->SetUseTemperature(Value > 0.9f);
 				break;
 			case Temperature:
-				LightHandle->Item->SetTemperature(Value);
+				LightHandle->SetTemperature(Value);
 				break;
 			case Horizontal:
-				LightHandle->Item->AddHorizontal(Value);
+				LightHandle->AddHorizontal(Value);
 				break;
 			case Vertical:
-				LightHandle->Item->AddVertical(Value);
+				LightHandle->AddVertical(Value);
 				break;
 			case OuterConeAngle:
-				LightHandle->Item->SetOuterConeAngle(Value);
+				LightHandle->SetOuterConeAngle(Value);
 				break;
 			case InnerConeAngle:
-				LightHandle->Item->SetInnerConeAngle(Value);
+				LightHandle->SetInnerConeAngle(Value);
 				break;
 		}
 	}

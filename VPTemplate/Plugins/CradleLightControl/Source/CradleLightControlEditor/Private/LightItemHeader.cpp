@@ -27,18 +27,18 @@ void SLightItemHeader::Update()
         SHorizontalBox::FSlot* NameSlot;
         SHorizontalBox::FSlot* CheckboxSlot;
         SVerticalBox::FSlot* TopSlot;
-        TEnumAsByte<ETreeItemType> IconType;
+        TEnumAsByte<ELightType> IconType;
         if (EditorData->IsSingleGroupSelected())
         {
-            IconType = EditorData->GetSelectedGroup()->Type;
+            IconType = Mixed;
         }
         else
         {
-            IconType = EditorData->GetMasterLight()->Type;
+            IconType = EditorData->GetMasterLight()->Item->Type;
         }
-        for (auto Light : EditorData->GetSelectedLights())
+        for (auto LightHandle : EditorData->GetSelectedLights())
         {
-            if (IconType != Light->Type)
+            if (IconType != LightHandle->Item->Type)
             {
                 IconType = Mixed;
                 break;
@@ -141,9 +141,9 @@ FText SLightItemHeader::LightHeaderExtraLightsText() const
         int GroupCount = 0;
         int LightCount = 0;
         int TotalLightCount = 0;
-        for (auto SelectedItem : EditorData->SelectedItems)
+        for (auto SelectedItemHandle : EditorData->SelectedItems)
         {
-            if (SelectedItem->Type == Folder)
+            if (!SelectedItemHandle->Item)
             {
                 GroupCount++;
             }
@@ -151,7 +151,7 @@ FText SLightItemHeader::LightHeaderExtraLightsText() const
             {
                 LightCount++;
             }
-            TotalLightCount += SelectedItem->LightCount();
+            TotalLightCount += SelectedItemHandle->LightCount();
         }
 
         return FText::FromString(FString::Printf(TEXT("%d Groups and %d Lights selected (Total %d lights affected)"), GroupCount, LightCount, TotalLightCount));

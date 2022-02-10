@@ -4,12 +4,13 @@
 #include "Chaos/AABB.h"
 #include "Slate.h"
 #include "DMXProtocolCommon.h"
+#include "LightControlLoadingResult.h"
 
 
 class UItemHandle;
 class UToolData;
 
-DECLARE_DELEGATE_OneParam(FUpdateItemDataDelegate, UItemHandle*)
+DECLARE_DELEGATE_OneParam(FUpdateItemDataDelegate, class UBaseLight*)
 DECLARE_DELEGATE(FItemDataVerificationDelegate);
 DECLARE_DELEGATE(FTreeSelectionChangedDelegate);
 
@@ -41,6 +42,7 @@ public:
 
     void OnActorSpawned(AActor* Actor);
 
+
     void BeginTransaction();
 
     void GenerateWidgetForItem(UItemHandle* Item);
@@ -50,7 +52,7 @@ public:
     void GetTreeItemChildren(::UItemHandle* Item, TArray<UItemHandle*>& Children);
     void SelectionCallback(UItemHandle* Item, ESelectInfo::Type SelectType);
     FReply AddFolderToTree();
-    void OnToolDataLoadedCallback(uint8 LoadingResult);
+    void OnToolDataLoadedCallback(ELightControlLoadingResult LoadingResult);
     void RegenerateItemHandleWidgets(UItemHandle* ItemHandle);
     EActiveTimerReturnType VerifyLights(double, float);
 

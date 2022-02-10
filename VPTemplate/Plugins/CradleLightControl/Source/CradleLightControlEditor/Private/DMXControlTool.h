@@ -21,6 +21,8 @@ public:
 
 	virtual void UpdateExtraLightDetailBox() override;
 
+    FString GetDXMConfigAssetPath(class UDMXConfigAsset* Asset) const;
+
 private:
 
 

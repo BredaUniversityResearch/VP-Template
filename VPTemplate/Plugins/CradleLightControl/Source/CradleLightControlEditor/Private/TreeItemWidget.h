@@ -14,7 +14,7 @@ class STreeItemWidget : public SCompoundWidget
 		, bInRename(false)
     {}
 
-	void Construct(const FArguments Args, class UItemHandle* ItemHandle);
+	void Construct(const FArguments Args, class UItemHandle* ItemHandle, class UEditorData* EditorData);
 
     void OnCheck(ECheckBoxState NewState);
 
@@ -32,6 +32,7 @@ class STreeItemWidget : public SCompoundWidget
     void UpdateNameBox();
     FText GetItemName() const;
 
+    class UEditorData* EditorData;
 
     UItemHandle* ItemHandleRef;
     class SLightHierarchyWidget* OwningWidgetRef;

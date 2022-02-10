@@ -5,7 +5,6 @@
 #include "DMXConfigAsset.h"
 
 #include "DMXLight.h"
-#include "ItemHandle.h"
 
 #include "ToolData.h"
 #include "VirtualLight.h"
@@ -85,25 +84,23 @@ UToolData* FCradleLightControlModule::GetDMXLightToolData()
 
 void FCradleLightControlModule::OnWorldInitialized(UWorld* World, const UWorld::InitializationValues)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, "FWorldDelegates::OnPostDuplicate called");
-
 	TArray<AActor*> Lights;
 	UGameplayStatics::GetAllActorsOfClass(World, ALight::StaticClass(), Lights);
 
 	VirtualLightToolData->LoadMetaData();
 	DMXLightToolData->LoadMetaData();
 
-	for (auto& RootItem : VirtualLightToolData->RootItems)
+	for (auto& RootItem : VirtualLightToolData->Lights)
 	{
-		RootItem->UpdateVirtualLights(Lights);
+		Cast<UVirtualLight>(RootItem)->UpdateVirtualLights(Lights);
 	}
 }
 
 void FCradleLightControlModule::OnWorldCleanup(UWorld*, bool, bool)
 {
-	for (auto& RootItem : VirtualLightToolData->RootItems)
+	for (auto& RootItem : VirtualLightToolData->Lights)
 	{
-		RootItem->RestoreVirtualLightReferences();
+		Cast<UVirtualLight>(RootItem)->RestoreVirtualLightReferences();
 	}
 }
 

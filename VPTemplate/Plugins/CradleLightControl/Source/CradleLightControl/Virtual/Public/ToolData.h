@@ -2,6 +2,12 @@
 
 #include "CoreMinimal.h"
 
+#include "LightControlLoadingResult.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
+
 #include "ToolData.generated.h"
 
 class UBaseLight;
@@ -12,7 +18,7 @@ DECLARE_DELEGATE(FClearSelectionDelegate);
 DECLARE_DELEGATE_RetVal_TwoParams(FString, FLightJsonFileDialogDelegate, FString /*Title*/, FString /*StartDir*/);
 DECLARE_DELEGATE(FOnTreeStructureChangedDelegate);
 DECLARE_DELEGATE_TwoParams(FItemExpansionChangedDelegate, UItemHandle* /*ItemHandle*/, bool /*bContinueRecursively*/);
-DECLARE_DELEGATE_OneParam(FOnToolDataLoadedDelegate, uint8 /*LoadingResult*/)
+DECLARE_DELEGATE_OneParam(FOnToolDataLoadedDelegate, ELightControlLoadingResult /*LoadingResult*/)
 
 
 DECLARE_DELEGATE_OneParam(FOnToolDataTransacted, const FTransactionObjectEvent&);
@@ -39,12 +45,12 @@ public:
 #endif
     void ClearAllData();
     // Adds an empty item handle. Must be filled out by the invoker.
-    UItemHandle* AddItem(bool bIsFolder = false);
+    UBaseLight* AddItem();
     
     void BeginTransaction();
 
-    void SaveStateToJson(FString Path, bool bUpdatePresetPath = true); // Saves the state of the hierarchy to a JSON file.
-    void LoadStateFromJSON(FString Path, bool bUpdatePresetPath = true); // Loads the state of the hierarchy from a JSON file.
+    TSharedPtr<FJsonObject> SaveStateToJson(FString Path, bool bUpdatePresetPath = true); // Saves the state of the hierarchy to a JSON file.
+    TSharedPtr<FJsonObject> LoadStateFromJSON(FString Path, bool bUpdatePresetPath = true); // Loads the state of the hierarchy from a JSON file.
 
     void AutoSave(); // Called periodically or when certain events happen in the editor, like it shutting down.
 
@@ -73,17 +79,20 @@ public:
     UPROPERTY(NonTransactional)
         UClass* ItemClass;
 
-    // List of all the root items in the dataset. Each root item may or may not have children.
-    UPROPERTY()
-        TArray<UItemHandle*> RootItems;
+    uint32 LightIdCounter;
 
-    // 1D list of all items in the tree, no matter if they are parented or not
-    UPROPERTY()
-        TArray<UItemHandle*> ListOfTreeItems;
-    
-    // 1D list of all handles which hold lights items as opposed to being groups.
-    UPROPERTY()
-        TArray<UItemHandle*> ListOfLightItems;
+    //// List of all the root items in the dataset. Each root item may or may not have children.
+    //UPROPERTY()
+    //    TArray<UItemHandle*> RootItems;
 
+    //// 1D list of all items in the tree, no matter if they are parented or not
+    //UPROPERTY()
+    //    TArray<UItemHandle*> ListOfTreeItems;
+    //
+    //// 1D list of all handles which hold lights items as opposed to being groups.
+    //UPROPERTY()
+    //    TArray<UItemHandle*> ListOfLightItems;
 
+    UPROPERTY()
+        TArray<UBaseLight*> Lights;
 };

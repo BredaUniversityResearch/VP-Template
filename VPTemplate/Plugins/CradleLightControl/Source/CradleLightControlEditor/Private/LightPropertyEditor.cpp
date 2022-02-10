@@ -505,11 +505,11 @@ FText SLightPropertyEditor::GetIntensityValueText() const
     FString Res = "0";
     if (EditorData->IsAMasterLightSelected())
     {
-        auto Light = EditorData->SelectionMasterLight;
-        if (Light->Type == ETreeItemType::PointLight ||
-            Light->Type == ETreeItemType::SpotLight)
+        auto LightHandle = EditorData->SelectionMasterLight;
+        if (LightHandle->Item->Type == ELightType::PointLight ||
+            LightHandle->Item->Type == ELightType::SpotLight)
         {
-            Res = FString::FormatAsNumber(Light->Item->Intensity) + " Lumen";
+            Res = FString::FormatAsNumber(LightHandle->Item->Intensity) + " Lumen";
         }
         else
             Res = "Currently not supported";
@@ -629,8 +629,7 @@ void SLightPropertyEditor::TemperatureTransactionBegin()
 bool SLightPropertyEditor::TemperatureEnabled() const
 {
     auto MasterLight = EditorData->GetMasterLight();
-    return MasterLight && MasterLight->Type != ETreeItemType::SkyLight;
-    return false;
+    return MasterLight && MasterLight->Item->Type != ELightType::SkyLight;
 }
 
 void SLightPropertyEditor::OnTemperatureCheckboxChecked(ECheckBoxState NewState)

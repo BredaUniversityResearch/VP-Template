@@ -3,6 +3,8 @@
 #include "BaseLight.h"
 #include "Chaos/AABB.h"
 #include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
 
 #include "VirtualLight.generated.h"
 
@@ -19,6 +21,15 @@ public:
 
     UVirtualLight()
         : UBaseLight() {};
+
+    // For use with the virtual light control tool. Used when starting a play session to update the light actor references.
+    // This is necessary because when a play session is started, levels are duplicated, so all actor references are technically invalid in the context of the play session.
+    // Takes an array of AActor*, for ease of use with UGameplayStatics::GetAllActorsOfClass();
+    void UpdateVirtualLights(TArray<AActor*>& ActorLights);
+
+    // FOr use with the virtual light control tool. Used when a play session is ended and the engine returns to the level editor.
+    // Necessary in order to restore the light actor pointers in the tool to the ones from the original level.
+    void RestoreVirtualLightReferences();
 
     float GetIntensityNormalized() const;
     float GetTemperatureNormalized() const;
@@ -46,7 +57,7 @@ public:
     virtual bool GetCastShadows() const override;
 
     virtual TSharedPtr<FJsonObject> SaveAsJson() override;
-    virtual FPlatformTypes::uint8 LoadFromJson(TSharedPtr<FJsonObject> JsonObject) override;
+    virtual ::ELightControlLoadingResult LoadFromJson(TSharedPtr<FJsonObject> JsonObject) override;
 
     virtual void BeginTransaction() override;
 

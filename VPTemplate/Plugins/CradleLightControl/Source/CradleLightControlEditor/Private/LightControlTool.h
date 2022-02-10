@@ -27,7 +27,7 @@ public:
 
     void UpdateLightList();
     
-    static void UpdateItemData(UItemHandle* ItemHandle);
+    static void UpdateItemData(UBaseLight* BaseLight);
     void VerifyTreeData();
 
 private:

@@ -131,19 +131,6 @@ void UDMXConfigAsset::SetupChannels(UDMXLight* DMXLight)
 
 FString UDMXConfigAsset::GetAssetPath()
 {
-    /*FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-    TArray<FAssetData> AssetData;
-    auto Res = AssetRegistryModule.Get().GetAssetsByClass(GetClass()->GetFName(), AssetData);
-    check(Res)
-    auto TargetAsset = AssetData.FindByPredicate([this](const FAssetData& Asset)
-        {
-            
-            return Asset.AssetName == AssetName;
-        });
-    if (TargetAsset)
-    {
-		return TargetAsset->ObjectPath.ToString();	    
-    }
-    return "";*/
+    
     return"";
 }

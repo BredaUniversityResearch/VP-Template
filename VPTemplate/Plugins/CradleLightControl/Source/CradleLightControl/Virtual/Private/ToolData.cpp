@@ -1,19 +1,18 @@
 #include "ToolData.h"
 
-#include "ItemHandle.h"
-
 #include "Engine/DirectionalLight.h"
-#include "Engine/PointLight.h"
-#include "Engine/SkyLight.h"
-#include "Engine/SpotLight.h"
 
 #include "BaseLight.h"
+
+#include "LightControlLoadingResult.h"
+#include "Json.h"
 
 //#include "LightTreeHierarchy.h"
 
 #include "Interfaces/IPluginManager.h"
 
 UToolData::UToolData()
+	: LightIdCounter(0)
 {
     SetFlags(GetFlags() | RF_Transactional);
 
@@ -27,17 +26,17 @@ UToolData::~UToolData()
 
 UBaseLight* UToolData::GetLightByName(FString Name)
 {
-	for (auto& LightItem : ListOfLightItems)
+	for (auto& Light : Lights)
 	{
-		if (LightItem->Name == Name)
+		if (Light->Name == Name)
 		{
-            return LightItem->Item;
+            return Light;
 		}
 	}
 
 	if (GEngine)
 	{
-        GEngine->AddOnScreenDebugMessage(1999, 0.5f, FColor::Cyan, FString::Printf(TEXT("Could not find item with name \"%s\" %lu"), *Name, RootItems.Num()));
+        GEngine->AddOnScreenDebugMessage(1999, 0.5f, FColor::Cyan, FString::Printf(TEXT("Could not find item with name \"%s\""), *Name));
 	}
 
     return nullptr;
@@ -57,56 +56,44 @@ void UToolData::BeginTransaction()
 
 void UToolData::ClearAllData()
 {
-    RootItems.Empty();
-    ListOfTreeItems.Empty();
-    ListOfLightItems.Empty();
+    Lights.Empty();
 }
 
-UItemHandle* UToolData::AddItem(bool bIsFolder)
+UBaseLight* UToolData::AddItem()
 {
-    auto Item = NewObject<UItemHandle>();
-    Item->ToolData = this;
-    Item->Parent = nullptr;
+    auto Item = NewObject<UBaseLight>(this, ItemClass);
+    Item->Id = LightIdCounter++;
+    Item->OwningToolData = this;
+    Lights.Add(Item);
 
-    ListOfTreeItems.Add(Item);
-
-    //TreeRootItems.Add(Item);
-    if (bIsFolder)
-    {
-        Item->Type = Folder;
-    }
-    else // Do this so that only actual lights which might be deleted in the editor are checked for validity
-    {
-        ListOfLightItems.Add(Item);
-        Item->Item = NewObject<UBaseLight>(this, ItemClass);
-        Item->Item->Handle = Item;
-    }
 
     return Item;
 }
 
-void UToolData::SaveStateToJson(FString Path, bool bUpdatePresetPath)
+TSharedPtr<FJsonObject> UToolData::SaveStateToJson(FString Path, bool bUpdatePresetPath)
 {
     TArray<TSharedPtr<FJsonValue>> TreeItemsJSON;
 
-    for (auto TreeItem : RootItems)
+    for (auto Light : Lights)
     {
-        TreeItemsJSON.Add(TreeItem->SaveToJson());
+        auto JsonObject = MakeShared<FJsonObject>();
+        TSharedPtr<FJsonValue> JsonValue = MakeShared<FJsonValueObject>(JsonObject);
+
+        JsonObject->SetObjectField("Light", Light->SaveAsJson());
+
+        TreeItemsJSON.Emplace(JsonValue);
     }
     TSharedPtr<FJsonObject> RootObject = MakeShared<FJsonObject>();
 
-    RootObject->SetArrayField("TreeElements", TreeItemsJSON);
+    RootObject->SetArrayField("Lights", TreeItemsJSON);
 
-    FString Output;
-    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Output);
-    FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer);
-
-    FFileHelper::SaveStringToFile(Output, *Path);
     if (bUpdatePresetPath)
         ToolPresetPath = Path;
+
+    return RootObject;
 }
 
-void UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
+TSharedPtr<FJsonObject> UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
 {
     bCurrentlyLoading = true;
 
@@ -121,42 +108,36 @@ void UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
         if (bUpdatePresetPath)
             ToolPresetPath = Path;
         UE_LOG(LogTemp, Display, TEXT("Beginning light control tool state loading from %s"), *Path);
-        RootItems.Empty();
-        ListOfTreeItems.Empty();
-        ListOfLightItems.Empty();
         TSharedPtr<FJsonObject> JsonRoot;
         TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(Input);
         FJsonSerializer::Deserialize(JsonReader, JsonRoot);
 
-        auto LoadingResult = UItemHandle::ELoadingResult::Success;
-        for (auto TreeElement : JsonRoot->GetArrayField("TreeElements"))
+        auto LoadingResult = ELightControlLoadingResult::Success;
+        for (auto Light : JsonRoot->GetArrayField("Lights"))
         {
             const TSharedPtr<FJsonObject>* TreeElementObjectPtr;
-            auto Success = TreeElement->TryGetObject(TreeElementObjectPtr);
+            auto Success = Light->TryGetObject(TreeElementObjectPtr);
             auto TreeElementObject = *TreeElementObjectPtr;
             check(Success);
             int Type = TreeElementObject->GetNumberField("Type");
-            auto Item = AddItem(Type == 0); // If Type is 0, this element is a folder, so we add it as a folder
+            auto Item = AddItem(); // If Type is 0, this element is a folder, so we add it as a folder
             auto Res = Item->LoadFromJson(TreeElementObject);
 
-            if (Res != UItemHandle::ELoadingResult::Success)
+            if (Res != ELightControlLoadingResult::Success)
             {
-                if (LoadingResult == UItemHandle::ELoadingResult::Success)
+                if (LoadingResult == ELightControlLoadingResult::Success)
                 {
                     LoadingResult = Res;
                 }
-                else LoadingResult = UItemHandle::ELoadingResult::MultipleErrors;
+                else LoadingResult = ELightControlLoadingResult::MultipleErrors;
             }
 
-            RootItems.Add(Item);
         }
         TreeStructureChangedDelegate.ExecuteIfBound();
 
-        for (auto TreeItem : RootItems)
-        {
-            ItemExpansionChangedDelegate.ExecuteIfBound(TreeItem, true);
-        }
         OnToolDataLoaded.ExecuteIfBound(LoadingResult);
+
+        return JsonRoot;
      
     }
     else
@@ -168,6 +149,7 @@ void UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
     //GEngine->AddOnScreenDebugMessage(228 + DataName.Len(), 60.0f, FColor::Magenta,
     //    FString::Printf(TEXT("%lu root elements loaded for %s"), RootItems.Num(), *DataName));
     bCurrentlyLoading = false;
+    return nullptr;
 }
 
 

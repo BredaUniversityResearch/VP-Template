@@ -1,27 +1,30 @@
 #include "TreeItemWidget.h"
 
+#include "BaseLight.h"
+#include "EditorData.h"
 #include "ItemHandle.h"
 #include "CradleLightControlEditor.h"
 #include "LightTreeHierarchy.h"
 #include "ToolData.h"
 
-void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
+void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle, UEditorData* InEditorData)
 {
+	EditorData = InEditorData;
 	ItemHandleRef = ItemHandle;
 	// Create a root widget for the Item Handle if one doesn't already exist
 	// Determine what icon to use for the checkbox which is turns the light on/off
 	// This is primarily for group items which may contain multiple types of lights
-	TEnumAsByte<ETreeItemType> IconType;
-	if (ItemHandleRef->Type == Folder)
+	TEnumAsByte<ELightType> IconType;
+	if (!ItemHandleRef->Item)
 	{
 		if (ItemHandleRef->Children.Num())
 		{
 			// TODO: What if we have a group which contains, say, a point light and a group of point lights?
 			// Will the icon be mixed or point light? Need to test.
-			IconType = ItemHandleRef->Children[0]->Type;
+			IconType = ItemHandleRef->Children[0]->Item->Type;
 			for (size_t i = 1; i < ItemHandleRef->Children.Num(); i++)
 			{
-				if (IconType != ItemHandleRef->Children[i]->Type)
+				if (IconType != ItemHandleRef->Children[i]->Item->Type)
 				{
 					IconType = Mixed;
 				}
@@ -31,7 +34,7 @@ void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
 			IconType = Mixed;
 	}
 	else
-		IconType = ItemHandleRef->Type;
+		IconType = ItemHandleRef->Item->Type;
 
 	CheckBoxStyle = FCradleLightControlEditorModule::Get().MakeCheckboxStyleForType(IconType);
 	CheckBoxStyle.CheckedPressedImage = CheckBoxStyle.UndeterminedImage;
@@ -41,7 +44,7 @@ void STreeItemWidget::Construct(const FArguments Args, UItemHandle* ItemHandle)
 	SHorizontalBox::FSlot* CheckBoxSlot;
 
 		// The groups and light items have different widget layours, so we generate them differently based on type
-	if (ItemHandleRef->Type != Folder)
+	if (ItemHandleRef->Item)
 	{
 		// Generation of widget for light items
 
@@ -237,19 +240,19 @@ FReply STreeItemWidget::RemoveFromTreeButtonClicked()
 	else
 	{
 		// If the handle is a root item, we make its children root items as well
-		ItemHandleRef->ToolData->BeginTransaction();
+		ItemHandleRef->EditorData->BeginTransaction();
 		for (auto Child : ItemHandleRef->Children)
 		{
 			Child->BeginTransaction(false);
 			Child->Parent = nullptr;
-			ItemHandleRef->ToolData->RootItems.Add(Child);
+			EditorData->RootItems.Add(Child);
 		}
-		ItemHandleRef->ToolData->RootItems.Remove(ItemHandleRef);
+		EditorData->RootItems.Remove(ItemHandleRef);
 	}
 	GEditor->EndTransaction();
 
 	ItemHandleRef->Children.Empty();
-	ItemHandleRef->ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
+	ItemHandleRef->EditorData->TreeStructureChangedDelegate.ExecuteIfBound();
 
 	return FReply::Handled();
 }
@@ -257,7 +260,7 @@ FReply STreeItemWidget::RemoveFromTreeButtonClicked()
 void STreeItemWidget::UpdateNameBox()
 {
 	auto Font = FSlateFontInfo(FCoreStyle::GetDefaultFont(), 10);
-	if (ItemHandleRef->Type == Folder) // Slightly larger font for group items
+	if (!ItemHandleRef->Item) // Slightly larger font for group items
 		Font.Size = 12;
 	if (bInRename)
 	{

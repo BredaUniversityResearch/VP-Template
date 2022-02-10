@@ -20,6 +20,8 @@
 #include "PropertyCustomizationHelpers.h"
 #include "DesktopPlatform/Public/IDesktopPlatform.h"
 
+#include "DMXConfigAsset.h"
+
 #include "VirtualLight.h"
 #include "Engine/AssetManager.h"
 
@@ -66,15 +68,38 @@ void SDMXControlTool::UpdateExtraLightDetailBox()
 
 }
 
+FString SDMXControlTool::GetDXMConfigAssetPath(UDMXConfigAsset* ConfigAsset) const
+{
+    FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+    TArray<FAssetData> AssetData;
+    auto Res = AssetRegistryModule.Get().GetAssetsByClass(UDMXConfigAsset::StaticClass()->GetFName(), AssetData);
+    check(Res)
+        auto TargetAsset = AssetData.FindByPredicate([this, ConfigAsset](const FAssetData& Asset)
+            {
+
+                return Asset.AssetName == ConfigAsset->AssetName;
+            });
+    if (TargetAsset)
+    {
+        return TargetAsset->ObjectPath.ToString();
+    }
+    return "";
+}
+
 FReply SDMXControlTool::AddLightButtonCallback()
 {
-    auto NewItemHandle = EditorData->GetToolData()->AddItem();
-    NewItemHandle->Name = "New DMX Light";
-    NewItemHandle->Type = SpotLight;
+    UItemHandle* ParentGroup = nullptr;
+    auto NewItem = EditorData->GetToolData()->AddItem();
+    NewItem->Name = "New DMX Light";
+    NewItem->Type = SpotLight;
     if (EditorData->IsSingleGroupSelected())
-        EditorData->GetSelectedGroup()->Children.Add(NewItemHandle);
-    else
-        EditorData->GetToolData()->RootItems.Add(NewItemHandle);
+        ParentGroup = EditorData->GetSelectedGroup();
+
+    auto NewItemHandle = EditorData->AddItem();
+    NewItemHandle->Name = NewItem->Name;
+    NewItemHandle->Item = NewItem;
+    EditorData->RootItems.Add(NewItemHandle);
+    EditorData->ListOfLightItems.Add(NewItemHandle);
 	LightHierarchyWidget->GenerateWidgetForItem(NewItemHandle);
     EditorData->TreeStructureChangedDelegate.ExecuteIfBound();
 
@@ -169,7 +194,7 @@ void SDMXControlTool::OnPortSelected()
     auto OutputPort = DMXPortSelector->GetSelectedOutputPort();
     if (OutputPort)
     {
-		GEditor->BeginTransaction(FText::FromString(MasterDMX->Handle->Name + "DMX port changed"));
+		GEditor->BeginTransaction(FText::FromString(MasterDMX->Name + "DMX port changed"));
 		MasterDMX->BeginTransaction();
         MasterDMX->OutputPort = OutputPort;
         MasterDMX->UpdateDMXChannels();
@@ -187,7 +212,7 @@ void SDMXControlTool::UseDMXCheckboxStateChanged(ECheckBoxState NewState)
 {
     auto MasterDMX = Cast<UDMXLight>(EditorData->GetMasterLight()->Item);
 
-    GEditor->BeginTransaction(FText::FromString(MasterDMX->Handle->Name + "DMX usage changed"));
+    GEditor->BeginTransaction(FText::FromString(MasterDMX->Name + "DMX usage changed"));
     MasterDMX->BeginTransaction();
     MasterDMX->bDMXEnabled = NewState == ECheckBoxState::Checked;
     MasterDMX->UpdateDMXChannels();
@@ -201,7 +226,7 @@ FString SDMXControlTool::DMXConfigObjectPath() const
     FString ObjectPath = "";
     if (MasterDMX->Config)
     {
-        ObjectPath = MasterDMX->Config->GetAssetPath();
+        ObjectPath = GetDXMConfigAssetPath(MasterDMX->Config);
     }
     return ObjectPath;
 }
@@ -209,7 +234,7 @@ FString SDMXControlTool::DMXConfigObjectPath() const
 void SDMXControlTool::OnSetDMXConfigAsset(const FAssetData& AssetData)
 {
     auto MasterDMX = Cast<UDMXLight>(EditorData->GetMasterLight()->Item);
-    GEditor->BeginTransaction(FText::FromString(MasterDMX->Handle->Name + "DMX config changed"));
+    GEditor->BeginTransaction(FText::FromString(MasterDMX->Name + "DMX config changed"));
     MasterDMX->BeginTransaction();
     MasterDMX->Config = Cast<UDMXConfigAsset>(AssetData.GetAsset());
     MasterDMX->Config->AssetName = AssetData.AssetName;
@@ -227,7 +252,7 @@ void SDMXControlTool::StartingChannelBoxValueCommitted(int Value, ETextCommit::T
     if (CommitType == ETextCommit::OnEnter || CommitType == ETextCommit::Default)
     {
         auto MasterDMX = Cast<UDMXLight>(EditorData->GetMasterLight()->Item);
-        GEditor->BeginTransaction(FText::FromString(MasterDMX->Handle->Name + "DMX starting channel changed"));
+        GEditor->BeginTransaction(FText::FromString(MasterDMX->Name + "DMX starting channel changed"));
         MasterDMX->BeginTransaction();
         MasterDMX->StartingChannel = Value;
         MasterDMX->UpdateDMXChannels();

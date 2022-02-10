@@ -1,4 +1,6 @@
 #pragma once
+#include "BaseLight.h"
+#include "Chaos/AABB.h"
 
 
 class UItemHandle;
@@ -22,7 +24,7 @@ public:
 
 	};
 	
-	void OnPropertiesChanged(TArray<UItemHandle*>& AffectedLights, EProperty Property, float Value);
+	void OnPropertiesChanged(TArray<UBaseLight*>& AffectedLights, EProperty Property, float Value);
 
 private:
 	

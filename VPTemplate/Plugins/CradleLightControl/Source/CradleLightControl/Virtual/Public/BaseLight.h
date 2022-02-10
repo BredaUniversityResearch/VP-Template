@@ -1,4 +1,9 @@
 #pragma once
+#include "LightControlLoadingResult.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
+#include "Chaos/AABB.h"
 #include "Chaos/AABB.h"
 #include "Chaos/AABB.h"
 
@@ -7,6 +12,17 @@
 
 // Base class representing a light in the tools' data.
 // Contains data that is common between virtual and DMX controlled lights, and interface functions for them
+
+UENUM()
+enum ELightType
+{
+    Mixed = 0,
+    SkyLight,
+    SpotLight,
+    DirectionalLight,
+    PointLight,
+    Invalid
+};
 
 UCLASS(BlueprintType)
 class UBaseLight : public UObject
@@ -26,6 +42,8 @@ public:
     {
         SetFlags(GetFlags() | RF_Transactional);
     };
+
+
 
     bool IsEnabled() const { return bIsEnabled; };
 
@@ -80,7 +98,7 @@ public:
     // Returns a JSON object representative of the light
     virtual TSharedPtr<FJsonObject> SaveAsJson();
     // Loads light dta from the given JSON object
-    virtual uint8 LoadFromJson(TSharedPtr<FJsonObject> JsonObject);
+    virtual ::ELightControlLoadingResult LoadFromJson(TSharedPtr<FJsonObject> JsonObject);
 
     virtual void BeginTransaction();
 #if WITH_EDITOR
@@ -89,8 +107,11 @@ public:
     // Get the RGB color of the light based on its hue and saturation
     FLinearColor GetRGBColor() const;
 
+    FString Name;
+    ELightType Type;
 
-
+    UPROPERTY()
+        uint32 Id;
 
     UPROPERTY(BlueprintReadOnly)
         bool bIsEnabled;
@@ -118,6 +139,5 @@ public:
         bool bLockInnerAngleToOuterAngle;
 
     // Not UPROPERTY to avoid circular reference with what is essentially shared pointers
-    class UItemHandle* Handle;
-
+    class UToolData* OwningToolData;
 };

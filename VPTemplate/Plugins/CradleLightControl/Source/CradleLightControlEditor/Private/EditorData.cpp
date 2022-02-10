@@ -28,22 +28,15 @@ UEditorData::~UEditorData()
     //AutoSave();
 }
 
-UBaseLight* UEditorData::GetLightByName(FString Name)
+UItemHandle* UEditorData::AddItem()
 {
-    for (auto& LightItem : ToolData->ListOfLightItems)
-    {
-        if (LightItem->Name == Name)
-        {
-            return LightItem->Item;
-        }
-    }
+    auto Handle = NewObject<UItemHandle>();
 
-    if (GEngine)
-    {
-        GEngine->AddOnScreenDebugMessage(1999, 0.5f, FColor::Cyan, FString::Printf(TEXT("Could not find item with name \"%s\""), *Name));
-    }
+    Handle->EditorData = this;
 
-    return nullptr;
+    ListOfTreeItems.Add(Handle);
+
+    return Handle;
 }
 
 void UEditorData::SetToolData(UToolData* InToolData)
@@ -73,7 +66,7 @@ void UEditorData::PostLightTransacted(const FTransactionObjectEvent& Transaction
 {
 	if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo)
 	{
-		if (Light.Handle == GetMasterLight())
+		if (&Light == GetMasterLight()->Item)
 		{
             OwningWidget->UpdateSaturationGradient(Light.Hue);
 		}
@@ -103,7 +96,7 @@ UItemHandle* UEditorData::GetMasterLight()
 
 UItemHandle* UEditorData::GetSelectedGroup()
 {
-    if (SelectedItems.Num() && SelectedItems[0]->Type == Folder)
+    if (SelectedItems.Num() && !SelectedItems[0]->Item)
     {
         return SelectedItems[0];
     }
@@ -152,7 +145,7 @@ void UEditorData::ClearAllData()
 
 bool UEditorData::IsSingleGroupSelected()
 {
-    return SelectedItems.Num() == 1 && SelectedItems[0]->Type == Folder;
+    return SelectedItems.Num() == 1 && !SelectedItems[0]->Item;
 }
 
 
@@ -195,7 +188,24 @@ FReply UEditorData::SaveAsCallback()
 
 void UEditorData::SaveStateToJson(FString Path, bool bUpdatePresetPath)
 {
-    ToolData->SaveStateToJson(Path);
+    auto RootObject = ToolData->SaveStateToJson(Path);
+
+    TArray<TSharedPtr<FJsonValue>> RootNodes;
+
+    for (auto& RootItem : RootItems)
+    {
+        RootNodes.Add(RootItem->SaveToJson());
+    }
+
+    RootObject->SetArrayField("Hierarchy Root Nodes", RootNodes);
+
+
+    FString Output;
+    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Output);
+    FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer);
+
+    FFileHelper::SaveStringToFile(Output, *Path);
+
     if (bUpdatePresetPath)
         ToolPresetPath = Path;
 }
@@ -229,14 +239,27 @@ void UEditorData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
 
     FString Input;
     ClearSelectionDelegate.ExecuteIfBound();
-    //GEngine->AddOnScreenDebugMessage(328 + DataName.Len(), 60.0f, FColor::Magenta,
-    //    FString::Printf(TEXT("Trying to load data from %s"), *Path));
-	ClearAllData();
 
     // todo: This must check if the file exists, ideally without loading it in the process
     if (FFileHelper::LoadFileToString(Input, *Path))
     {
-        ToolData->LoadStateFromJSON(Path);
+		ClearAllData();
+        auto JsonObject = ToolData->LoadStateFromJSON(Path);
+
+        if (JsonObject)
+        {
+			auto RootNodes = JsonObject->GetArrayField("Hierarchy Root Nodes");
+
+			for (auto Node : RootNodes)
+			{
+                auto NewItemHandle = AddItem();
+                NewItemHandle->LoadFromJson(Node->AsObject());
+
+                RootItems.Add(NewItemHandle);
+			}
+        }
+
+
         if (bUpdatePresetPath)
             ToolPresetPath = Path;
         TreeStructureChangedDelegate.ExecuteIfBound();        
@@ -247,8 +270,12 @@ void UEditorData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
         ToolPresetPath = "";
     }
 
-    //GEngine->AddOnScreenDebugMessage(228 + DataName.Len(), 60.0f, FColor::Magenta,
-    //    FString::Printf(TEXT("%lu root elements loaded for %s"), RootItems.Num(), *DataName));
+
+    for (auto TreeItem : RootItems)
+    {
+        ItemExpansionChangedDelegate.ExecuteIfBound(TreeItem, true);
+    }
+    
     bCurrentlyLoading = false;
 }
 

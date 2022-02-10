@@ -8,7 +8,7 @@
 #include "DMXConfigAsset.h"
 #include "DMXControlTool.h"
 
-#include "ItemHandle.h"
+#include "BaseLight.h"
 
 #include "ClassIconFinder.h"
 #include "CradleLightControl.h"
@@ -27,6 +27,7 @@
 
 #define LOCTEXT_NAMESPACE "FCradleLightControlEditorModule"
 
+DEFINE_LOG_CATEGORY(LogCradleLightControl)
 
 void FCradleLightControlEditorModule::StartupModule()
 {
@@ -247,9 +248,9 @@ void FCradleLightControlEditorModule::GenerateIcons()
 
 FCheckBoxStyle FCradleLightControlEditorModule::MakeCheckboxStyleForType(uint8 IconType)
 {
-	check(IconType != ETreeItemType::Invalid);
+	check(IconType != ELightType::Invalid);
 
-	// ETreeItemType and EIconType are ordered in such a manner that
+	// ELightType and EIconType are ordered in such a manner that
 	// the light type in EIconType changes every 3 enums, with the order always being Off, On and Undetermined.
 	// Because of this, IconType * 3 + 0/1/2 will give us the Off/On/Undetermined icon for the given item type.
 

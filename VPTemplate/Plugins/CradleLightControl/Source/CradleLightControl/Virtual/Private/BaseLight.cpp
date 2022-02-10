@@ -1,26 +1,20 @@
 #include "BaseLight.h"
 
-#include "ItemHandle.h"
 //#include "LightControlTool.h"
+#include "LightControlLoadingResult.h"
 #include "ToolData.h"
-
-#include "Engine/SkyLight.h"
-#include "Engine/SpotLight.h"
-#include "Engine/DirectionalLight.h"
-#include "Engine/PointLight.h"
-
-#include "ItemHandle.h"
-#include "Chaos/AABB.h"
 #include "Chaos/AABB.h"
 
+#include "Json.h"
 
-uint8 UBaseLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
+
+ELightControlLoadingResult UBaseLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
 {
 
     auto State = JsonObject->GetBoolField("State");
 
     SetEnabled(State);
-
+    Name = JsonObject->GetStringField("Name");
     SetLightIntensityRaw(JsonObject->GetNumberField("Intensity"));
     SetHue(JsonObject->GetNumberField("Hue"));
     SetSaturation(JsonObject->GetNumberField("Saturation"));
@@ -32,7 +26,7 @@ uint8 UBaseLight::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
     AddHorizontal(JsonObject->GetNumberField("Horizontal"));
     AddVertical(JsonObject->GetNumberField("Vertical"));
 
-    return UItemHandle::ELoadingResult::Success;
+    return ELightControlLoadingResult::Success;
 }
 
 void UBaseLight::BeginTransaction()
@@ -43,7 +37,7 @@ void UBaseLight::BeginTransaction()
 #if WITH_EDITOR
 void UBaseLight::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
-    Handle->ToolData->PostLightTransacted.ExecuteIfBound(TransactionEvent, *this);
+    OwningToolData->PostLightTransacted.ExecuteIfBound(TransactionEvent, *this);
 }
 #endif
 FLinearColor UBaseLight::GetRGBColor() const
@@ -125,6 +119,8 @@ TSharedPtr<FJsonObject> UBaseLight::SaveAsJson()
 {
     TSharedPtr<FJsonObject> JsonItem = MakeShared<FJsonObject>();
 
+    JsonItem->SetStringField("Name", Name);
+    JsonItem->SetNumberField("Id", Id);
     JsonItem->SetBoolField("State", bIsEnabled);
     JsonItem->SetNumberField("Intensity", Intensity);
     JsonItem->SetNumberField("Hue", Hue);

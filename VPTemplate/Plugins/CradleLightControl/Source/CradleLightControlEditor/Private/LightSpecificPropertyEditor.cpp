@@ -34,17 +34,17 @@ void SLightSpecificProperties::UpdateToolState()
         return;
     }
 
-    auto Light = EditorData->GetMasterLight();
+    auto LightHandle = EditorData->GetMasterLight();
 
-    if (Light->Type == SpotLight)
+    if (LightHandle->Item->Type == SpotLight)
     {
         ConstructSpotLightProperties();
     }
-    else if (Light->Type == DirectionalLight)
+    else if (LightHandle->Item->Type == DirectionalLight)
     {
         ConstructDirectionalLightProperties();
     }
-    else if (Light->Type == PointLight || Light->Type == SkyLight)
+    else if (LightHandle->Item->Type == PointLight || LightHandle->Item->Type == SkyLight)
     {
         ConstructPointLightProperties();
     }

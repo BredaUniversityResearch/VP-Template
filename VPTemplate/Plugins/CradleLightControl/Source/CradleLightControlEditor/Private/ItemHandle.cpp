@@ -1,57 +1,18 @@
 #include "ItemHandle.h"
 
 #include "VirtualLight.h"
-#include "ToolData.h"
+#include "EditorData.h"
+
+#include "Engine.h"
 
 #include "CradleLightControl.h"
-
-
-void UItemHandle::UpdateVirtualLights(TArray<AActor*>& ActorLights)
-{
-    auto VLight = Cast<UVirtualLight>(Item);
-    if (VLight && VLight->ActorPtr)
-    {
-        auto LightName = VLight->ActorPtr->GetName();
-        for (auto& L : ActorLights)
-        {
-            if (LightName == L->GetName())
-            {
-                VLight->OriginalActor = VLight->ActorPtr;
-                VLight->ActorPtr = L;
-                break;
-            }
-        }
-    }
-    else
-    {
-        for (auto& Child : Children)
-        {
-            Child->UpdateVirtualLights(ActorLights);
-        }
-    }
-}
-
-void UItemHandle::RestoreVirtualLightReferences()
-{
-    auto VLight = Cast<UVirtualLight>(Item);
-    if (VLight && VLight->ActorPtr)
-    {
-        VLight->ActorPtr = VLight->OriginalActor;
-    }
-    else
-    {
-        for (auto& Child : Children)
-        {
-            Child->RestoreVirtualLightReferences();
-        }
-    }
-}
+#include "ToolData.h"
 
 ECheckBoxState UItemHandle::IsLightEnabled() const
 {
     bool AllOff = true, AllOn = true;
 
-    if (Type != Folder)
+    if (Item)
     {
         // If the item is not a group, we just check if the item is On or Off and decide based on that
         return Item->IsEnabled() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
@@ -83,7 +44,7 @@ ECheckBoxState UItemHandle::IsLightEnabled() const
 
 void UItemHandle::EnableGrouped(bool NewState)
 {
-    if (Type != Folder)
+    if (Item)
     {
         Item->SetEnabled(NewState);
     }
@@ -155,13 +116,7 @@ TSharedPtr<FJsonValue> UItemHandle::SaveToJson()
 
     JsonItem->SetStringField("Name", Name);
     JsonItem->SetStringField("Note", Note);
-    JsonItem->SetNumberField("Type", Type);
-    if (Type != Folder)
-    {
-        // If this is not a group, we save the item held by the handle
-        JsonItem->SetObjectField("Item", Item->SaveAsJson());
-    }
-    else
+	if (!Item)
     {
         // Otherwise we save all of its child handles
         TArray<TSharedPtr<FJsonValue>> ChildrenJson;
@@ -172,7 +127,11 @@ TSharedPtr<FJsonValue> UItemHandle::SaveToJson()
         }
 
         JsonItem->SetArrayField("Children", ChildrenJson);
-
+        JsonItem->SetNumberField("Light Id", -1);
+    }
+    else
+    {
+    	JsonItem->SetNumberField("Light Id", Item->Id);
     }
 
     TSharedPtr<FJsonValue> JsonValue = MakeShared<FJsonValueObject>(JsonItem);
@@ -180,27 +139,30 @@ TSharedPtr<FJsonValue> UItemHandle::SaveToJson()
 }
 
 
-UItemHandle::ELoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
+ELightControlLoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> JsonObject)
 {
     Name = JsonObject->GetStringField("Name");
     Note = JsonObject->GetStringField("Note");
-    Type = StaticCast<ETreeItemType>(JsonObject->GetNumberField("Type"));
-    auto JsonItem = JsonObject->GetObjectField("Item");
-    if (Type != Folder)
+    auto LightId = JsonObject->GetNumberField("Light Id");
+    if (LightId != -1)
     {
+        auto Light = EditorData->GetToolData()->Lights.FindByPredicate([LightId](UBaseLight* Light)
+        {
+                return Light->Id == LightId;
+        });
+        Item = Light ? *Light : nullptr;
         if (!GWorld)
         {
             UE_LOG(LogCradleLightControl, Error, TEXT("There was an error with the engine. Try loading again. If the issue persists, restart the engine."));
-            return EngineError;
+            return ELightControlLoadingResult::EngineError;
         }
 
-        Item->LoadFromJson(JsonItem);
     }
     else
     {
         auto JsonChildren = JsonObject->GetArrayField("Children");
 
-        auto ChildrenLoadingSuccess = Success;
+        auto ChildrenLoadingSuccess = ELightControlLoadingResult::Success;
         for (auto Child : JsonChildren)
         {
             const TSharedPtr<FJsonObject>* ChildObjectPtr;
@@ -209,19 +171,19 @@ UItemHandle::ELoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> Js
 
             auto ChildObject = *ChildObjectPtr;
             int ChildType = ChildObject->GetNumberField("Type");
-            auto ChildItem = ToolData->AddItem(ChildType == Folder);
+            auto ChildItem = EditorData->AddItem();
 
             ChildItem->Parent = this;
 
             auto ChildResult = ChildItem->LoadFromJson(ChildObject);
-            if (ChildResult != ELoadingResult::Success)
+            if (ChildResult != ELightControlLoadingResult::Success)
             {
-                if (ChildrenLoadingSuccess == ELoadingResult::Success)
+                if (ChildrenLoadingSuccess == ELightControlLoadingResult::Success)
                 {
                     ChildrenLoadingSuccess = ChildResult;
                 }
                 else
-                    ChildrenLoadingSuccess = ELoadingResult::MultipleErrors;
+                    ChildrenLoadingSuccess = ELightControlLoadingResult::MultipleErrors;
             }
             Children.Add(ChildItem);
         }
@@ -229,12 +191,12 @@ UItemHandle::ELoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> Js
     }
 
 
-    return Success;
+    return ELightControlLoadingResult::Success;
 }
 
 void UItemHandle::GetLights(TArray<UItemHandle*>& Array)
 {
-    if (Type == Folder)
+    if (!Item)
     {
         for (auto& Child : Children)
             Child->GetLights(Array);
@@ -247,20 +209,20 @@ void UItemHandle::GetLights(TArray<UItemHandle*>& Array)
 
 void UItemHandle::UpdateFolderIcon()
 {
-    if (Type != Folder)
+    if (Item)
         return;
     TArray<UItemHandle*> ChildLights;
     GetLights(ChildLights);
 
-    auto IconType = Type;
+    auto IconType = Item ? Item->Type : Mixed;
 
     if (ChildLights.Num() > 0)
     {
-        IconType = ChildLights[0]->Type;
+        IconType = ChildLights[0]->Item->Type;
 
         for (size_t i = 1; i < ChildLights.Num(); i++)
         {
-            if (IconType != ChildLights[i]->Type)
+            if (IconType != ChildLights[i]->Item->Type)
             {
                 IconType = Mixed;
                 break;
@@ -278,7 +240,7 @@ void UItemHandle::UpdateFolderIcon()
 
 int UItemHandle::LightCount() const
 {
-    if (Type != Folder)
+    if (Item)
     {
         return 1;
     }
@@ -295,7 +257,7 @@ int UItemHandle::LightCount() const
 void UItemHandle::BeginTransaction(bool bAffectItem, bool bAffectParent)
 {
     Modify();
-    if (bAffectItem)
+    if (bAffectItem && Item)
     {
         Item->BeginTransaction();
     }
@@ -313,8 +275,8 @@ void UItemHandle::PostTransacted(const FTransactionObjectEvent& TransactionEvent
     // Transactions with Item Handles may involve changes in the tree hierarchy, so we need to notify the tree widget about it
     if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo)
     {
-        if (Type == Folder)
-            ToolData->TreeStructureChangedDelegate.ExecuteIfBound();
+        if (Item)
+            EditorData->TreeStructureChangedDelegate.ExecuteIfBound();
 
     }
 }
