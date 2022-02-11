@@ -19,7 +19,7 @@
 
 #include "DesktopPlatformModule.h"
 #include "IDesktopPlatform.h"
-#include "BaseLightPropertyChangeSpeaker.h"
+#include "DirectLightEditorNetwork.h"
 #include "DMXConfigAssetActions.h"
 
 // About module: Editor-only module, contains the code for the UI
@@ -66,7 +66,8 @@ void FCradleLightControlEditorModule::StartupModule()
 	// until the interaction is finished. This makes editing light properties more cumbersome if not disabled.
 	//IConsoleManager::Get().FindConsoleVariable(TEXT("Slate.bAllowThrottling"))->Set(false);
 
-	LightPropertyChangeSpeaker = MakeUnique<FBaseLightPropertyChangeSpeaker>();
+	EditorNetworkInterface = MakeUnique<FDirectLightEditorNetwork>(VirtualLightControl->GetEditorData(), DMXControl->GetEditorData());
+	FCradleLightControlModule::Get().EditorNetworkInterface = EditorNetworkInterface.Get();
 }
 
 void FCradleLightControlEditorModule::ShutdownModule()
@@ -138,6 +139,19 @@ FCradleLightControlEditorModule& FCradleLightControlEditorModule::Get()
 {
 	auto& Module = FModuleManager::GetModuleChecked<FCradleLightControlEditorModule>("CradleLightControlEditor");
 	return Module;
+}
+
+TArray<UBaseLight*> FCradleLightControlEditorModule::GetLightsFromHandles(TArray<UItemHandle*> Handles)
+{
+	TArray<UBaseLight*> Lights;
+	Lights.Reserve(Handles.Num());
+
+	for (auto& Handle : Handles)
+	{
+		Lights.Add(Handle->Item);
+	}
+
+	return Lights;
 }
 
 void FCradleLightControlEditorModule::OpenGelPalette(FGelPaletteSelectionCallback SelectionCallback)

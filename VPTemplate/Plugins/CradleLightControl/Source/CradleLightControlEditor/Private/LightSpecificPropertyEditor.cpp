@@ -4,16 +4,17 @@
 #include "EditorData.h"
 #include "Itemhandle.h"
 #include "BaseLight.h"
-#include "BaseLightPropertyChangeListener.h"
-#include "BaseLightPropertyChangeSpeaker.h"
+#include "LightRuntimeNetwork.h"
+#include "LightEditorNetwork.h"
 #include "CradleLightControlEditor.h"
 
 #include "Engine/SpotLight.h"
 
-void SLightSpecificProperties::Construct(const FArguments& Args)
+void SLightSpecificProperties::Construct(const FArguments& Args, class UEditorData* InEditorData, EDataSet InDataSet)
 {
     _ASSERT(Args._ToolData);
-    EditorData = Args._EditorData;
+    EditorData = InEditorData;
+    DataSet = InDataSet;
 
     ChildSlot
     [
@@ -449,7 +450,8 @@ void SLightSpecificProperties::OnHorizontalValueChanged(float NormalizedValue)
     auto Light = EditorData->GetMasterLight();
     auto Delta = NormalizedValue - Light->Item->GetHorizontalNormalized();
 
-	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Horizontal, Delta);
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->LightsUnderSelection);
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Horizontal, Delta);
         
 }
 
@@ -483,7 +485,10 @@ void SLightSpecificProperties::OnVerticalValueChanged(float NormalizedValue)
 {
     auto Light = EditorData->GetMasterLight();
     auto Delta = NormalizedValue - Light->Item->GetVerticalNormalized();
-	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Vertical, Delta);
+
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->LightsUnderSelection);
+
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Vertical, Delta);
     
 }
 
@@ -520,7 +525,10 @@ void SLightSpecificProperties::OnInnerAngleValueChanged(float NormalizedValue)
     auto Light = EditorData->GetMasterLight();
     auto Angle = NormalizedValue * 80.0f;
 
-    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::InnerConeAngle, Angle);
+
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->LightsUnderSelection);
+
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::InnerConeAngle, Angle);
     
 }
 
@@ -579,7 +587,10 @@ void SLightSpecificProperties::OnOuterAngleValueChanged(float NormalizedValue)
 {
     auto Light = EditorData->GetMasterLight();
     auto Angle = NormalizedValue * 80.0f;
-	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::OuterConeAngle, Angle);
+
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->LightsUnderSelection);
+
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::OuterConeAngle, Angle);
     
 }
 

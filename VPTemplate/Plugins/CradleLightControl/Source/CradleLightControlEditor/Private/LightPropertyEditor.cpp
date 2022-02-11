@@ -6,7 +6,7 @@
 #include "EditorData.h"
 #include "ItemHandle.h"
 #include "BaseLight.h"
-#include "BaseLightPropertyChangeSpeaker.h"
+#include "LightEditorNetwork.h"
 
 TArray<FColor> SLightPropertyEditor::LinearGradient(TArray<FColor> ControlPoints, FVector2D Size,
                                                     EOrientation Orientation)
@@ -74,10 +74,10 @@ UTexture2D* SLightPropertyEditor::MakeGradientTexture(int X, int Y)
     return Tex;
 }
 
-void SLightPropertyEditor::Construct(const FArguments& Args)
+void SLightPropertyEditor::Construct(const FArguments& Args, class UEditorData* InEditorData, EDataSet InDataSet)
 {
-    _ASSERT(Args._ToolData);
-    EditorData = Args._EditorData;
+    EditorData = InEditorData;
+    DataSet = InDataSet;
     bDisplayIntensityInPercentage = Args._DisplayIntensityInPercentage;
     bDisplayTemperatureInPercentage = Args._DisplayTemperatureInPercentage;
 
@@ -375,15 +375,10 @@ FReply SLightPropertyEditor::OnGelPaletteButtonClicked()
 
 void SLightPropertyEditor::OnGelSelectionChanged(const FLinearColor& NewHSVColor)
 {
-    GEditor->BeginTransaction(FText::FromString("Light gel selected"));
-	for (auto& LightHandle : EditorData->GetSelectedLights())
-	{
-        LightHandle->Item->BeginTransaction();
-        LightHandle->Item->SetHue(NewHSVColor.R);
-        LightHandle->Item->SetSaturation(NewHSVColor.G);
-        LightHandle->Item->SetLightIntensity(NewHSVColor.B);
-	}
-    GEditor->EndTransaction();
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->GetSelectedLights());
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Hue, NewHSVColor.R);
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Saturation, NewHSVColor.G);
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Intensity, NewHSVColor.B);
 }
 
 void SLightPropertyEditor::GenerateTextures()
@@ -489,7 +484,8 @@ void SLightPropertyEditor::EndTransaction()
 
 void SLightPropertyEditor::OnIntensityValueChanged(float Value)
 {
-	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Intensity, Value);
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->LightsUnderSelection);
+	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Intensity, Value);
 }
 
 void SLightPropertyEditor::IntensityTransactionBegin()
@@ -538,7 +534,8 @@ FText SLightPropertyEditor::GetIntensityPercentage() const
 
 void SLightPropertyEditor::OnHueValueChanged(float Value)
 {
-    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Hue, Value * 360.0f);
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->LightsUnderSelection);
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Hue, Value * 360.0f);
 	UpdateSaturationGradient(Value * 360.0f);    
 }
 
@@ -585,7 +582,8 @@ FText SLightPropertyEditor::GetHuePercentage() const
 
 void SLightPropertyEditor::OnSaturationValueChanged(float Value)
 {
-    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Saturation, Value);
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->LightsUnderSelection);
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Saturation, Value);
 }
 
 void SLightPropertyEditor::SaturationTransactionBegin()
@@ -616,7 +614,8 @@ float SLightPropertyEditor::GetSaturationValue() const
 
 void SLightPropertyEditor::OnTemperatureValueChanged(float Value)
 {
-	FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(EditorData->LightsUnderSelection, FBaseLightPropertyChangeListener::Temperature, Value);
+    auto Lights = FCradleLightControlEditorModule::GetLightsFromHandles(EditorData->LightsUnderSelection);
+    FCradleLightControlEditorModule::GetLightPropertyChangeSpeaker().SendLightPropertyChangeEvent(DataSet, Lights, EProperty::Temperature, Value);
 }
 
 void SLightPropertyEditor::TemperatureTransactionBegin()

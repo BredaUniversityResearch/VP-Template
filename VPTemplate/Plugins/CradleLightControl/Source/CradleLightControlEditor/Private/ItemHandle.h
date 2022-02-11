@@ -36,6 +36,7 @@ public:
         , Name("Unnamed")
         , Note("")
         , Item(nullptr)
+		, LightId(-1)
     {
         SetFlags(GetFlags() | RF_Transactional);
     };
@@ -83,6 +84,9 @@ public:
 
     UPROPERTY()
         class UBaseLight* Item;
+
+    UPROPERTY()
+        int32 LightId;
 
     // Reference to the ToolData instance which has created and owns the handle
     class UEditorData* EditorData;

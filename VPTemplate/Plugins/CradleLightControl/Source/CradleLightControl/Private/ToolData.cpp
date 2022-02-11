@@ -59,10 +59,11 @@ void UToolData::ClearAllData()
     Lights.Empty();
 }
 
-UBaseLight* UToolData::AddItem()
+UBaseLight* UToolData::AddItem(bool bAssignId)
 {
     auto Item = NewObject<UBaseLight>(this, ItemClass);
-    Item->Id = LightIdCounter++;
+    if (bAssignId)
+		Item->Id = LightIdCounter++;
     Item->OwningToolData = this;
     Lights.Add(Item);
 
@@ -120,9 +121,10 @@ TSharedPtr<FJsonObject> UToolData::LoadStateFromJSON(FString Path, bool bUpdateP
             auto TreeElementObject = *TreeElementObjectPtr;
             check(Success);
             int Type = TreeElementObject->GetNumberField("Type");
-            auto Item = AddItem(); // If Type is 0, this element is a folder, so we add it as a folder
+            auto Item = AddItem(false); // Do not assign ID since we are going to load it from the file
             auto Res = Item->LoadFromJson(TreeElementObject);
 
+        	LightIdCounter = FMath::Max(Item->Id, LightIdCounter); 
             if (Res != ELightControlLoadingResult::Success)
             {
                 if (LoadingResult == ELightControlLoadingResult::Success)
@@ -136,6 +138,7 @@ TSharedPtr<FJsonObject> UToolData::LoadStateFromJSON(FString Path, bool bUpdateP
         TreeStructureChangedDelegate.ExecuteIfBound();
 
         OnToolDataLoaded.ExecuteIfBound(LoadingResult);
+        bCurrentlyLoading = false;
 
         return JsonRoot;
      

@@ -131,7 +131,7 @@ TSharedPtr<FJsonValue> UItemHandle::SaveToJson()
     }
     else
     {
-    	JsonItem->SetNumberField("Light Id", Item->Id);
+    	JsonItem->SetNumberField("Light Id", LightId);
     }
 
     TSharedPtr<FJsonValue> JsonValue = MakeShared<FJsonValueObject>(JsonItem);
@@ -143,10 +143,10 @@ ELightControlLoadingResult UItemHandle::LoadFromJson(TSharedPtr<FJsonObject> Jso
 {
     Name = JsonObject->GetStringField("Name");
     Note = JsonObject->GetStringField("Note");
-    auto LightId = JsonObject->GetNumberField("Light Id");
+    LightId = JsonObject->GetNumberField("Light Id");
     if (LightId != -1)
     {
-        auto Light = EditorData->GetToolData()->Lights.FindByPredicate([LightId](UBaseLight* Light)
+        auto Light = EditorData->GetToolData()->Lights.FindByPredicate([this](UBaseLight* Light)
         {
                 return Light->Id == LightId;
         });

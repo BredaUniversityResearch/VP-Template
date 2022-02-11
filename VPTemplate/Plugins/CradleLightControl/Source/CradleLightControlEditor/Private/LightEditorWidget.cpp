@@ -11,9 +11,12 @@
 #include "EditorData.h"
 #include "DesktopPlatform/Public/IDesktopPlatform.h"
 
-void SLightEditorWidget::Construct(const FArguments& Args, UToolData* InToolData)
+void SLightEditorWidget::Construct(const FArguments& Args, UToolData* InToolData, EDataSet InDataSet)
 {
     ToolTab = Args._ToolTab;
+
+    DataSet = InDataSet;
+
     if (!EditorData)
     {
 		EditorData = NewObject<UEditorData>();	    
@@ -217,7 +220,7 @@ SVerticalBox::FSlot& SLightEditorWidget::LightPropertyEditor()
             SNew(SVerticalBox)
             + SVerticalBox::Slot()
             [
-                SAssignNew(LightPropertyWidget, SLightPropertyEditor)
+                SAssignNew(LightPropertyWidget, SLightPropertyEditor, EditorData, DataSet)
                 .EditorData(EditorData)
             ]
 			+ SVerticalBox::Slot()
@@ -265,7 +268,7 @@ SHorizontalBox::FSlot& SLightEditorWidget::LightSpecificPropertyEditor()
     Slot
         .Padding(5.0f, 0.0f, 0.0f, 0.0f)
         [
-            SAssignNew(LightSpecificPropertiesWidget, SLightSpecificProperties)
+            SAssignNew(LightSpecificPropertiesWidget, SLightSpecificProperties, EditorData, DataSet)
             .EditorData(EditorData)
         ];
 

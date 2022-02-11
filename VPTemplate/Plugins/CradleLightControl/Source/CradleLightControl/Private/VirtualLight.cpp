@@ -231,7 +231,6 @@ void UVirtualLight::SetCastShadows(bool bState)
     // The JSON file saves the light actor by its name, so we use that name to find the light which this UVirtualLight is responsible for
     auto LightName = JsonObject->GetStringField("RelatedLightName");
 
-    Type = ELightType::SkyLight;
 
     UClass* ClassToFetch = AActor::StaticClass();
 

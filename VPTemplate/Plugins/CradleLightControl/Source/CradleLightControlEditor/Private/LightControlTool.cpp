@@ -28,6 +28,7 @@
 #include "BaseLight.h"
 
 #include "EditorData.h"
+#include "LightControlNetworkEnums.h"
 #include "LightEditorWidget.h"
 
 #include "VirtualLight.h"
@@ -40,7 +41,7 @@ void SLightControlTool::Construct(const FArguments& Args, UToolData* InToolData)
     EditorData->MetaDataSaveExtension = FMetaDataExtension::CreateRaw(this, &SLightControlTool::MetaDataSaveExtension);
     EditorData->MetaDataLoadExtension = FMetaDataExtension::CreateRaw(this, &SLightControlTool::MetaDataLoadExtension);
 
-    SLightEditorWidget::Construct(Args, InToolData);
+    SLightEditorWidget::Construct(Args, InToolData, EDataSet::VirtualLights);
 
 
     // Build a database from what is in the level if there wasn't a file to recover from
@@ -58,8 +59,8 @@ void SLightControlTool::Construct(const FArguments& Args, UToolData* InToolData)
 
     EditorData->AddToRoot();
 
-    LightHierarchyWidget->DataVerificationDelegate.BindRaw(this, &SLightControlTool::VerifyTreeData);
-    LightHierarchyWidget->DataUpdateDelegate.BindStatic(&SLightControlTool::UpdateItemData);
+    //LightHierarchyWidget->DataVerificationDelegate.BindRaw(this, &SLightControlTool::VerifyTreeData);
+    //LightHierarchyWidget->DataUpdateDelegate.BindStatic(&SLightControlTool::UpdateItemData);
 
     FWorldDelegates::OnWorldCleanup.AddLambda([this](UWorld*, bool, bool)
         {
@@ -143,12 +144,13 @@ void SLightControlTool::UpdateLightList()
 
         NewItem->Name = Light->GetName();
         NewItem->ActorPtr = Light;
-        UpdateItemData(NewItem);
+        //UpdateItemData(NewItem);
 
         // Need to create new handle here
         auto NewItemHandle = EditorData->AddItem();
         NewItemHandle->Name = NewItem->Name;
         NewItemHandle->Item = NewItem;
+        NewItemHandle->LightId = NewItem->Id;
         EditorData->RootItems.Add(NewItemHandle);
         EditorData->ListOfLightItems.Add(NewItemHandle);
         LightHierarchyWidget->GenerateWidgetForItem(NewItemHandle);
@@ -158,118 +160,9 @@ void SLightControlTool::UpdateLightList()
 		LightHierarchyWidget->Tree->RequestTreeRefresh();
 }
 
-void SLightControlTool::UpdateItemData(UBaseLight* BaseLight)
+void SLightControlTool::VerifyTreseData()
 {
-    check(BaseLight);
-    auto VirtualLight = Cast<UVirtualLight>(BaseLight);
-    FLinearColor RGB;
-
-    BaseLight->Intensity = 0.0f;
-    BaseLight->Saturation = 0.0f;
-    BaseLight->Temperature = 0.0f;
-
-    if (BaseLight->Type == ELightType::SkyLight)
-    {
-        RGB = VirtualLight->SkyLight->GetLightComponent()->GetLightColor();
-        BaseLight->bIsEnabled = VirtualLight->SkyLight->GetLightComponent()->IsVisible();
-    }
-    else
-    {
-        ALight* LightPtr = Cast<ALight>(VirtualLight->ActorPtr);
-        RGB = LightPtr->GetLightColor();
-        BaseLight->bIsEnabled = LightPtr->GetLightComponent()->IsVisible();
-    }
-    auto HSV = RGB.LinearRGBToHSV();
-    BaseLight->Saturation = HSV.G;
-
-    // If Saturation is 0, the color is white. The RGB => HSV conversion calculates the Hue to be 0 in that case, even if it's not supposed to be.
-    // Do this to preserve the Hue previously used rather than it getting reset to 0.
-    if (BaseLight->Saturation != 0.0f)
-        BaseLight->Hue = HSV.R;
-
-    if (BaseLight->Type == ELightType::PointLight)
-    {
-        auto Comp = VirtualLight->PointLight->PointLightComponent;
-        BaseLight->Intensity = Comp->Intensity;
-    }
-    else if (BaseLight->Type == ELightType::SpotLight)
-    {
-        auto Comp = VirtualLight->SpotLight->SpotLightComponent;
-        BaseLight->Intensity = Comp->Intensity;
-    }
-
-    if (BaseLight->Type != ELightType::SkyLight)
-    {
-        auto LightPtr = Cast<ALight>(VirtualLight->ActorPtr);
-        auto LightComp = LightPtr->GetLightComponent();
-        BaseLight->bUseTemperature = LightComp->bUseTemperature;
-        BaseLight->Temperature = LightComp->Temperature;
-
-        VirtualLight->bCastShadows = LightComp->CastShadows;
-    }
-    else
-    {
-        VirtualLight->bCastShadows = VirtualLight->SkyLight->GetLightComponent()->CastShadows;
-    }
-
-    auto CurrentFwd = FQuat::MakeFromEuler(FVector(0.0f, BaseLight->Vertical, BaseLight->Horizontal)).GetForwardVector();
-    auto ActorQuat = VirtualLight->ActorPtr->GetTransform().GetRotation().GetNormalized();
-    auto ActorFwd = ActorQuat.GetForwardVector();
-
-    if (CurrentFwd.Equals(ActorFwd))
-    {
-        auto Euler = ActorQuat.Euler();
-        BaseLight->Horizontal = Euler.Z;
-        BaseLight->Vertical = Euler.Y;
-    }
-
-
-    if (BaseLight->Type == ELightType::SpotLight)
-    {
-        BaseLight->InnerAngle = VirtualLight->SpotLight->SpotLightComponent->InnerConeAngle;
-        BaseLight->OuterAngle = VirtualLight->SpotLight->SpotLightComponent->OuterConeAngle;
-    }
-
-}
-
-void SLightControlTool::VerifyTreeData()
-{
-    if (EditorData->bCurrentlyLoading)
-        return;
     
-    GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, "Cleaning invalid lights");
-    TArray<UItemHandle*> ToRemove;
-    for (auto ItemHandle : EditorData->ListOfLightItems)
-    {
-        auto Item = Cast<UVirtualLight>(ItemHandle->Item);
-        if (!Item->ActorPtr || !IsValid(Item->SkyLight))
-        {
-            if (ItemHandle->Parent)
-                ItemHandle->Parent->Children.Remove(ItemHandle);
-            else
-                EditorData->RootItems.Remove(ItemHandle);
-
-
-            ToRemove.Add(ItemHandle);
-        }
-        else
-        {
-            UpdateItemData(ItemHandle->Item);
-        }
-    }
-
-    for (auto ItemHandle : ToRemove)
-    {
-        EditorData->GetToolData()->Lights.Remove(ItemHandle->Item);
-        EditorData->RootItems.Remove(ItemHandle);
-        EditorData->ListOfTreeItems.Remove(ItemHandle);
-        EditorData->ListOfLightItems.Remove(ItemHandle);
-    }
-
-    if (ToRemove.Num())
-    {
-        LightHierarchyWidget->Tree->RequestTreeRefresh();
-    }
 }
 
 

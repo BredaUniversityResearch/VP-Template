@@ -45,7 +45,7 @@ public:
 #endif
     void ClearAllData();
     // Adds an empty item handle. Must be filled out by the invoker.
-    UBaseLight* AddItem();
+    UBaseLight* AddItem(bool bAssignId = true);
     
     void BeginTransaction();
 
@@ -79,7 +79,7 @@ public:
     UPROPERTY(NonTransactional)
         UClass* ItemClass;
 
-    uint32 LightIdCounter;
+    int32 LightIdCounter;
 
     //// List of all the root items in the dataset. Each root item may or may not have children.
     //UPROPERTY()

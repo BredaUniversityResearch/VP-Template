@@ -35,7 +35,7 @@ enum EIconType
 };
 
 class UItemHandle;
-class FBaseLightPropertyChangeSpeaker;
+class ILightEditorNetwork;
 // About module: Editor-only module, contains the code for the UI
 // Separated from the core module of the plugin because it uses the editor's icons, which are unavailable in standalone 
 
@@ -59,7 +59,9 @@ public:
 
 	static FCradleLightControlEditorModule& Get();
 
-	static FBaseLightPropertyChangeSpeaker& GetLightPropertyChangeSpeaker() { return *Get().LightPropertyChangeSpeaker; }
+	static ILightEditorNetwork& GetLightPropertyChangeSpeaker() { return *Get().EditorNetworkInterface; }
+
+	static TArray<UBaseLight*> GetLightsFromHandles(TArray<UItemHandle*> Handles);
 
 	void OpenGelPalette(FGelPaletteSelectionCallback SelectionCallback);
 	void CloseGelPalette();
@@ -92,5 +94,5 @@ public:
 	TMap<TEnumAsByte<EIconType>, FSlateBrush> Icons;
 private:
 
-	TUniquePtr<FBaseLightPropertyChangeSpeaker> LightPropertyChangeSpeaker;
+	TUniquePtr<ILightEditorNetwork> EditorNetworkInterface;
 };

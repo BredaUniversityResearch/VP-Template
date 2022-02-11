@@ -2,6 +2,7 @@
 
 #include "Slate.h"
 
+enum class EDataSet : uint8;
 class UToolData;
 
 class SLightPropertyEditor : public SCompoundWidget
@@ -25,7 +26,7 @@ public:
     static UTexture2D* MakeGradientTexture(int X = 1, int Y = 256);
 
 
-    void Construct(const FArguments& Args);
+    void Construct(const FArguments& Args, class UEditorData* InEditorData, EDataSet InDataSet);
     void PreDestroy();
 
 
@@ -67,7 +68,7 @@ public:
 
     //class SLightControlTool* CoreToolPtr;
     UEditorData* EditorData;
-
+    EDataSet DataSet;
 
     TSharedPtr<FSlateImageBrush> IntensityGradientBrush;
     TSharedPtr<FSlateImageBrush> HSVGradientBrush;

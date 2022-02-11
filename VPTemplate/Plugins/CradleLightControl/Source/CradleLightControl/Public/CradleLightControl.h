@@ -10,11 +10,12 @@
 
 #include "Chaos/AABB.h"
 
-#include "BaseLightPropertyChangeListener.h"
+#include "LightRuntimeNetwork.h"
 
 
 class UToolData;
-class FBaseLightPropertyChangeListener;
+class ILightRuntimeNetwork;
+class ILightEditorNetwork;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCradleLightControl, Log, All)
 
@@ -31,20 +32,30 @@ public:
 	// Shorthand to get the module instance if it is loaded
 	static FCradleLightControlModule& Get();
 
-	static FBaseLightPropertyChangeListener& GetLightPropertyChangeListener() { return *Get().LightPropertyChangeListener; }
+	static ILightRuntimeNetwork& GetRuntimeNetworkInterface() { return *Get().RuntimeNetworkInterface; }
+	static ILightEditorNetwork& GetEditorNetworkInterface() { return *Get().EditorNetworkInterface; }
+
+	static void UpdateDataForLight(UBaseLight* BaseLight);
 
 	UToolData* GetVirtualLightToolData();
 	UToolData* GetDMXLightToolData();
 
 	
 
+	ILightEditorNetwork* EditorNetworkInterface;
 private:
 
 	void OnWorldInitialized(UWorld* World, const UWorld::InitializationValues);
 	void OnWorldCleanup(UWorld*, bool, bool);
 
+	void OnActorSpawned(AActor* SpawnedActor);
+	void VerifyVirtualLightsData();
+
 	UToolData* VirtualLightToolData;
 	UToolData* DMXLightToolData;
 
-	TUniquePtr<FBaseLightPropertyChangeListener> LightPropertyChangeListener;
+	TUniquePtr<ILightRuntimeNetwork> RuntimeNetworkInterface;
+
+	FDelegateHandle ActorSpawnedDelegate;
+	FTimerHandle VirtualLightVerificationTimerHandle;
 };

@@ -27,8 +27,8 @@ public:
 
     void UpdateLightList();
     
-    static void UpdateItemData(UBaseLight* BaseLight);
-    void VerifyTreeData();
+    static void UpdateItemDasta(UBaseLight* BaseLight);
+    void VerifyTreseData();
 
 private:
 

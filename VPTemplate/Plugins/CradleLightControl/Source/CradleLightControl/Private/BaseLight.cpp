@@ -14,7 +14,10 @@ ELightControlLoadingResult UBaseLight::LoadFromJson(TSharedPtr<FJsonObject> Json
     auto State = JsonObject->GetBoolField("State");
 
     SetEnabled(State);
+    Id = JsonObject->GetNumberField("Id");
     Name = JsonObject->GetStringField("Name");
+    Type = StaticCast<ELightType>(JsonObject->GetNumberField("Type"));
+
     SetLightIntensityRaw(JsonObject->GetNumberField("Intensity"));
     SetHue(JsonObject->GetNumberField("Hue"));
     SetSaturation(JsonObject->GetNumberField("Saturation"));
@@ -121,6 +124,7 @@ TSharedPtr<FJsonObject> UBaseLight::SaveAsJson()
 
     JsonItem->SetStringField("Name", Name);
     JsonItem->SetNumberField("Id", Id);
+    JsonItem->SetNumberField("Type", Type);
     JsonItem->SetBoolField("State", bIsEnabled);
     JsonItem->SetNumberField("Intensity", Intensity);
     JsonItem->SetNumberField("Hue", Hue);

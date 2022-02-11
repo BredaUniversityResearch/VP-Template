@@ -203,53 +203,7 @@ void SLightHierarchyWidget::PreDestroy()
 
 void SLightHierarchyWidget::OnActorSpawned(AActor* Actor)
 {
-    auto Type = Invalid;
-
-    if (Cast<ASkyLight>(Actor))
-        Type = ELightType::SkyLight;
-    else if (Cast<ASpotLight>(Actor))
-        Type = ELightType::SpotLight;
-    else if (Cast<ADirectionalLight>(Actor))
-        Type = ELightType::DirectionalLight;
-    else if (Cast<APointLight>(Actor))
-        Type = ELightType::PointLight;
-
-    if (Type != Invalid)
-    {
-        auto NewLight = EditorData->GetToolData()->AddItem();
-        NewLight->Type = Type;
-        NewLight->Name = Actor->GetName();
-
-        auto Item = Cast<UVirtualLight>(NewLight);
-
-        switch (Type)
-        {
-        case SkyLight:
-            Item->SkyLight = Cast<ASkyLight>(Actor);
-            break;
-        case SpotLight:
-            Item->SpotLight = Cast<ASpotLight>(Actor);
-            break;
-        case DirectionalLight:
-            Item->DirectionalLight = Cast<ADirectionalLight>(Actor);
-            break;
-        case PointLight:
-            Item->PointLight = Cast<APointLight>(Actor);
-            break;
-        }
-        auto NewHandle = EditorData->AddItem();
-        NewHandle->Name = NewLight->Name;
-        NewHandle->Item = NewLight;
-        NewHandle->Parent = nullptr;
-        DataUpdateDelegate.ExecuteIfBound(NewLight);
-        GenerateWidgetForItem(NewHandle);
-        GetWidgetForItem(NewHandle)->CheckNameAgainstSearchString(SearchString);
-
-        EditorData->RootItems.Add(NewHandle);
-        EditorData->ListOfLightItems.Add(NewHandle);
-
-        Tree->RequestTreeRefresh();
-    }
+    
 }
 
 void SLightHierarchyWidget::BeginTransaction()

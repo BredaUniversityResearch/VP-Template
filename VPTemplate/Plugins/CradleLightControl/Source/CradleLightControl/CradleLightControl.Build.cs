@@ -15,19 +15,14 @@ public class CradleLightControl : ModuleRules
 
         PublicIncludePaths.AddRange(
 			new string[] {
-				SourceCodeDir() + "Virtual/Public",
-				SourceCodeDir() + "DMX/Public",
-				//"../Virtual/Public"
-                // ... add public include paths required here ...
+				
 			}
 			);
 				
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				SourceCodeDir() + "Virtual/Public",
-				SourceCodeDir() + "DMX/Public",
-				// ... add other private include paths required here ...
+				
 			}
 			);
 			

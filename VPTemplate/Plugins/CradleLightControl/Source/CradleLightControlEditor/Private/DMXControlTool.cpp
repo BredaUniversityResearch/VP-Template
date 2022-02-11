@@ -25,11 +25,14 @@
 #include "VirtualLight.h"
 #include "Engine/AssetManager.h"
 
+#include "LightControlNetworkEnums.h"
+
+
 #define LOCTEXT_NAMESPACE "SDMXControlTool"
 
 void SDMXControlTool::Construct(const FArguments& Args, UToolData* ToolData)
 {
-    SLightEditorWidget::Construct(Args, ToolData);    
+    SLightEditorWidget::Construct(Args, ToolData, EDataSet::DMXLights);    
 
     DataAutoSaveTimer = RegisterActiveTimer(300.0f, FWidgetActiveTimerDelegate::CreateLambda([this](double, float)
         {
@@ -98,6 +101,7 @@ FReply SDMXControlTool::AddLightButtonCallback()
     auto NewItemHandle = EditorData->AddItem();
     NewItemHandle->Name = NewItem->Name;
     NewItemHandle->Item = NewItem;
+    NewItemHandle->LightId = NewItem->Id;
     EditorData->RootItems.Add(NewItemHandle);
     EditorData->ListOfLightItems.Add(NewItemHandle);
 	LightHierarchyWidget->GenerateWidgetForItem(NewItemHandle);

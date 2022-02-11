@@ -4,6 +4,8 @@
 
 #include "LightControlDMX.h"
 
+enum class EDataSet : uint8;
+
 class SLightSpecificProperties : public SCompoundWidget
 {
 public:
@@ -13,7 +15,7 @@ public:
 
     SLATE_END_ARGS();
 
-    void Construct(const FArguments& Args);
+    void Construct(const FArguments& Args, class UEditorData* InEditorData, EDataSet InDataSet);
 
     void UpdateToolState();
 
@@ -58,6 +60,7 @@ private:
 
 
     class UEditorData* EditorData;
+    EDataSet DataSet;
 
     TSharedPtr<SLightControlDMX> PortSelectorTest;
 

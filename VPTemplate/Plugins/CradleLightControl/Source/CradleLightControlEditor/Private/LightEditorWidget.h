@@ -22,7 +22,7 @@ public:
 
     SLATE_END_ARGS();
 
-    void Construct(const FArguments& Args, UToolData* ToolData);
+    void Construct(const FArguments& Args, UToolData* ToolData, EDataSet InDataSet);
 
     ~SLightEditorWidget();
 
@@ -55,6 +55,7 @@ protected:
     SHorizontalBox::FSlot& LightSpecificPropertyEditor();
 
     UEditorData* EditorData;
+    EDataSet DataSet;
 
     TSharedPtr<SBox> ExtraLightDetailBox;
 

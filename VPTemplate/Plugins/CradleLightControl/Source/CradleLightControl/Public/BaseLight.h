@@ -111,7 +111,7 @@ public:
     ELightType Type;
 
     UPROPERTY()
-        uint32 Id;
+        int32 Id;
 
     UPROPERTY(BlueprintReadOnly)
         bool bIsEnabled;
