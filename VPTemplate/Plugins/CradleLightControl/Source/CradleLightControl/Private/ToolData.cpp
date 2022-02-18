@@ -6,6 +6,7 @@
 
 #include "LightControlLoadingResult.h"
 #include "Json.h"
+#include "CradleLightControl.h"
 
 //#include "LightTreeHierarchy.h"
 
@@ -96,6 +97,8 @@ TSharedPtr<FJsonObject> UToolData::SaveStateToJson(FString Path, bool bUpdatePre
 
 TSharedPtr<FJsonObject> UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
 {
+    UE_LOG(LogCradleLightControl, Error, TEXT("Disabled autosaving/loading for now"));
+    return nullptr;
     bCurrentlyLoading = true;
 
 
