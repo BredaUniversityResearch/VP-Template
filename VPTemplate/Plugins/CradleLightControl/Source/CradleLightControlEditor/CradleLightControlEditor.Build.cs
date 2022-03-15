@@ -4,24 +4,14 @@ using UnrealBuildTool;
 
 public class CradleLightControlEditor : ModuleRules
 {
-    string SourceCodeDir()
-    {
-        return PluginDirectory + "/Source/CradleLightControl/";
-
-    }
 	public CradleLightControlEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(
 			new string[] {
-				SourceCodeDir() + "Virtual/Public",
-				SourceCodeDir() + "DMX/Public",
-				//"../Virtual/Public"
-                // ... add public include paths required here ...
 			}
 			);
-				
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
@@ -33,14 +23,7 @@ public class CradleLightControlEditor : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
-                "DMXProtocol",
-                "DMXProtocolEditor",
-                "DMXRuntime",
-				"CradleLightControl",
-				"Sockets",
-				"Networking"
-
+				//"CradleLightControl"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -49,26 +32,13 @@ public class CradleLightControlEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"Core",
 				"CoreUObject",
 				"Engine",
 				"UnrealEd",
-				"Slate",
 				"SlateCore",
-                "InputCore", 
-				"Projects",
-				"RHI",
-				"RenderCore",
-				"AppFramework",
-				"Json",
-				"EditorStyle",
-				"DesktopPlatform",
-                "DMXProtocol",
-                "DMXProtocolEditor",
-                "DMXRuntime",
-				"PropertyEditor",
-				"DetailCustomizations",
-				"AssetTools",
-
+				"Slate",
+				"EditorStyle"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
@@ -77,7 +47,6 @@ public class CradleLightControlEditor : ModuleRules
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
-
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
