@@ -28,7 +28,10 @@ FBMCCService::FBMCCService()
 FBMCCService::~FBMCCService()
 {
 	UnsubscribeMessageReceivedHandler(DefaultDispatcher);
-	DefaultDispatcher->RemoveFromRoot();
+	if (IsValid(DefaultDispatcher))
+	{
+		DefaultDispatcher->RemoveFromRoot();
+	}
 }
 
 void FBMCCService::Tick(float DeltaTime)
