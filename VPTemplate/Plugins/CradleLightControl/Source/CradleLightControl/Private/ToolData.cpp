@@ -83,6 +83,7 @@ TSharedPtr<FJsonObject> UToolData::SaveStateToJson(FString Path, bool bUpdatePre
 
         JsonObject->SetObjectField("Light", Light->SaveAsJson());
 
+
         TreeItemsJSON.Emplace(JsonValue);
     }
     TSharedPtr<FJsonObject> RootObject = MakeShared<FJsonObject>();
@@ -97,10 +98,7 @@ TSharedPtr<FJsonObject> UToolData::SaveStateToJson(FString Path, bool bUpdatePre
 
 TSharedPtr<FJsonObject> UToolData::LoadStateFromJSON(FString Path, bool bUpdatePresetPath)
 {
-    UE_LOG(LogCradleLightControl, Error, TEXT("Disabled autosaving/loading for now"));
-    return nullptr;
     bCurrentlyLoading = true;
-
 
     FString Input;
     //GEngine->AddOnScreenDebugMessage(328 + DataName.Len(), 60.0f, FColor::Magenta,
@@ -121,7 +119,7 @@ TSharedPtr<FJsonObject> UToolData::LoadStateFromJSON(FString Path, bool bUpdateP
         {
             const TSharedPtr<FJsonObject>* TreeElementObjectPtr;
             auto Success = Light->TryGetObject(TreeElementObjectPtr);
-            auto TreeElementObject = *TreeElementObjectPtr;
+            auto TreeElementObject = (*TreeElementObjectPtr)->GetObjectField("Light");
             check(Success);
             int Type = TreeElementObject->GetNumberField("Type");
             auto Item = AddItem(false); // Do not assign ID since we are going to load it from the file
