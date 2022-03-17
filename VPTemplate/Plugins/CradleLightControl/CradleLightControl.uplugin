@@ -28,6 +28,10 @@
 	],
 	"Plugins": [
 		{
+			"Name": "WebSocketNetworking",
+			"Enabled": true
+		},
+		{
 			"Name": "DMXProtocol",
 			"Enabled": true
 		},

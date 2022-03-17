@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LightControlWebSocketServer.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCradleLightControl, Log, All)
 
@@ -13,4 +14,7 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 private:
+
+	TUniquePtr<FLightControlWebSocketServer> m_Server;
+
 };

@@ -35,6 +35,8 @@ public class CradleLightControl : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"Sockets",
+				"WebSocketNetworking"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
