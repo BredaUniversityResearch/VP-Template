@@ -14,7 +14,6 @@
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
 
-
 #include "Styling/SlateIconFinder.h"
 
 #define LOCTEXT_NAMESPACE "FPhysicalObjectTrackerEditor"
@@ -56,6 +55,7 @@ void FPhysicalObjectTrackerEditor::OnDeviceDetectionStarted(UPhysicalObjectTrack
 		FNotificationInfo spinner(LOCTEXT("DeviceSelectionShake", "Please shake the tracker to use for this component..."));
 		spinner.bUseThrobber = true;
 		spinner.ExpireDuration = 1e25f;
+		spinner.FadeOutDuration = 0.5f;
 		spinner.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DeviceSelectionCancel", "Cancel"), LOCTEXT("DeviceSelectionCancel", "Cancel"),
 			FSimpleDelegate::CreateRaw(this, &FPhysicalObjectTrackerEditor::StopDeviceSelection)));
 		m_ShakeProcessNotification = FSlateNotificationManager::Get().AddNotification(spinner);
@@ -67,7 +67,8 @@ void FPhysicalObjectTrackerEditor::OnDeviceDetectionStarted(UPhysicalObjectTrack
 				if (m_ShakeDetectTask->IsFailed())
 				{
 					m_ShakeProcessNotification->SetText(m_ShakeDetectTask->GetFailureReason());
-					m_ShakeProcessNotification->SetExpireDuration(60.0f);
+					m_ShakeProcessNotification->SetExpireDuration(5.0f);
+					m_ShakeProcessNotification->ExpireAndFadeout();
 					m_ShakeProcessNotification->SetCompletionState(SNotificationItem::CS_Fail);
 				}
 				else

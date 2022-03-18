@@ -26,7 +26,7 @@ void FDetectTrackerShakeTask::Tick(float DeltaTime)
 		ensure(!IsInRenderingThread());
 		TArray<int32> controllerIds;
 		USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::Controller, controllerIds);
-		TArray<int32>  otherIds;
+		TArray<int32> otherIds;
 		USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::Other, otherIds);
 		controllerIds.Append(MoveTemp(otherIds));
 
@@ -55,6 +55,16 @@ void FDetectTrackerShakeTask::Tick(float DeltaTime)
 			}
 		}
 	}
+}
+
+ETickableTickType FDetectTrackerShakeTask::GetTickableTickType() const
+{
+	return ETickableTickType::Conditional;
+}
+
+bool FDetectTrackerShakeTask::IsTickable() const
+{
+	return !m_IsComplete;
 }
 
 bool FDetectTrackerShakeTask::IsComplete() const

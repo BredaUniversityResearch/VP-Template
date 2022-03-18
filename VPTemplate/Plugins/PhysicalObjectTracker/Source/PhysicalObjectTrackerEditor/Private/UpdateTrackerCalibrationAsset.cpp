@@ -20,6 +20,7 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 		FNotificationInfo spinner(LOCTEXT("CalibrateShakeController", "Please shake tracker to use for calibration..."));
 		spinner.bUseThrobber = true;
 		spinner.ExpireDuration = 1e25f;
+		spinner.FadeOutDuration = 5.0f;
 		spinner.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("CalibrationCancel", "Cancel"), LOCTEXT("CalibrationCancel", "Cancel"),
 			FSimpleDelegate::CreateRaw(this, &FUpdateTrackerCalibrationAsset::OnCancelCalibration)));
 		m_ProcessNotification = FSlateNotificationManager::Get().AddNotification(spinner);
@@ -45,7 +46,7 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 			else
 			{
 				m_ProcessNotification->SetText(SelectControllerTask->GetFailureReason());
-				m_ProcessNotification->Fadeout();
+				m_ProcessNotification->SetExpireDuration(15.0f);
 				m_ProcessNotification->SetCompletionState(SNotificationItem::CS_Fail);
 
 				OnCancelCalibration();
