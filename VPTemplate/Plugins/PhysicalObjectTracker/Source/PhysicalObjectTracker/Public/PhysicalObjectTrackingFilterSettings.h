@@ -2,11 +2,17 @@
 
 #include "PhysicalObjectTrackingFilterSettings.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnFilterSettingsChanged);
+
 UCLASS()
 class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingFilterSettings : public UDataAsset
 {
 	GENERATED_BODY()
 public:
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
 	UPROPERTY(EditDefaultsOnly)
 	int32 TargetSampleCount{16};
 	UPROPERTY(EditDefaultsOnly)
@@ -19,5 +25,7 @@ public:
 	float MinExpectedRotationalVelocity{ 0.01f };
 	UPROPERTY(EditDefaultsOnly) /*Average Degrees per sample frame.*/
 	float MaxExpectedRotationalVelocity{ 2.0f };
+
+	FOnFilterSettingsChanged OnFilterSettingsChanged;
 };
 

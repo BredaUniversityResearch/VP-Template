@@ -1,6 +1,7 @@
 #include "PhysicalObjectTrackingComponent.h"
 
 #include "PhysicalObjectTracker.h"
+#include "PhysicalObjectTrackingFilterSettings.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "PhysicalObjectTrackingUtility.h"
 #include "SteamVRFunctionLibrary.h"
@@ -17,8 +18,12 @@ UPhysicalObjectTrackingComponent::UPhysicalObjectTrackingComponent(const FObject
 void UPhysicalObjectTrackingComponent::OnRegister()
 {
 	Super::OnRegister();
-	m_TransformHistory.SetFromFilterSettings(FilterSettings);
+	if (FilterSettings != nullptr)
+	{
+		FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
+	}
 	RefreshDeviceId();
+	OnFilterSettingsChangedCallback();
 }
 
 void UPhysicalObjectTrackingComponent::BeginPlay()
@@ -88,15 +93,24 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	if (PropertyChangedEvent.MemberProperty != nullptr && 
-		PropertyChangedEvent.MemberProperty->HasMetaData("DeviceSerialId"))
+	if (PropertyChangedEvent.MemberProperty != nullptr)
 	{
-		RefreshDeviceId();
-		if (CurrentTargetDeviceId == -1)
+		if (PropertyChangedEvent.MemberProperty->HasMetaData("DeviceSerialId"))
 		{
-			DeviceIdAcquireTimer = 0.0f;
+			RefreshDeviceId();
+			if (CurrentTargetDeviceId == -1)
+			{
+				DeviceIdAcquireTimer = 0.0f;
+			}
 		}
-		
+		else if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("FilterSettings")))
+		{
+			FilterSettingsChangedHandle.Reset();
+			if (FilterSettings != nullptr)
+			{
+				FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
+			}
+		}
 	}
 }
 #endif
@@ -138,4 +152,9 @@ void UPhysicalObjectTrackingComponent::DebugCheckIfTrackingTargetExists() const
 		}
 		GEngine->AddOnScreenDebugMessage(565498, 0.0f, FColor::Red, builder.ToString(), false);
 	}
+}
+
+void UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback()
+{
+	m_TransformHistory.SetFromFilterSettings(FilterSettings);
 }

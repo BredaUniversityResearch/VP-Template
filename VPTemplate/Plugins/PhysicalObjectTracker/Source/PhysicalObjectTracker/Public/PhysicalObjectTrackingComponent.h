@@ -36,12 +36,15 @@ public:
 
 private:
 	void DebugCheckIfTrackingTargetExists() const;
+	void OnFilterSettingsChangedCallback();
+
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingReferencePoint* TrackingSpaceReference{nullptr};
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent")
 	AActor* WorldReferencePoint{nullptr};
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingFilterSettings* FilterSettings;
+	FDelegateHandle FilterSettingsChangedHandle;
 
 	UPROPERTY(Transient)
 	float DeviceIdAcquireTimer;
