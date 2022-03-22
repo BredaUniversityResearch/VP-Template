@@ -12,6 +12,7 @@
 // To be used in the virtual light tool.
 // Functions are overriden to update the values of the light actor which the object represents
 
+class ALight;
 UCLASS(BlueprintType)
 class CRADLELIGHTCONTROL_API UVirtualLight : public UBaseLight
 {
@@ -21,6 +22,9 @@ public:
 
     UVirtualLight()
         : UBaseLight() {};
+
+    void SetFrom(ALight* Light);
+    void ReadPropertiesFromTargetActor();
 
     // For use with the virtual light control tool. Used when starting a play session to update the light actor references.
     // This is necessary because when a play session is started, levels are duplicated, so all actor references are technically invalid in the context of the play session.
@@ -60,7 +64,7 @@ public:
     virtual ::ELightControlLoadingResult LoadFromJson(TSharedPtr<FJsonObject> JsonObject) override;
 
     virtual void BeginTransaction() override;
-
+    
     union
     {
         class AActor* ActorPtr; // Generic actor pointer for when we don't care about the light type

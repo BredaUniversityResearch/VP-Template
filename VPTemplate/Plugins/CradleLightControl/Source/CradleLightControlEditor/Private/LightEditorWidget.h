@@ -54,8 +54,9 @@ protected:
 
     SHorizontalBox::FSlot& LightSpecificPropertyEditor();
 
+    UPROPERTY()
     UEditorData* EditorData;
-    EDataSet DataSet;
+	EDataSet DataSet;
 
     TSharedPtr<SBox> ExtraLightDetailBox;
 

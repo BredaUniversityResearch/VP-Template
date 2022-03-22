@@ -3,25 +3,14 @@
 #include "Slate.h"
 
 #include "DetailCategoryBuilder.h"
-#include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
-#include "Chaos/AABB.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "Editor/EditorEngine.h"
 #include "Editor.h"
 
-#include "ClassIconFinder.h"
-
-#include "Engine/SkyLight.h"
-#include "Engine/SpotLight.h"
 #include "Engine/DirectionalLight.h"
-#include "Engine/PointLight.h"
-
-#include "Components/SpotLightComponent.h"
-#include "Components/DirectionalLightComponent.h"
-#include "Components/SkyLightComponent.h"
 
 #include "ToolData.h"
 #include "ItemHandle.h"
@@ -132,19 +121,9 @@ void SLightControlTool::UpdateLightList()
     for (auto Light : Actors)
     {
         auto* NewItem = Cast<UVirtualLight>(EditorData->GetToolData()->AddItem());
-
-        if (Cast<APointLight>(Light))
-			NewItem->Type = ELightType::PointLight;
-        else if (Cast<ADirectionalLight>(Light))
-            NewItem->Type = ELightType::DirectionalLight;
-        else if (Cast<ASpotLight>(Light))
-            NewItem->Type = ELightType::SpotLight;
-        else if (Cast<ASkyLight>(Light))
-            NewItem->Type = ELightType::SkyLight;
-
-        NewItem->Name = Light->GetName();
-        NewItem->ActorPtr = Light;
-        //UpdateItemData(NewItem);
+        ALight* castLight = Cast<ALight>(Light);
+        ensureAlwaysMsgf(castLight != nullptr, TEXT("Could not cast actor to light even though it should be a light..."));
+        NewItem->SetFrom(castLight);
 
         // Need to create new handle here
         auto NewItemHandle = EditorData->AddItem();

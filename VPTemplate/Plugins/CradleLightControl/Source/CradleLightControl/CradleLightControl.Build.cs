@@ -4,11 +4,6 @@ using UnrealBuildTool;
 
 public class CradleLightControl : ModuleRules
 {
-    string SourceCodeDir()
-    {
-        return PluginDirectory + "/Source/CradleLightControl/";
-
-    }
 	public CradleLightControl(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;

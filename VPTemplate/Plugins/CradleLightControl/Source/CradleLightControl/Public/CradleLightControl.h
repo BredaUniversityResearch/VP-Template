@@ -34,9 +34,7 @@ public:
 
 	static ILightRuntimeNetwork& GetRuntimeNetworkInterface() { return *Get().RuntimeNetworkInterface; }
 	static ILightEditorNetwork& GetEditorNetworkInterface() { return *Get().EditorNetworkInterface; }
-
-	static void UpdateDataForLight(UBaseLight* BaseLight);
-
+	
 	UToolData* GetVirtualLightToolData();
 	UToolData* GetDMXLightToolData();
 

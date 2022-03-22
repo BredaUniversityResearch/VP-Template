@@ -83,80 +83,6 @@ FCradleLightControlModule& FCradleLightControlModule::Get()
 	return Module;
 }
 
-void FCradleLightControlModule::UpdateDataForLight(UBaseLight* BaseLight)
-{
-    check(BaseLight);
-    auto VirtualLight = Cast<UVirtualLight>(BaseLight);
-    FLinearColor RGB;
-
-    BaseLight->Intensity = 0.0f;
-    BaseLight->Saturation = 0.0f;
-    BaseLight->Temperature = 0.0f;
-
-    if (BaseLight->Type == ELightType::SkyLight)
-    {
-        RGB = VirtualLight->SkyLight->GetLightComponent()->GetLightColor();
-        BaseLight->bIsEnabled = VirtualLight->SkyLight->GetLightComponent()->IsVisible();
-    }
-    else
-    {
-        ALight* LightPtr = Cast<ALight>(VirtualLight->ActorPtr);
-        RGB = LightPtr->GetLightColor();
-        BaseLight->bIsEnabled = LightPtr->GetLightComponent()->IsVisible();
-    }
-    auto HSV = RGB.LinearRGBToHSV();
-    BaseLight->Saturation = HSV.G;
-
-    // If Saturation is 0, the color is white. The RGB => HSV conversion calculates the Hue to be 0 in that case, even if it's not supposed to be.
-    // Do this to preserve the Hue previously used rather than it getting reset to 0.
-    if (BaseLight->Saturation != 0.0f)
-        BaseLight->Hue = HSV.R;
-
-    if (BaseLight->Type == ELightType::PointLight)
-    {
-        auto Comp = VirtualLight->PointLight->PointLightComponent;
-        BaseLight->Intensity = Comp->Intensity;
-    }
-    else if (BaseLight->Type == ELightType::SpotLight)
-    {
-        auto Comp = VirtualLight->SpotLight->SpotLightComponent;
-        BaseLight->Intensity = Comp->Intensity;
-    }
-
-    if (BaseLight->Type != ELightType::SkyLight)
-    {
-        auto LightPtr = Cast<ALight>(VirtualLight->ActorPtr);
-        auto LightComp = LightPtr->GetLightComponent();
-        BaseLight->bUseTemperature = LightComp->bUseTemperature;
-        BaseLight->Temperature = LightComp->Temperature;
-
-        VirtualLight->bCastShadows = LightComp->CastShadows;
-    }
-    else
-    {
-        VirtualLight->bCastShadows = VirtualLight->SkyLight->GetLightComponent()->CastShadows;
-    }
-
-    auto CurrentFwd = FQuat::MakeFromEuler(FVector(0.0f, BaseLight->Vertical, BaseLight->Horizontal)).GetForwardVector();
-    auto ActorQuat = VirtualLight->ActorPtr->GetTransform().GetRotation().GetNormalized();
-    auto ActorFwd = ActorQuat.GetForwardVector();
-
-    if (CurrentFwd.Equals(ActorFwd))
-    {
-        auto Euler = ActorQuat.Euler();
-        BaseLight->Horizontal = Euler.Z;
-        BaseLight->Vertical = Euler.Y;
-    }
-
-
-    if (BaseLight->Type == ELightType::SpotLight)
-    {
-        BaseLight->InnerAngle = VirtualLight->SpotLight->SpotLightComponent->InnerConeAngle;
-        BaseLight->OuterAngle = VirtualLight->SpotLight->SpotLightComponent->OuterConeAngle;
-    }
-
-}
-
 UToolData* FCradleLightControlModule::GetVirtualLightToolData()
 {
 	return VirtualLightToolData;
@@ -212,31 +138,9 @@ void FCradleLightControlModule::OnActorSpawned(AActor* SpawnedActor)
 
     if (Type != Invalid)
     {
-        auto NewLight = VirtualLightToolData->AddItem();
-        NewLight->Type = Type;
-        NewLight->Name = SpawnedActor->GetName();
-
-        auto Item = Cast<UVirtualLight>(NewLight);
-
-        switch (Type)
-        {
-        case SkyLight:
-            Item->SkyLight = Cast<ASkyLight>(SpawnedActor);
-            break;
-        case SpotLight:
-            Item->SpotLight = Cast<ASpotLight>(SpawnedActor);
-            break;
-        case DirectionalLight:
-            Item->DirectionalLight = Cast<ADirectionalLight>(SpawnedActor);
-            break;
-        case PointLight:
-            Item->PointLight = Cast<APointLight>(SpawnedActor);
-            break;
-        }
-
+        auto NewLight = Cast<UVirtualLight>(VirtualLightToolData->AddItem());
+        NewLight->SetFrom(Cast<ALight>(SpawnedActor));
         RuntimeNetworkInterface->OnLightActorSpawned(NewLight);
-
-        
     }
 }
 
@@ -245,19 +149,19 @@ void FCradleLightControlModule::VerifyVirtualLightsData()
     if (VirtualLightToolData->bCurrentlyLoading)
         return;
 
-    GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, "Cleaning invalid lights");
+//    GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Blue, "Cleaning invalid lights");
     TArray<UBaseLight*> ToRemove;
     for (auto Light : VirtualLightToolData->Lights)
     {
         auto Item = Cast<UVirtualLight>(Light);
-        if (!Item->ActorPtr || !IsValid(Item->SkyLight))
+        if (!Item->ActorPtr || !IsValid(Item->ActorPtr))
         {
 
         	ToRemove.Add(Light);
         }
         else
         {
-            //UpdateItemData(ItemHandle->Item);
+            Item->ReadPropertiesFromTargetActor();
         }
     }
 

@@ -15,9 +15,95 @@
 
 #include "CradleLightControl.h"
 #include "LightControlLoadingResult.h"
-#include "Chaos/AABB.h"
-#include "Chaos/AABB.h"
 
+void UVirtualLight::SetFrom(ALight* Light)
+{
+    if (Cast<APointLight>(Light))
+        Type = ELightType::PointLight;
+    else if (Cast<ADirectionalLight>(Light))
+        Type = ELightType::DirectionalLight;
+    else if (Cast<ASpotLight>(Light))
+        Type = ELightType::SpotLight;
+    else if (Cast<ASkyLight>(Light))
+        Type = ELightType::SkyLight;
+
+    Name = Light->GetName();
+    ActorPtr = Light;
+
+    ReadPropertiesFromTargetActor();
+}
+
+void UVirtualLight::ReadPropertiesFromTargetActor()
+{
+    FLinearColor RGB;
+
+    Intensity = 0.0f;
+    Saturation = 0.0f;
+    Temperature = 0.0f;
+
+    if (Type == ELightType::SkyLight)
+    {
+        RGB = SkyLight->GetLightComponent()->GetLightColor();
+        bIsEnabled = SkyLight->GetLightComponent()->IsVisible();
+    }
+    else
+    {
+        ALight* LightPtr = Cast<ALight>(ActorPtr);
+        RGB = LightPtr->GetLightColor();
+        bIsEnabled = LightPtr->GetLightComponent()->IsVisible();
+    }
+    auto HSV = RGB.LinearRGBToHSV();
+    Saturation = HSV.G;
+
+    // If Saturation is 0, the color is white. The RGB => HSV conversion calculates the Hue to be 0 in that case, even if it's not supposed to be.
+    // Do this to preserve the Hue previously used rather than it getting reset to 0.
+    if (Saturation != 0.0f)
+        Hue = HSV.R;
+
+    if (Type == ELightType::PointLight)
+    {
+        auto Comp = PointLight->PointLightComponent;
+        Intensity = Comp->Intensity;
+    }
+    else if (Type == ELightType::SpotLight)
+    {
+        auto Comp = SpotLight->SpotLightComponent;
+        Intensity = Comp->Intensity;
+    }
+
+    if (Type != ELightType::SkyLight)
+    {
+        auto LightPtr = Cast<ALight>(ActorPtr);
+        auto LightComp = LightPtr->GetLightComponent();
+        bUseTemperature = LightComp->bUseTemperature;
+        Temperature = LightComp->Temperature;
+
+        bCastShadows = LightComp->CastShadows;
+    }
+    else
+    {
+        bCastShadows = SkyLight->GetLightComponent()->CastShadows;
+    }
+
+    auto CurrentFwd = FQuat::MakeFromEuler(FVector(0.0f, Vertical, Horizontal)).GetForwardVector();
+    auto ActorQuat = ActorPtr->GetTransform().GetRotation().GetNormalized();
+    auto ActorFwd = ActorQuat.GetForwardVector();
+
+    if (!CurrentFwd.Equals(ActorFwd))
+    {
+        auto Euler = ActorQuat.Euler();
+        Horizontal = Euler.Z;
+        Vertical = Euler.Y;
+    }
+
+
+    if (Type == ELightType::SpotLight)
+    {
+        InnerAngle = SpotLight->SpotLightComponent->InnerConeAngle;
+        OuterAngle = SpotLight->SpotLightComponent->OuterConeAngle;
+    }
+
+}
 
 void UVirtualLight::UpdateVirtualLights(TArray<AActor*>& ActorLights)
 {

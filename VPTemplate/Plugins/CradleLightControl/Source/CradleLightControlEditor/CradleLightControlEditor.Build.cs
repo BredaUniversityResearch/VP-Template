@@ -4,21 +4,12 @@ using UnrealBuildTool;
 
 public class CradleLightControlEditor : ModuleRules
 {
-    string SourceCodeDir()
-    {
-        return PluginDirectory + "/Source/CradleLightControl/";
-
-    }
-	public CradleLightControlEditor(ReadOnlyTargetRules Target) : base(Target)
+    public CradleLightControlEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(
 			new string[] {
-				SourceCodeDir() + "Virtual/Public",
-				SourceCodeDir() + "DMX/Public",
-				//"../Virtual/Public"
-                // ... add public include paths required here ...
 			}
 			);
 				
