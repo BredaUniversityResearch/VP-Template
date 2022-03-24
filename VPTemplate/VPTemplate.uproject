@@ -12,23 +12,6 @@
 	],
 	"Plugins": [
 		{
-			"Name": "MagicLeapMedia",
-			"Enabled": false
-		},
-		{
-			"Name": "MagicLeap",
-			"Enabled": false
-		},
-		{
-			"Name": "OculusVR",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Win32",
-				"Win64",
-				"Android"
-			]
-		},
-		{
 			"Name": "SteamVR",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
@@ -79,10 +62,6 @@
 		},
 		{
 			"Name": "MediaIOFramework",
-			"Enabled": true
-		},
-		{
-			"Name": "RemoteControl",
 			"Enabled": true
 		},
 		{
@@ -172,6 +151,10 @@
 		},
 		{
 			"Name": "PhysicalObjectTracker",
+			"Enabled": true
+		},
+		{
+			"Name": "RemoteControlAutoExpose",
 			"Enabled": true
 		},
 		{

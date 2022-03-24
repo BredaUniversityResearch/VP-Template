@@ -2,7 +2,7 @@
 	"source": "UE",
 	"applications": [
 		{
-			"app_key": "application.generated.ue.vptemplate-18319896.ue4editor.exe",
+			"app_key": "application.generated.ue.vptemplate-18319896.ue4editor-win64-debuggame.exe",
 			"launch_type": "url",
 			"url": "steam://launch/",
 			"action_manifest_path": "C:/Projects/VirtualProduction/Virtual-Productions-Template/VPTemplate/Config/SteamVRBindings/steamvr_manifest.json",
