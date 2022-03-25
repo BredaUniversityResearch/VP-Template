@@ -51,19 +51,40 @@ void FRemoteControlAssetActionExtension::MenuExtenderImpl(FMenuBuilder& MenuBuil
 
 void FRemoteControlAssetActionExtension::PopulateAssetFromCurrentScene(URemoteControlPreset* TargetAsset) const
 {
+	for (const TWeakPtr<FRemoteControlEntity>& previouslyExposedEntity : TargetAsset->GetExposedEntities<FRemoteControlEntity>())
+	{
+		if (auto strongPtr = previouslyExposedEntity.Pin())
+		{
+			TargetAsset->Unexpose(strongPtr->GetId());
+		}
+	}
+
+	TargetAsset->Metadata.Remove("view");
+	TargetAsset->OnMetadataModified().Broadcast(TargetAsset);
+
+	TArray<FProperty*> propertiesToExpose = {
+		ULightComponent::StaticClass()->FindPropertyByName(TEXT("LightColor")),
+		ULightComponent::StaticClass()->FindPropertyByName(TEXT("Temperature")),
+		ULightComponent::StaticClass()->FindPropertyByName(TEXT("bUseTemperature")),
+		ULightComponent::StaticClass()->FindPropertyByName(TEXT("Intensity")),
+	};
+
 	TArray<AActor*> lightsInCurrentScene;
 	UGameplayStatics::GetAllActorsOfClass(GWorld, ALight::StaticClass(), lightsInCurrentScene);
 	for (AActor* actor : lightsInCurrentScene)
 	{
-		FProperty* propertyToExpose = ULightComponent::StaticClass()->FindPropertyByName(TEXT("LightColor"));
-
 		UActorComponent* component = actor->GetComponentByClass(ULightComponent::StaticClass());
+		FRemoteControlPresetGroup& layoutGroup = TargetAsset->Layout.CreateGroup(actor->GetFName());
 
-		TargetAsset->Bindings.Empty();
-		TWeakPtr<FRemoteControlProperty> newExposedProperty = TargetAsset->ExposeProperty(component, FRCFieldPathInfo(propertyToExpose));
-		if (newExposedProperty == nullptr)
+		for (const auto& prop : propertiesToExpose)
 		{
-			__debugbreak();
+			ensure(prop != nullptr);
+			TWeakPtr<FRemoteControlProperty> newExposedProperty = TargetAsset->ExposeProperty(component, FRCFieldPathInfo(prop), FRemoteControlPresetExposeArgs(prop->GetDisplayNameText().ToString(), layoutGroup.Id));
+			if(newExposedProperty == nullptr)
+			{
+				__debugbreak();
+			}
+
 		}
 	}
 }
