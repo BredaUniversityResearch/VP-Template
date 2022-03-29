@@ -37,7 +37,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 {
 	Super::TickComponent(DeltaTime, Tick, ThisTickFunction);
 
-	FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(TrackingSpaceReference);
+	FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(TrackingSpaceReference, WorldReferencePoint);
 
 	if (CurrentTargetDeviceId == -1)
 	{		
@@ -67,7 +67,6 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		if (WorldReferencePoint != nullptr)
 		{
 			trackerFromReference.SetLocation(WorldReferencePoint->GetActorTransform().TransformPosition(trackerFromReference.GetLocation()));
-			//trackerFromReference.SetLocation((WorldReferencePoint->GetActorTransform().GetRotation() * trackerFromReference.GetLocation()) + WorldReferencePoint->GetActorTransform().GetLocation());
 			trackerFromReference.SetRotation(WorldReferencePoint->GetActorTransform().TransformRotation(trackerFromReference.GetRotation()));
 		}
 
@@ -104,7 +103,6 @@ void UPhysicalObjectTrackingComponent::SelectTracker()
 {
 	auto& TrackerEditorModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
 	TrackerEditorModule.DeviceDetectionEvent.Broadcast(this);
-	
 }
 
 void UPhysicalObjectTrackingComponent::RefreshDeviceId()
@@ -122,6 +120,11 @@ void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 const UPhysicalObjectTrackingReferencePoint* UPhysicalObjectTrackingComponent::GetTrackingReferencePoint() const
 {
 	return TrackingSpaceReference;
+}
+
+const AActor* UPhysicalObjectTrackingComponent::GetWorldReferencePoint() const
+{
+	return WorldReferencePoint;
 }
 
 void UPhysicalObjectTrackingComponent::DebugCheckIfTrackingTargetExists() const

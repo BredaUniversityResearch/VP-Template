@@ -18,7 +18,7 @@ void FPhysicalObjectTracker::ShutdownModule()
 	// we call this function before unloading the module.
 }
 
-void FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* ReferencePoint)
+void FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* ReferencePoint, const AActor* WorldReferencePoint)
 {
 	if (ReferencePoint != nullptr)
 	{
@@ -32,6 +32,11 @@ void FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(const UPhysical
 			if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
 			{
 				FTransform transform = ReferencePoint->ApplyTransformation(position, rotation.Quaternion());
+				if (WorldReferencePoint != nullptr)
+				{
+					transform.SetLocation(WorldReferencePoint->GetActorTransform().TransformPosition(transform.GetLocation()));
+					transform.SetRotation(WorldReferencePoint->GetActorTransform().TransformRotation(transform.GetRotation()));
+				}
 
 				DrawDebugBox(GWorld, transform.GetLocation(), FVector(8.0f, 8.0f, 8.0f), transform.GetRotation(), FColor::Magenta, 
 					false, -1, 0, 2);

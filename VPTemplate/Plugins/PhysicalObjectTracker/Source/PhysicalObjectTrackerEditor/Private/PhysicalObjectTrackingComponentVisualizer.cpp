@@ -121,6 +121,13 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
 				{
 					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion() * FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f)));
+					const AActor* worldReference = targetComponent->GetWorldReferencePoint();
+					if (worldReference != nullptr)
+					{
+						transform.SetLocation(worldReference->GetActorTransform().TransformPosition(transform.GetLocation()));
+						transform.SetRotation(worldReference->GetActorTransform().TransformRotation(transform.GetRotation()));
+					}
+
 					FMatrix transformMatrix = transform.ToMatrixNoScale();
 
 					DrawWireBox(PDI, transformMatrix, FBox(FVector(-4.0f), FVector(4.0f)), FColor::Magenta, 0, 2.0f);

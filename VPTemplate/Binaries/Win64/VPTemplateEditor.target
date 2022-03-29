@@ -1132,6 +1132,14 @@
 			"Type": "SymbolFile"
 		},
 		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/RemoteControlWebInterface/Binaries/Win64/UE4Editor-RemoteControlWebInterface.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/RemoteControlWebInterface/Binaries/Win64/UE4Editor-RemoteControlWebInterface.pdb",
+			"Type": "SymbolFile"
+		},
+		{
 			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor-CradleLightControl.dll",
 			"Type": "DynamicLibrary"
 		},
@@ -3233,6 +3241,14 @@
 		},
 		{
 			"Path": "$(EngineDir)/Binaries/Win64/UE4Editor-VulkanShaderFormat.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/UE4Editor-TextureFormatETC2.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/UE4Editor-TextureFormatETC2.pdb",
 			"Type": "SymbolFile"
 		},
 		{
@@ -5768,6 +5784,10 @@
 			"Type": "RequiredResource"
 		},
 		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/RemoteControlWebInterface/Binaries/Win64/UE4Editor.modules",
+			"Type": "RequiredResource"
+		},
+		{
 			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor.modules",
 			"Type": "RequiredResource"
 		},
@@ -6439,6 +6459,10 @@
 		},
 		{
 			"Path": "$(EngineDir)/Plugins/Experimental/WebSocketNetworking/WebSocketNetworking.uplugin",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/RemoteControlWebInterface/RemoteControlWebInterface.uplugin",
 			"Type": "UFS"
 		},
 		{

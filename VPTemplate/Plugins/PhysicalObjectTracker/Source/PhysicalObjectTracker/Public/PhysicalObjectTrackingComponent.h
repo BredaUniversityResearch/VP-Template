@@ -27,6 +27,7 @@ public:
 	void RefreshDeviceId();
 
 	const UPhysicalObjectTrackingReferencePoint* GetTrackingReferencePoint() const;
+	const AActor* GetWorldReferencePoint() const;
 
 	UPROPERTY(Transient, VisibleAnywhere, Category = "PhysicalObjectTrackingComponent")
 	int32 CurrentTargetDeviceId{-1};
