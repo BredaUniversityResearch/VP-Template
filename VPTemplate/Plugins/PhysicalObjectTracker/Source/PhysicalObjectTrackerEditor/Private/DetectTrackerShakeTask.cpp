@@ -57,6 +57,16 @@ void FDetectTrackerShakeTask::Tick(float DeltaTime)
 	}
 }
 
+ETickableTickType FDetectTrackerShakeTask::GetTickableTickType() const
+{
+	return ETickableTickType::Conditional;
+}
+
+bool FDetectTrackerShakeTask::IsTickable() const
+{
+	return !m_IsComplete;
+}
+
 bool FDetectTrackerShakeTask::IsComplete() const
 {
 	return m_IsComplete;

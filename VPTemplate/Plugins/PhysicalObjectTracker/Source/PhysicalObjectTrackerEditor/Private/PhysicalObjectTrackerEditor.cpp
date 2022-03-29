@@ -67,8 +67,9 @@ void FPhysicalObjectTrackerEditor::OnDeviceDetectionStarted(UPhysicalObjectTrack
 				if (m_ShakeDetectTask->IsFailed())
 				{
 					m_ShakeProcessNotification->SetText(m_ShakeDetectTask->GetFailureReason());
-					m_ShakeProcessNotification->SetExpireDuration(60.0f);
+					m_ShakeProcessNotification->SetExpireDuration(5.0f);
 					m_ShakeProcessNotification->SetCompletionState(SNotificationItem::CS_Fail);
+					m_ShakeProcessNotification->ExpireAndFadeout();
 				}
 				else
 				{

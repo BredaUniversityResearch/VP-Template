@@ -45,7 +45,8 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 			else
 			{
 				m_ProcessNotification->SetText(SelectControllerTask->GetFailureReason());
-				m_ProcessNotification->Fadeout();
+				m_ProcessNotification->SetExpireDuration(5.0f);
+				m_ProcessNotification->ExpireAndFadeout();
 				m_ProcessNotification->SetCompletionState(SNotificationItem::CS_Fail);
 
 				OnCancelCalibration();
