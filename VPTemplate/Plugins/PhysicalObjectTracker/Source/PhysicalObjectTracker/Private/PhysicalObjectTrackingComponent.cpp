@@ -1,5 +1,6 @@
 #include "PhysicalObjectTrackingComponent.h"
 
+#include "IXRTrackingSystem.h"
 #include "PhysicalObjectTracker.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "PhysicalObjectTrackingUtility.h"

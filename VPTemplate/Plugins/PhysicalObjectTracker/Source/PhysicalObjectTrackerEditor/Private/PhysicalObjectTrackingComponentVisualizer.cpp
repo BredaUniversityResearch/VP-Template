@@ -1,5 +1,6 @@
 #include "PhysicalObjectTrackingComponentVisualizer.h"
 
+#include "DrawDebugHelpers.h"
 #include "PhysicalObjectTrackingComponent.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "SteamVRFunctionLibrary.h"
@@ -69,7 +70,7 @@ namespace
 		Verts[1] = (Direction * StartDistance) + (UpVector * VertLength) - (LeftVector * HozLength);
 		Verts[2] = (Direction * StartDistance) - (UpVector * VertLength) - (LeftVector * HozLength);
 		Verts[3] = (Direction * StartDistance) - (UpVector * VertLength) + (LeftVector * HozLength);
-
+		
 		HozLength = EndDistance * FMath::Tan(HozHalfAngleInRadians);
 		VertLength = HozLength / Aspect;
 
@@ -120,19 +121,28 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				FRotator rotation;
 				if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
 				{
-					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion() * FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f)));
+					FTransform trackingReferenceTransform = reference->ApplyTransformation(position, rotation.Quaternion());
 					const AActor* worldReference = targetComponent->GetWorldReferencePoint();
 					if (worldReference != nullptr)
 					{
-						transform.SetLocation(worldReference->GetActorTransform().TransformPosition(transform.GetLocation()));
-						transform.SetRotation(worldReference->GetActorTransform().TransformRotation(transform.GetRotation()));
+						trackingReferenceTransform.SetLocation(worldReference->GetActorTransform().TransformPosition(trackingReferenceTransform.GetLocation()));
+						trackingReferenceTransform.SetRotation(worldReference->GetActorTransform().TransformRotation(trackingReferenceTransform.GetRotation()));
 					}
 
-					FMatrix transformMatrix = transform.ToMatrixNoScale();
+					FMatrix transformMatrix = trackingReferenceTransform.ToMatrixNoScale();
 
 					DrawWireBox(PDI, transformMatrix, FBox(FVector(-4.0f), FVector(4.0f)), FColor::Magenta, 0, 2.0f);
 					DrawWireFrustrum2(PDI, transformMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,
-						LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, FColor::Green, 0, 2.0f);
+						LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, FColor::Silver, 0, 2.0f);
+
+					FVector from = Component->GetOwner()->GetActorLocation();
+					FVector to = trackingReferenceTransform.GetLocation();
+					float distance = (to - from).Size();
+					float distancePercentage = 1.0f - FMath::Clamp(distance / LighthouseV2MaxTrackingDistance, 0.0f, 1.0f);
+					PDI->DrawLine(from, to, FColor::MakeRedToGreenColorFromScalar(distancePercentage), 0, 1);
+
+					DrawDebugString(GWorld, to, FString::Format(TEXT("{0}"), { distancePercentage }), Component->GetOwner(),
+						FColor::Black);
 				}
 			}
 		}
