@@ -29,6 +29,12 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(const FVec
 
 
 	FQuat orientation = TrackedRotation * GetNeutralRotationInverse();
+
+	FRotator rotationHack = FRotator(orientation);
+	rotationHack.Pitch = -rotationHack.Pitch;
+	rotationHack.Roll = -rotationHack.Roll;
+	orientation = rotationHack.Quaternion();
+
 	FVector devicePosition = GetNeutralRotationInverse() * (TrackedPosition - GetNeutralOffset());
 	FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);
 	return FTransform(orientation, position);
