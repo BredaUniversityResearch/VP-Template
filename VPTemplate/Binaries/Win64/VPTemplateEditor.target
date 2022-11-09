@@ -4,7 +4,7 @@
 	"Configuration": "Development",
 	"TargetType": "Editor",
 	"Architecture": "",
-	"Project": "../../Blank.uproject",
+	"Project": "../../VPTemplate.uproject",
 	"Launch": "$(EngineDir)/Binaries/Win64/UE4Editor.exe",
 	"Version": 
 	{
@@ -598,34 +598,6 @@
 		{
 			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UE4Editor-PhysicalObjectTrackerEditor.pdb",
 			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor-CradleLightControl.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor-CradleLightControl.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor-CradleLightControlEditor.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor-CradleLightControlEditor.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/DMX/DMXEngine/Binaries/Win64/UE4Editor-DMXRuntime.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/DMX/DMXEngine/Binaries/Win64/UE4Editor-DMXEditor.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/DMX/DMXEngine/Binaries/Win64/UE4Editor-DMXBlueprintGraph.dll",
-			"Type": "DynamicLibrary"
 		},
 		{
 			"Path": "$(EngineDir)/Plugins/2D/Paper2D/Binaries/Win64/UE4Editor-Paper2D.dll",
@@ -2980,14 +2952,6 @@
 			"Type": "RequiredResource"
 		},
 		{
-			"Path": "$(ProjectDir)/Plugins/CradleLightControl/Binaries/Win64/UE4Editor.modules",
-			"Type": "RequiredResource"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/DMX/DMXEngine/Binaries/Win64/UE4Editor.modules",
-			"Type": "RequiredResource"
-		},
-		{
 			"Path": "$(EngineDir)/Plugins/2D/Paper2D/Binaries/Win64/UE4Editor.modules",
 			"Type": "RequiredResource"
 		},
@@ -3398,7 +3362,7 @@
 	],
 	"RuntimeDependencies": [
 		{
-			"Path": "$(ProjectDir)/Blank.uproject",
+			"Path": "$(ProjectDir)/VPTemplate.uproject",
 			"Type": "UFS"
 		},
 		{
@@ -3635,14 +3599,6 @@
 		},
 		{
 			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/PhysicalObjectTracker.uplugin",
-			"Type": "UFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/CradleLightControl/CradleLightControl.uplugin",
-			"Type": "UFS"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/DMX/DMXEngine/DMXEngine.uplugin",
 			"Type": "UFS"
 		},
 		{
