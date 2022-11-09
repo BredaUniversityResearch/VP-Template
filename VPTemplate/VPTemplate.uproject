@@ -173,6 +173,10 @@
 		{
 			"Name": "PhysicalObjectTracker",
 			"Enabled": true
+		},
+		{
+			"Name": "CradleLightControl",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
