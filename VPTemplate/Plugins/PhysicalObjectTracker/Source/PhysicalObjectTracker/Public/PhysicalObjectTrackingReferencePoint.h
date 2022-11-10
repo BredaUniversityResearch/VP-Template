@@ -18,5 +18,13 @@ private:
 	FQuat NeutralRotationInverse;
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	FVector NeutralOffset;
+	/* Flips up/down rotation */
+	UPROPERTY(EditAnywhere, Category= "PhysicalObjectTrackingReferencePoint|Rotation")
+	bool InvertPitchRotation{ false };
+	/* Flips left/right rotation */
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|Rotation")
+	bool InvertYawRotation{false};
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|Rotation")
+	bool InvertRollRotation{ false };
 };
 
