@@ -23,7 +23,6 @@
 			"Name": "OculusVR",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
-				"Win32",
 				"Win64",
 				"Android"
 			]
@@ -32,7 +31,6 @@
 			"Name": "SteamVR",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
-				"Win32",
 				"Win64",
 				"Linux"
 			]
@@ -63,7 +61,11 @@
 		},
 		{
 			"Name": "VirtualCamera",
-			"Enabled": true
+			"Enabled": true,
+			"SupportedTargetPlatforms": [
+				"Win64",
+				"Linux"
+			]
 		},
 		{
 			"Name": "LiveLink",
@@ -180,6 +182,7 @@
 		}
 	],
 	"TargetPlatforms": [
-		"WindowsNoEditor"
+		"WindowsNoEditor",
+		"HoloLens"
 	]
 }
