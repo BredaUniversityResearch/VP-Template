@@ -26,6 +26,7 @@ public:
 	UFUNCTION(CallInEditor, Category = "PhysicalObjectTrackingComponent")
 	void RefreshDeviceId();
 
+	const FTransform* GetWorldReferencePoint() const;
 	const UPhysicalObjectTrackingReferencePoint* GetTrackingReferencePoint() const;
 
 	UPROPERTY(Transient, VisibleAnywhere, Category = "PhysicalObjectTrackingComponent")

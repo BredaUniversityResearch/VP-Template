@@ -5,6 +5,7 @@
 class FComponentVisualizer;
 class FPhysicalObjectTrackingReferenceCalibrationHandler;
 class FDetectTrackerShakeTask;
+class UPhysicalObjectTrackingReferencePoint;
 
 DECLARE_DELEGATE_OneParam(FShakeTaskFinished, uint32)
 
@@ -16,6 +17,7 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
+	static void DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* PhysicalReferencePoint, const FTransform* WorldTransform);
 
 private:
 	void OnDeviceDetectionStarted(class UPhysicalObjectTrackingComponent* TargetTrackingComponent);

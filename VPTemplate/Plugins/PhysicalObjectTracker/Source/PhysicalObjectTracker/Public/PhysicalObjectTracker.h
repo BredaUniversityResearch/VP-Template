@@ -16,8 +16,6 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-	static void DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* ReferencePoint);
-	
 	FDeviceDetectionStarted DeviceDetectionEvent;
 
 };

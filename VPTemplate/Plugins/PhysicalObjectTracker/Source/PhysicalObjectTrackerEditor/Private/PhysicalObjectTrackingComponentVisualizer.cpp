@@ -3,6 +3,7 @@
 #include "PhysicalObjectTrackingComponent.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "SteamVRFunctionLibrary.h"
+#include "PhysicalObjectTrackerEditor.h"
 
 namespace
 {
@@ -111,6 +112,9 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 		const UPhysicalObjectTrackingReferencePoint* reference = targetComponent->GetTrackingReferencePoint();
 		if (reference != nullptr)
 		{
+			const FTransform* worldReference = targetComponent->GetWorldReferencePoint();
+			FPhysicalObjectTrackerEditor::DebugDrawTrackingReferenceLocations(reference, worldReference);
+
 			TArray<int32> deviceIds;
 			USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, deviceIds);
 
@@ -121,7 +125,12 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
 				{
 					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion() * FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f)));
+					if (worldReference != nullptr)
+					{
+						FTransform::Multiply(&transform, &transform, worldReference);
+					}
 					FMatrix transformMatrix = transform.ToMatrixNoScale();
+
 
 					DrawWireBox(PDI, transformMatrix, FBox(FVector(-4.0f), FVector(4.0f)), FColor::Magenta, 0, 2.0f);
 					DrawWireFrustrum2(PDI, transformMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,

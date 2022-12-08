@@ -42,8 +42,6 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 {
 	Super::TickComponent(DeltaTime, Tick, ThisTickFunction);
 
-	FPhysicalObjectTracker::DebugDrawTrackingReferenceLocations(TrackingSpaceReference);
-
 	if (CurrentTargetDeviceId == -1)
 	{		
 		DeviceIdAcquireTimer += DeltaTime;
@@ -131,6 +129,11 @@ void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 			CurrentTargetDeviceId = foundDeviceId;
 		}
 	}
+}
+
+const FTransform* UPhysicalObjectTrackingComponent::GetWorldReferencePoint() const
+{
+	return WorldReferencePoint != nullptr ? &WorldReferencePoint->GetActorTransform() : nullptr;
 }
 
 const UPhysicalObjectTrackingReferencePoint* UPhysicalObjectTrackingComponent::GetTrackingReferencePoint() const

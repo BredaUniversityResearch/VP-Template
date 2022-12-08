@@ -16,6 +16,10 @@
 
 #include "Styling/SlateIconFinder.h"
 
+#include "SteamVRFunctionLibrary.h"
+#include "DrawDebugHelpers.h"
+#include "PhysicalObjectTrackingReferencePoint.h"
+
 #define LOCTEXT_NAMESPACE "FPhysicalObjectTrackerEditor"
 
 void FPhysicalObjectTrackerEditor::StartupModule()
@@ -45,6 +49,32 @@ void FPhysicalObjectTrackerEditor::ShutdownModule()
 	if (GUnrealEd != nullptr)
 	{
 		GUnrealEd->UnregisterComponentVisualizer(UPhysicalObjectTrackingComponent::StaticClass()->GetFName());
+	}
+}
+
+void FPhysicalObjectTrackerEditor::DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* PhysicalReferencePoint, const FTransform* WorldTransform)
+{
+	if (PhysicalReferencePoint != nullptr)
+	{
+		TArray<int32> deviceIds;
+		USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, deviceIds);
+
+		for (int32 deviceId : deviceIds)
+		{
+			FVector position;
+			FRotator rotation;
+			if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
+			{
+				FTransform transform = PhysicalReferencePoint->ApplyTransformation(position, rotation.Quaternion());
+
+				if (WorldTransform != nullptr)
+				{
+					FTransform::Multiply(&transform, &transform, WorldTransform);
+				}
+				DrawDebugBox(GWorld, transform.GetLocation(), FVector(8.0f, 8.0f, 8.0f), transform.GetRotation(), FColor::Magenta,
+					false, -1, 0, 2);
+			}
+		}
 	}
 }
 
@@ -105,7 +135,6 @@ void FPhysicalObjectTrackerEditor::StopDeviceSelection()
 		m_ShakeDetectTask->OnTaskFinished.Unbind();
 	}
 }
-
 
 #undef LOCTEXT_NAMESPACE
 

@@ -1,5 +1,6 @@
 #include "PhysicalObjectTrackingReferenceCalibrationHandler.h"
 
+#include "EditorStyleSet.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "UpdateTrackerCalibrationAsset.h"
 #include "Framework/Notifications/NotificationManager.h"
