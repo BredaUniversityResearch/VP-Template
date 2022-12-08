@@ -9,7 +9,8 @@ public class VPTemplateTarget : TargetRules
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
+        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_1;
 
-		ExtraModuleNames.AddRange( new string[] { "VPTemplate" } );
+        ExtraModuleNames.AddRange( new string[] { "VPTemplate" } );
 	}
 }
