@@ -7,6 +7,8 @@
 #include "SteamVRFunctionLibrary.h"
 #include "SteamVRInputDeviceFunctionLibrary.h"
 
+#include"Engine/EngineTypes.h"
+
 UPhysicalObjectTrackingComponent::UPhysicalObjectTrackingComponent(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -77,7 +79,14 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		m_TransformHistory.AddSample(trackerFromReference);
 		FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
 
-		GetOwner()->SetActorTransform(filteredTransform);
+		if(HasComponentMovementTarget)
+		{
+			MovementTargetComponent.GetComponent(nullptr);
+		}
+		else
+		{
+			GetOwner()->SetActorTransform(filteredTransform);
+		}
 	}
 	else
 	{

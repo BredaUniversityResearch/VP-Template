@@ -47,6 +47,12 @@ private:
 	UPhysicalObjectTrackingFilterSettings* FilterSettings;
 	FDelegateHandle FilterSettingsChangedHandle;
 
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent")
+	bool HasComponentMovementTarget;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent", meta = (EditCondition = "HasComponentMovementTarget", EditConditionHides))
+	FComponentReference MovementTargetComponent;
+
 	UPROPERTY(Transient)
 	float DeviceIdAcquireTimer;
 	FTrackerTransformHistory m_TransformHistory;
