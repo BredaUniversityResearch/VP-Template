@@ -37,28 +37,7 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 			FString::Format(TEXT("PhysicalObjectTrackingComponent does not have a reference referenced on object \"{0}\""), 
 				FStringFormatOrderedArguments({ GetOwner()->GetName() })));
 	}
-
-	//TODO: find a solution to execute this code when the TransformationTargetComponentReferene is changed.
-	if(HasTransformationTargetComponent)
-	{
-		UActorComponent* transformationTargetComponent = TransformationTargetComponentReference.GetComponent(GetOwner());
-		if(transformationTargetComponent != nullptr)
-		{
-			TransformationTargetComponent = Cast<USceneComponent>(transformationTargetComponent);
-			if (!TransformationTargetComponent.IsValid())
-			{
-				GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
-					FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a component that is or inherits from a scenecomponent as movement target component. Component in actor: \"{0}\""),
-						FStringFormatOrderedArguments({ GetOwner()->GetName() })));
-			}
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
-				FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a valid component as movement target component. Component in actor: \"{0}\""),
-					FStringFormatOrderedArguments({ GetOwner()->GetName() })));
-		}
-	}
+	
 }
 
 void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick Tick,
@@ -138,6 +117,29 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 			if (FilterSettings != nullptr)
 			{
 				FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
+			}
+		}
+		else if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TransformationTargetComponentReference")))
+		{
+			if (HasTransformationTargetComponent)
+			{
+				UActorComponent* transformationTargetComponent = TransformationTargetComponentReference.GetComponent(GetOwner());
+				if (transformationTargetComponent != nullptr)
+				{
+					TransformationTargetComponent = Cast<USceneComponent>(transformationTargetComponent);
+					if (!TransformationTargetComponent.IsValid())
+					{
+						GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
+							FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a component that is or inherits from a scenecomponent as movement target component. Component in actor: \"{0}\""),
+								FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+					}
+				}
+				else
+				{
+					GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
+						FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a valid component as movement target component. Component in actor: \"{0}\""),
+							FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+				}
 			}
 		}
 	}
