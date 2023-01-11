@@ -38,13 +38,14 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 				FStringFormatOrderedArguments({ GetOwner()->GetName() })));
 	}
 
-	if(HasComponentMovementTarget)
+	//TODO: find a solution to execute this code when the TransformationTargetComponentReferene is changed.
+	if(HasTransformationTargetComponent)
 	{
-		UActorComponent* movementTargetComponent = MovementTargetComponentReference.GetComponent(GetOwner());
-		if(movementTargetComponent != nullptr)
+		UActorComponent* transformationTargetComponent = TransformationTargetComponentReference.GetComponent(GetOwner());
+		if(transformationTargetComponent != nullptr)
 		{
-			MovementTargetComponent = Cast<USceneComponent>(movementTargetComponent);
-			if (MovementTargetComponent == nullptr)
+			TransformationTargetComponent = Cast<USceneComponent>(transformationTargetComponent);
+			if (!TransformationTargetComponent.IsValid())
 			{
 				GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
 					FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a component that is or inherits from a scenecomponent as movement target component. Component in actor: \"{0}\""),
@@ -100,9 +101,9 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		m_TransformHistory.AddSample(trackerFromReference);
 		const FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
 
-		if(HasComponentMovementTarget && MovementTargetComponent != nullptr)
+		if(HasTransformationTargetComponent && TransformationTargetComponent.IsValid())
 		{
-			MovementTargetComponent->SetWorldTransform(filteredTransform);
+			TransformationTargetComponent.Get()->SetWorldTransform(filteredTransform);
 		}
 		else
 		{

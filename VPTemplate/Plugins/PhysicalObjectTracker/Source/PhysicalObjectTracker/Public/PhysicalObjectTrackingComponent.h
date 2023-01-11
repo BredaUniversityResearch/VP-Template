@@ -49,12 +49,12 @@ private:
 	
 	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
 		meta = (ToolTip = "Configure a component to move according to the tracker, otherwise moves this component's actor."))
-	bool HasComponentMovementTarget;
+	bool HasTransformationTargetComponent;
 
 	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
-		meta = (EditCondition = "HasComponentMovementTarget", EditConditionHides, ToolTip="Leave the Actor field empty to specify a component on this actor."))
-	FComponentReference MovementTargetComponentReference;
-	USceneComponent* MovementTargetComponent {nullptr};
+		meta = (EditCondition = "HasTransformationTargetComponent", EditConditionHides, ToolTip="Leave the Actor field empty to specify a component on this actor."))
+	FComponentReference TransformationTargetComponentReference;
+	TWeakObjectPtr<USceneComponent> TransformationTargetComponent {nullptr};
 
 	UPROPERTY(Transient)
 	float DeviceIdAcquireTimer;
