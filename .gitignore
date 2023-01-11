@@ -77,3 +77,9 @@ VPTemplate/Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+#Resharper configurations.
+*.DotSettings.user
+
+#Visual Studio Configurations
+*.vsconfig

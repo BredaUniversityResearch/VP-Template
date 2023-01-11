@@ -46,12 +46,15 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingFilterSettings* FilterSettings;
 	FDelegateHandle FilterSettingsChangedHandle;
-
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent")
+	
+	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
+		meta = (ToolTip = "Configure a component to move according to the tracker, otherwise moves this component's actor."))
 	bool HasComponentMovementTarget;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent", meta = (EditCondition = "HasComponentMovementTarget", EditConditionHides))
-	FComponentReference MovementTargetComponent;
+	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
+		meta = (EditCondition = "HasComponentMovementTarget", EditConditionHides, ToolTip="Leave the Actor field empty to specify a component on this actor."))
+	FComponentReference MovementTargetComponentReference;
+	USceneComponent* MovementTargetComponent {nullptr};
 
 	UPROPERTY(Transient)
 	float DeviceIdAcquireTimer;
