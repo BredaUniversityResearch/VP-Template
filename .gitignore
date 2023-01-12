@@ -83,3 +83,6 @@ DerivedDataCache/*
 
 #Visual Studio Configurations
 *.vsconfig
+
+#Ignore Test content
+VPTemplate/Content/Tests/

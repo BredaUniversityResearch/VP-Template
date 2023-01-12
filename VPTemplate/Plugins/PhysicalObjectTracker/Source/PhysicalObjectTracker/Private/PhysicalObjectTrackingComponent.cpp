@@ -34,8 +34,8 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 	if (TrackingSpaceReference == nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(1, 30.0f, FColor::Red, 
-			FString::Format(TEXT("PhysicalObjectTrackingComponent does not have a reference referenced on object \"{0}\""), 
-				FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+			FString::Format(TEXT("PhysicalObjectTrackingComponent \"{0}\" does not have reference a tracking space on object \"{1}\""), 
+				FStringFormatOrderedArguments({GetName(),  GetOwner()->GetName() })));
 	}
 	
 }
