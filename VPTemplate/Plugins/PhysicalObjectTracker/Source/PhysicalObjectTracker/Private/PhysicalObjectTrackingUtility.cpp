@@ -38,3 +38,7 @@ bool FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(FString SerialId, 
 	return false;
 }
 
+void FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(TArray<int32>& DeviceIds)
+{
+	USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, DeviceIds);
+}

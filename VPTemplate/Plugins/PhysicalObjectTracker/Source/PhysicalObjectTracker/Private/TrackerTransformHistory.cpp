@@ -56,8 +56,13 @@ void FTrackerTransformHistory::TakeSample(int32 a_TargetTrackerId)
 	FQuat trackerRotation;
 	if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(a_TargetTrackerId, trackerPosition, trackerRotation))
 	{
+		//1. Assume the tracker transform as the origin point.
+		//2. Get the base station transforms and calculate the relative transforms from the tracker.
+
+		TArray<int32> referenceDeviceIds;
+		FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(referenceDeviceIds);
+
 		AddSample(FTransform(trackerRotation, trackerPosition));
-		
 	}
 	else
 	{

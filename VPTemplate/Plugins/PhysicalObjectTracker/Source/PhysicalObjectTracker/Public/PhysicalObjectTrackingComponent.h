@@ -41,6 +41,7 @@ private:
 	void DebugCheckIfTrackingTargetExists() const;
 	void OnFilterSettingsChangedCallback();
 	void OnTrackerSerialIdChangedCallback();
+	void ExtractComponentReferenceIfValid();
 
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingReferencePoint* TrackingSpaceReference{nullptr};
