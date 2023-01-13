@@ -6,6 +6,7 @@
 
 class UPhysicalObjectTrackingFilterSettings;
 class UPhysicalObjectTrackingReferencePoint;
+class UPhysicalObjectTrackerSerialId;
 UCLASS(ClassGroup = (VirtualProduction), meta = (BlueprintSpawnableComponent))
 class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent: public UActorComponent
 {
@@ -20,8 +21,9 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
-	UFUNCTION(CallInEditor, Category = "PhysicalObjectTrackingComponent")
-	void SelectTracker();
+	//TODO: remove when selection of the tracker can be done through the asset's context menu itself.
+	/*UFUNCTION(CallInEditor, Category = "PhysicalObjectTrackingComponent")
+	void SelectTracker();*/
 
 	UFUNCTION(CallInEditor, Category = "PhysicalObjectTrackingComponent")
 	void RefreshDeviceId();
@@ -30,10 +32,10 @@ public:
 	const UPhysicalObjectTrackingReferencePoint* GetTrackingReferencePoint() const;
 
 	UPROPERTY(Transient, VisibleAnywhere, Category = "PhysicalObjectTrackingComponent")
-	int32 CurrentTargetDeviceId{-1};
+	int32 CurrentTargetDeviceId {-1};
 
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent", meta=(DeviceSerialId))
-	FString SerialId;
+	UPhysicalObjectTrackerSerialId* TrackerSerialId;
 
 private:
 	void DebugCheckIfTrackingTargetExists() const;

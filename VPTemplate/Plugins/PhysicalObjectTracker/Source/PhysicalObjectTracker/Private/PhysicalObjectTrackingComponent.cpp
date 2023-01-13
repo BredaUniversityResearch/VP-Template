@@ -1,6 +1,7 @@
 #include "PhysicalObjectTrackingComponent.h"
 
 #include "PhysicalObjectTracker.h"
+#include "PhysicalObjectTrackerSerialId.h"
 #include "PhysicalObjectTrackingFilterSettings.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "PhysicalObjectTrackingUtility.h"
@@ -44,11 +45,14 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 	FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, Tick, ThisTickFunction);
+	if (TrackerSerialId == nullptr) { return; }
 
 	if (CurrentTargetDeviceId == -1)
-	{		
+	{	
+		//TODO: Debug if this is actually trying to acquire in an interval. 
+		//Suspect it to check if timer keeps under the interval when delta time is added and if it happens to go above it stops acquiring.
 		DeviceIdAcquireTimer += DeltaTime;
-		if (DeviceIdAcquireTimer < DeviceReacquireInterval)
+		if (DeviceIdAcquireTimer < DeviceReacquireInterval) 
 		{
 			RefreshDeviceId();
 			DeviceIdAcquireTimer -= DeviceReacquireInterval;
@@ -103,6 +107,8 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 
 	if (PropertyChangedEvent.MemberProperty != nullptr)
 	{
+		//TODO: check if this event is enough to update device id if serial id changes
+		//either by being set in the property or the data asset being changed.
 		if (PropertyChangedEvent.MemberProperty->HasMetaData("DeviceSerialId"))
 		{
 			RefreshDeviceId();
@@ -145,17 +151,19 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 	}
 }
 #endif
-void UPhysicalObjectTrackingComponent::SelectTracker()
-{
-	auto& TrackerEditorModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
-	TrackerEditorModule.DeviceDetectionEvent.Broadcast(this);
-	
-}
 
 void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 {
+	if (TrackerSerialId == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
+			FString::Format(TEXT("PhysicalObjectTrackingComponent is refreshing the device id without a TrackerSerialId referenced on object \"{0}\""),
+				FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+		return;
+	}
+
 	int32 foundDeviceId;
-	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(SerialId, foundDeviceId))
+	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(TrackerSerialId->SerialId, foundDeviceId))
 	{
 		if (CurrentTargetDeviceId != foundDeviceId)
 		{
