@@ -2,13 +2,20 @@
 
 #include "PhysicalObjectTrackerSerialId.generated.h"
 
-UCLASS(BlueprintType)
+DECLARE_MULTICAST_DELEGATE(FOnSerialIdChanged);
+
+UCLASS()
 class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackerSerialId : public UDataAsset
 {
     GENERATED_BODY()
 public:
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent", meta = (DeviceSerialId))
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	FString SerialId;
+
+	FOnSerialIdChanged OnSerialIdChanged;
 
 };

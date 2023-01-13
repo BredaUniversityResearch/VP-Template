@@ -73,6 +73,7 @@ VPTemplate/Plugins/*/Intermediate/*
 #!VPTemplate/Plugins/*/Binaries/*/*.dll
 **/Binaries/*/*.target
 **/Binaries/*/*.modules
+**/Binaries/*/*.patch_*.exp
 *.pdb
 
 # Cache files for the editor to use
@@ -86,3 +87,6 @@ DerivedDataCache/*
 
 #Ignore Test content
 VPTemplate/Content/Tests/
+
+#Ignore temp files
+VPTemplate/enc_temp_folder/

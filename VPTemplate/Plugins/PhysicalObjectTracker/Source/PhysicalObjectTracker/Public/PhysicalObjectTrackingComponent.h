@@ -34,12 +34,13 @@ public:
 	UPROPERTY(Transient, VisibleAnywhere, Category = "PhysicalObjectTrackingComponent")
 	int32 CurrentTargetDeviceId {-1};
 
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent", meta=(DeviceSerialId))
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackerSerialId* TrackerSerialId;
 
 private:
 	void DebugCheckIfTrackingTargetExists() const;
 	void OnFilterSettingsChangedCallback();
+	void OnTrackerSerialIdChangedCallback();
 
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingReferencePoint* TrackingSpaceReference{nullptr};
@@ -48,11 +49,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingFilterSettings* FilterSettings;
 	FDelegateHandle FilterSettingsChangedHandle;
+	FDelegateHandle SerialIdChangedHandle;
 	
 	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
 		meta = (ToolTip = "Configure a component to move according to the tracker, otherwise moves this component's actor."))
 	bool HasTransformationTargetComponent;
-
 	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
 		meta = (EditCondition = "HasTransformationTargetComponent", EditConditionHides, ToolTip="Leave the Actor field empty to specify a component on this actor."))
 	FComponentReference TransformationTargetComponentReference;
