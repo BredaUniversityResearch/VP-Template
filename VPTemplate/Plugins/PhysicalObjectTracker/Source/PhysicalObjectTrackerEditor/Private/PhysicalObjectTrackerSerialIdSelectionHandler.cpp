@@ -77,10 +77,18 @@ void FPhysicalObjectTrackerSerialIdSelectionHandler::StartDeviceSelection(UPhysi
 					if (GEngine && GEngine->XRSystem)
 					{
 						SerialIdAsset->SerialId = GEngine->XRSystem->GetTrackedDevicePropertySerialNumber(SelectedControllerId);
-
-						m_ShakeProcessNotification->SetText(LOCTEXT("DeviceSelectionSuccess", "Device selected successfully!"));
-						m_ShakeProcessNotification->Fadeout();
-						m_ShakeProcessNotification->SetCompletionState(SNotificationItem::CS_Success);
+						if(SerialIdAsset->MarkPackageDirty())
+						{
+							m_ShakeProcessNotification->SetText(LOCTEXT("DeviceSelectionSuccess", "Device selected successfully, Serial Id asset updated!"));
+							m_ShakeProcessNotification->Fadeout();
+							m_ShakeProcessNotification->SetCompletionState(SNotificationItem::CS_Success);
+						}
+						else
+						{
+							m_ShakeProcessNotification->SetText(LOCTEXT("DeviceSelectionFailed", "Device Serial Id updated but asset is not marked dirty. Manual intervention required."));
+							m_ShakeProcessNotification->Fadeout();
+							m_ShakeProcessNotification->SetCompletionState(SNotificationItem::CS_Fail);
+						}
 					}
 					else
 					{

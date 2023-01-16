@@ -1,5 +1,7 @@
 #include "GetTrackerStaticTransformTask.h"
 
+#include "PhysicalObjectTrackingUtility.h"
+
 #include "SteamVRFunctionLibrary.h"
 
 FGetTrackerStaticTransformTask::FGetTrackerStaticTransformTask(int32 a_TargetTrackerId)
@@ -48,12 +50,15 @@ void FGetTrackerStaticTransformTask::Tick(float DeltaTime)
 		SampleDeltaTimeAccumulator -= SecondsBetweenSamples;
 
 		m_TransformHistory.TakeSample(m_TargetTrackerId);
-		if (m_TransformHistory.HasCompleteHistory())
+		TakeBaseStationSamples();
+
+		if (m_TransformHistory.HasCompleteHistory() && HasCompleteBaseStationsHistory())
 		{
 			if (m_TransformHistory.GetAverageVelocity() < AverageVelocityThreshold)
 			{
 				m_HasAcquiredTransform = true;
 				m_Result = m_TransformHistory.GetLatest();
+				BuildBaseStationResults();
 			}
 		}
 	}
@@ -68,4 +73,49 @@ const FTransform& FGetTrackerStaticTransformTask::GetResult() const
 {
 	check(m_HasAcquiredTransform);
 	return m_Result;
+}
+
+const TMap<int32, FTransform>& FGetTrackerStaticTransformTask::GetBaseStationResults() const
+{
+	check(m_HasAcquiredTransform);
+	return m_BaseStationResults;
+}
+
+void FGetTrackerStaticTransformTask::TakeBaseStationSamples()
+{
+	TArray<int32> BaseStationIds;
+	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(BaseStationIds);
+
+	for(int32 id : BaseStationIds)
+	{
+		FTrackerTransformHistory& samples = BaseStationTransforms.FindOrAdd(id, { SampleSizeSeconds * SamplesPerSecond });
+		samples.TakeSample(id);
+	}
+}
+
+bool FGetTrackerStaticTransformTask::HasCompleteBaseStationsHistory()
+{
+	if(BaseStationTransforms.Num() < MinimumNumberOfBaseStations)
+	{
+		return false;
+	}
+
+	for(auto& baseStation : BaseStationTransforms)
+	{
+		if(!baseStation.Value.HasCompleteHistory())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void FGetTrackerStaticTransformTask::BuildBaseStationResults()
+{
+	check(BaseStationTransforms.Num() >= MinimumNumberOfBaseStations);
+
+	for(auto& baseStation : BaseStationTransforms)
+	{
+		m_BaseStationResults.Add(baseStation.Key, baseStation.Value.GetAveragedTransform());
+	}
 }

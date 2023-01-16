@@ -21,10 +21,6 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
-	//TODO: remove when selection of the tracker can be done through the asset's context menu itself.
-	/*UFUNCTION(CallInEditor, Category = "PhysicalObjectTrackingComponent")
-	void SelectTracker();*/
-
 	UFUNCTION(CallInEditor, Category = "PhysicalObjectTrackingComponent")
 	void RefreshDeviceId();
 
@@ -58,7 +54,8 @@ private:
 	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
 		meta = (EditCondition = "HasTransformationTargetComponent", EditConditionHides, ToolTip="Leave the Actor field empty to specify a component on this actor."))
 	FComponentReference TransformationTargetComponentReference;
-	TWeakObjectPtr<USceneComponent> TransformationTargetComponent {nullptr};
+	UPROPERTY(Transient, VisibleAnywhere, Category = "PhysicalObjectTrackingComponent")
+	TObjectPtr<USceneComponent> TransformationTargetComponent {nullptr};
 
 	UPROPERTY(Transient)
 	float DeviceIdAcquireTimer;

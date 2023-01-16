@@ -23,7 +23,7 @@ public:
 
 	void OnCancelCalibration();
 	void OnTrackerIdentified(int32 TrackerId);
-	void OnTrackerTransformAcquired(const FTransform& Transform);
+	void OnTrackerTransformAcquired(const FTransform& Transform, const TMap<int32, FTransform>& BaseStationTransforms) const;
 
 	void Cleanup();
 	bool IsCompleted() const;

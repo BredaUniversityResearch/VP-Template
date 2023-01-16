@@ -58,7 +58,7 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 	case ECalibrationState::WaitingForStaticPosition:
 		if (GetTrackerStaticPositionTask->IsComplete())
 		{
-			OnTrackerTransformAcquired(GetTrackerStaticPositionTask->GetResult());
+			OnTrackerTransformAcquired(GetTrackerStaticPositionTask->GetResult(), GetTrackerStaticPositionTask->GetBaseStationResults());
 			m_CalibrationState = ECalibrationState::Done;
 
 			GetTrackerStaticPositionTask.Reset();
@@ -83,9 +83,15 @@ void FUpdateTrackerCalibrationAsset::OnTrackerIdentified(int32 TrackerId)
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForTrackerStaticPosition", "Waiting for tracker steady position..."));
 }
 
-void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& Transform)
+void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& Transform, const TMap<int32, FTransform>& BaseStationTransforms) const
 {
 	TargetAsset->SetNeutralTransform(Transform.GetRotation(), Transform.GetLocation());
+	for(auto baseStation : BaseStationTransforms)
+	{
+		FTransform offsetFromTracker = baseStation.Value.GetRelativeTransform(Transform);
+		TargetAsset->SetInitialBaseStationOffset(baseStation.Key, offsetFromTracker.GetRotation(), offsetFromTracker.GetLocation());
+	}
+
 	if (TargetAsset->MarkPackageDirty())
 	{
 

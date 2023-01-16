@@ -10,6 +10,14 @@ void UPhysicalObjectTrackingReferencePoint::SetNeutralTransform(const FQuat& Neu
 	NeutralRotationInverse = NeutralRotation.Inverse();
 }
 
+void UPhysicalObjectTrackingReferencePoint::SetInitialBaseStationOffset(
+	int32 BaseStationId, 
+	const FQuat& RotationOffset, 
+	const FVector& PositionOffset)
+{
+	BaseStationOffsets.Add(BaseStationId, FBaseStationOffset{PositionOffset, RotationOffset});
+}
+
 const FQuat& UPhysicalObjectTrackingReferencePoint::GetNeutralRotationInverse() const
 {
 	return NeutralRotationInverse;
@@ -48,4 +56,15 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(const FVec
 	FVector devicePosition = GetNeutralRotationInverse() * (TrackedPosition - GetNeutralOffset());
 	FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);
 	return FTransform(orientation, position);
+}
+void UPhysicalObjectTrackingReferencePoint::GetBaseStationIds(TArray<int32>& BaseStationIds) const
+{
+	BaseStationOffsets.GetKeys(BaseStationIds);
+}
+
+FTransform UPhysicalObjectTrackingReferencePoint::CalcTransformationFromBaseStations(
+	const TMap<int32, FBaseStationOffset>& BaseStationOffsets)
+{
+	TArray<FBaseStationOffset> offsetDifferences;
+	return FTransform();
 }
