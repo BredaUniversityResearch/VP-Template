@@ -29,10 +29,15 @@ public:
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
 
 	void GetBaseStationIds(TArray<int32>& BaseStationIds) const;
-	FTransform CalcTransformationFromBaseStations(const TMap<int32, FBaseStationOffset>& BaseStationOffsets);
+	bool CalcTransformationFromBaseStations(
+		const TMap<int32, FBaseStationOffset>& CurrentBaseStationOffsets,
+		FTransform& CalculatedTransform);
 	
 
 private:
+
+	static FTransform GetAveragedTransform(const TArray<FBaseStationOffset>& OffsetDifferences);
+
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	FQuat NeutralRotationInverse;
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")

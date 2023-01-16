@@ -85,11 +85,13 @@ void FUpdateTrackerCalibrationAsset::OnTrackerIdentified(int32 TrackerId)
 
 void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& Transform, const TMap<int32, FTransform>& BaseStationTransforms) const
 {
-	TargetAsset->SetNeutralTransform(Transform.GetRotation(), Transform.GetLocation());
+	//TargetAsset->SetNeutralTransform(Transform.GetRotation(), Transform.GetLocation());
+	TargetAsset->SetNeutralTransform(FQuat::Identity, FVector::ZeroVector);
 	for(auto baseStation : BaseStationTransforms)
 	{
-		FTransform offsetFromTracker = baseStation.Value.GetRelativeTransform(Transform);
-		TargetAsset->SetInitialBaseStationOffset(baseStation.Key, offsetFromTracker.GetRotation(), offsetFromTracker.GetLocation());
+		const FVector positionOffset = baseStation.Value.GetLocation() - Transform.GetLocation();
+		const FQuat rotationOffset = Transform.GetRotation() * baseStation.Value.GetRotation().Inverse();
+		TargetAsset->SetInitialBaseStationOffset(baseStation.Key, rotationOffset, positionOffset);
 	}
 
 	if (TargetAsset->MarkPackageDirty())

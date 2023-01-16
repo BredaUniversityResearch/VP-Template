@@ -62,9 +62,41 @@ void UPhysicalObjectTrackingReferencePoint::GetBaseStationIds(TArray<int32>& Bas
 	BaseStationOffsets.GetKeys(BaseStationIds);
 }
 
-FTransform UPhysicalObjectTrackingReferencePoint::CalcTransformationFromBaseStations(
-	const TMap<int32, FBaseStationOffset>& BaseStationOffsets)
+bool UPhysicalObjectTrackingReferencePoint::CalcTransformationFromBaseStations(
+	const TMap<int32, FBaseStationOffset>& CurrentBaseStationOffsets,
+	FTransform& CalculatedTransform)
 {
 	TArray<FBaseStationOffset> offsetDifferences;
-	return FTransform();
+	for(auto& currentOffset : CurrentBaseStationOffsets)
+	{
+		if (const FBaseStationOffset* initialOffset = BaseStationOffsets.Find(currentOffset.Key))
+		{
+			offsetDifferences.Add(
+				FBaseStationOffset{
+				initialOffset->Position - currentOffset.Value.Position,
+				initialOffset->Rotation * currentOffset.Value.Rotation.Inverse()
+				});
+		}
+	}
+
+	if (offsetDifferences.Num() == 0) { return false; }
+
+	CalculatedTransform = GetAveragedTransform(offsetDifferences);
+	return true;
+}
+
+FTransform UPhysicalObjectTrackingReferencePoint::GetAveragedTransform(const TArray<FBaseStationOffset>& OffsetDifferences)
+{
+	FVector averageLocation = FVector::ZeroVector;
+	FVector averageRotationEuler = FVector::ZeroVector;
+
+	for(const auto& offset : OffsetDifferences)
+	{
+		averageLocation += offset.Position;
+		averageRotationEuler += offset.Rotation.Euler();
+	}
+	averageLocation = averageLocation / OffsetDifferences.Num();
+	averageRotationEuler = averageRotationEuler / OffsetDifferences.Num();
+
+	return FTransform(FQuat::MakeFromEuler(averageRotationEuler), averageLocation);
 }
