@@ -101,7 +101,7 @@ bool FGetBaseStationOffsetsTask::HasCompleteBaseStationsHistory()
 
 void FGetBaseStationOffsetsTask::BuildBaseStationResults()
 {
-	check(BaseStationOffsets.Num() + CompletedBaseStationsIds.Num() >= TargetNumBaseStationOffsets)
+	check(BaseStationOffsets.Num() + CompletedBaseStationsIds->Num() >= TargetNumBaseStationOffsets)
 
 	for(const auto& baseStation : BaseStationOffsets)
 	{

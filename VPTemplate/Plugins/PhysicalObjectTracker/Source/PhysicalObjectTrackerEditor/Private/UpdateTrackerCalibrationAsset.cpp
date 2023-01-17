@@ -112,7 +112,9 @@ void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired()
 void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired()
 {
 	//Compute the neutral transform
+	//For base station offset, 
 
+	TargetAsset->SetNeutralTransform();
 	if (TargetAsset->MarkPackageDirty())
 	{
 		m_ProcessNotification->SetText(LOCTEXT("TrackerTransformFound", "Reference point asset updated!"));
@@ -137,7 +139,6 @@ void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform
 		const FQuat rotationOffset = Transform.GetRotation() * baseStation.Value.GetRotation().Inverse();
 	}
 
-	
 }
 
 void FUpdateTrackerCalibrationAsset::Cleanup()
