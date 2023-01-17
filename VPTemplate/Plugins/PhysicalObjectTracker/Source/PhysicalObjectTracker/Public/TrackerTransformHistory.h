@@ -11,7 +11,7 @@ public:
 
 	void AddSample(const FTransform& a_Transform);
 	void ClearSampleHistory();
-	void TakeSample(int32 a_TargetTrackerId);
+	bool TakeSample(int32 a_TargetTrackerId);
 
 	bool HasCompleteHistory() const;
 	float GetMaxDistanceFromFirstSample() const;

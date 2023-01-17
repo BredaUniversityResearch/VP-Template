@@ -22,24 +22,20 @@ class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingReferencePoint: public UD
 
 public:
 	void SetNeutralTransform(const FQuat& NeutralRotation, const FVector& NeutralPosition);
-	void SetInitialBaseStationOffset(int32 BaseStationId, const FQuat& RotationOffset, const FVector& PositionOffset);
 
 	const FQuat& GetNeutralRotationInverse() const;
 	const FVector& GetNeutralOffset() const;
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
-
-	void GetBaseStationIds(TArray<int32>& BaseStationIds) const;
-	bool CalcTransformationFromBaseStations(
-		const TMap<int32, FBaseStationOffset>& CurrentBaseStationOffsets,
-		FTransform& CalculatedTransform);
 	
 
 private:
 
 	static FTransform GetAveragedTransform(const TArray<FBaseStationOffset>& OffsetDifferences);
 
+	//Base this off the offsets to the base stations.
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	FQuat NeutralRotationInverse;
+	//Base this off the offsets to the base stations.
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	FVector NeutralOffset;
 	/* Flips up/down rotation */
@@ -51,6 +47,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|Rotation")
 	bool InvertRollRotation{ false };
 
-	TMap<int32, FBaseStationOffset> BaseStationOffsets;
+	//The offset to the origin point for all base stations.
+	TMap<FString, FTransform> BaseStationOffsets;
+
+
 };
 

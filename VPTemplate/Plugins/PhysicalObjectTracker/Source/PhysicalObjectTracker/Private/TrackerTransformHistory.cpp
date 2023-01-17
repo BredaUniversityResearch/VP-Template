@@ -50,17 +50,19 @@ void FTrackerTransformHistory::ClearSampleHistory()
 	m_History.Reset();
 }
 
-void FTrackerTransformHistory::TakeSample(int32 a_TargetTrackerId)
+bool FTrackerTransformHistory::TakeSample(int32 a_TargetTrackerId)
 {
 	FVector trackerPosition;
 	FQuat trackerRotation;
 	if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(a_TargetTrackerId, trackerPosition, trackerRotation))
 	{
 		AddSample(FTransform(trackerRotation, trackerPosition));
+		return true;
 	}
 	else
 	{
 		ClearSampleHistory();
+		return false;
 	}
 }
 

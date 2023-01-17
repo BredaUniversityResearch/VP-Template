@@ -39,8 +39,10 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 				int32 trackerId = SelectControllerTask->SelectedController;
 				if (trackerId != -1)
 				{
-					OnTrackerIdentified(trackerId);
+					TrackerId = trackerId;
 					m_CalibrationState = ECalibrationState::WaitingForStaticPosition;
+
+					OnTrackerIdentified();
 				}
 			}
 			else
@@ -58,10 +60,21 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 	case ECalibrationState::WaitingForStaticPosition:
 		if (GetTrackerStaticPositionTask->IsComplete())
 		{
-			OnTrackerTransformAcquired(GetTrackerStaticPositionTask->GetResult(), GetTrackerStaticPositionTask->GetBaseStationResults());
+			TrackerNeutralTransform = GetTrackerStaticPositionTask->GetResult();
+			BaseStationOffsets = GetTrackerStaticPositionTask->GetBaseStationResults();
+			m_CalibrationState = ECalibrationState::DetectingBaseStations;
+
+			OnTrackerTransformAcquired();
+			GetTrackerStaticPositionTask.Reset();
+		}
+		break;
+	case ECalibrationState::DetectingBaseStations:
+		if(GetBaseStationOffsetsTask->IsComplete())
+		{
 			m_CalibrationState = ECalibrationState::Done;
 
-			GetTrackerStaticPositionTask.Reset();
+			OnBaseStationOffsetsAcquired();
+			GetBaseStationOffsetsTask.Reset();
 		}
 		break;
 	case ECalibrationState::Done:
@@ -76,27 +89,32 @@ void FUpdateTrackerCalibrationAsset::OnCancelCalibration()
 	Cleanup();
 }
 
-void FUpdateTrackerCalibrationAsset::OnTrackerIdentified(int32 TrackerId)
+void FUpdateTrackerCalibrationAsset::OnTrackerIdentified()
 {
 	GetTrackerStaticPositionTask = MakeUnique<FGetTrackerStaticTransformTask>(TrackerId);
 
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForTrackerStaticPosition", "Waiting for tracker steady position..."));
 }
 
-void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& Transform, const TMap<int32, FTransform>& BaseStationTransforms) const
+void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired()
 {
-	//TargetAsset->SetNeutralTransform(Transform.GetRotation(), Transform.GetLocation());
-	TargetAsset->SetNeutralTransform(FQuat::Identity, FVector::ZeroVector);
-	for(auto baseStation : BaseStationTransforms)
-	{
-		const FVector positionOffset = baseStation.Value.GetLocation() - Transform.GetLocation();
-		const FQuat rotationOffset = Transform.GetRotation() * baseStation.Value.GetRotation().Inverse();
-		TargetAsset->SetInitialBaseStationOffset(baseStation.Key, rotationOffset, positionOffset);
-	}
+	TArray<int32> calibratedBaseStationIds;
+	BaseStationOffsets.GetKeys(calibratedBaseStationIds);
+
+	GetBaseStationOffsetsTask = MakeUnique<FGetBaseStationOffsetsTask>(
+		TrackerId,
+		MinBaseStationsCalibrated,
+		calibratedBaseStationIds);
+
+	m_ProcessNotification->SetText(LOCTEXT("WaitingForBaseStationDetection", "Move around the tracker to detect the base stations..."));
+}
+
+void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired()
+{
+	//Compute the neutral transform
 
 	if (TargetAsset->MarkPackageDirty())
 	{
-
 		m_ProcessNotification->SetText(LOCTEXT("TrackerTransformFound", "Reference point asset updated!"));
 		m_ProcessNotification->Fadeout();
 		m_ProcessNotification->SetCompletionState(SNotificationItem::CS_Success);
@@ -107,6 +125,19 @@ void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform
 		m_ProcessNotification->Fadeout();
 		m_ProcessNotification->SetCompletionState(SNotificationItem::CS_Fail);
 	}
+}
+
+void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& Transform) const
+{
+	//TargetAsset->SetNeutralTransform(Transform.GetRotation(), Transform.GetLocation());
+	TargetAsset->SetNeutralTransform(FQuat::Identity, FVector::ZeroVector);
+	for(auto baseStation : BaseStationOffsets)
+	{
+		const FVector positionOffset = baseStation.Value.GetLocation() - Transform.GetLocation();
+		const FQuat rotationOffset = Transform.GetRotation() * baseStation.Value.GetRotation().Inverse();
+	}
+
+	
 }
 
 void FUpdateTrackerCalibrationAsset::Cleanup()

@@ -49,8 +49,10 @@ void FGetTrackerStaticTransformTask::Tick(float DeltaTime)
 	{
 		SampleDeltaTimeAccumulator -= SecondsBetweenSamples;
 
-		m_TransformHistory.TakeSample(m_TargetTrackerId);
-		TakeBaseStationSamples();
+		if(m_TransformHistory.TakeSample(m_TargetTrackerId))
+		{
+			TakeBaseStationSamples(m_TransformHistory.GetLatest());
+		}
 
 		if (m_TransformHistory.HasCompleteHistory() && HasCompleteBaseStationsHistory())
 		{
@@ -58,7 +60,7 @@ void FGetTrackerStaticTransformTask::Tick(float DeltaTime)
 			{
 				m_HasAcquiredTransform = true;
 				m_Result = m_TransformHistory.GetLatest();
-				BuildBaseStationResults();
+				BuildStaticBaseStationResults();
 			}
 		}
 	}
@@ -81,41 +83,56 @@ const TMap<int32, FTransform>& FGetTrackerStaticTransformTask::GetBaseStationRes
 	return m_BaseStationResults;
 }
 
-void FGetTrackerStaticTransformTask::TakeBaseStationSamples()
+void FGetTrackerStaticTransformTask::TakeBaseStationSamples(const FTransform& TrackerTransform)
 {
-	TArray<int32> BaseStationIds;
-	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(BaseStationIds);
+	TArray<int32> baseStationIds;
+	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(baseStationIds);
 
-	for(int32 id : BaseStationIds)
+	for(int32 id : baseStationIds)
 	{
-		FTrackerTransformHistory& samples = BaseStationTransforms.FindOrAdd(id, { SampleSizeSeconds * SamplesPerSecond });
-		samples.TakeSample(id);
+		FTrackerTransformHistory& samples = BaseStationOffsets.FindOrAdd(id, { SampleSizeSeconds * SamplesPerSecond });
+
+		FVector baseStationLocation;
+		FQuat baseStationRotation;
+		if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(id, baseStationLocation, baseStationRotation))
+		{
+			const FTransform relativeTransformation = FPhysicalObjectTrackingUtility::GetRelativeTransform(
+				TrackerTransform, FTransform(baseStationRotation, baseStationLocation));
+
+			samples.AddSample(relativeTransformation);
+		}
 	}
 }
 
 bool FGetTrackerStaticTransformTask::HasCompleteBaseStationsHistory()
 {
-	if(BaseStationTransforms.Num() < MinimumNumberOfBaseStations)
+	if (BaseStationOffsets.Num() < MinStaticBaseStationOffsets)
 	{
 		return false;
 	}
 
-	for(auto& baseStation : BaseStationTransforms)
+	//For each base station that currently has been seen, check if at least
+	//we have gathered a full sample history for at least the minimum number of base stations.
+	unsigned int currentCompleteStaticBaseStationOffsets = 0;
+	for(const auto& baseStation : BaseStationOffsets)
 	{
-		if(!baseStation.Value.HasCompleteHistory())
+		if(baseStation.Value.HasCompleteHistory())
 		{
-			return false;
+			++currentCompleteStaticBaseStationOffsets;
 		}
 	}
-	return true;
+	return (currentCompleteStaticBaseStationOffsets >= MinStaticBaseStationOffsets);
 }
 
-void FGetTrackerStaticTransformTask::BuildBaseStationResults()
+void FGetTrackerStaticTransformTask::BuildStaticBaseStationResults()
 {
-	check(BaseStationTransforms.Num() >= MinimumNumberOfBaseStations);
+	check(BaseStationOffsets.Num() >= MinStaticBaseStationOffsets);
 
-	for(auto& baseStation : BaseStationTransforms)
+	for(const auto& baseStation : BaseStationOffsets)
 	{
-		m_BaseStationResults.Add(baseStation.Key, baseStation.Value.GetAveragedTransform());
+		if(baseStation.Value.HasCompleteHistory())
+		{
+			m_BaseStationResults.Add(baseStation.Key, baseStation.Value.GetAveragedTransform());
+		}
 	}
 }
