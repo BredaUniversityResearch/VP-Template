@@ -6,7 +6,7 @@ FGetBaseStationOffsetsTask::FGetBaseStationOffsetsTask(
 	int32 InTargetTrackerId,
 	int32 InTargetNumBaseStationOffsets,
 	const FTransform& InTargetTrackerNeutralOffsetToSteamVROrigin,
-	TMap<int32, FTransform>* InCalibratedBaseStationOffsets)
+	const TMap<int32, FTransform>* InCalibratedBaseStationOffsets)
 	:
 TargetTrackerId(InTargetTrackerId),
 TargetNumBaseStationOffsets(InTargetNumBaseStationOffsets),
@@ -32,7 +32,6 @@ void FGetBaseStationOffsetsTask::Tick(float DeltaTime)
 		if(HasCompleteBaseStationsHistory())
 		{
 			HasAcquiredTransforms = true;
-			BuildBaseStationResults();
 		}
 	}
 }
@@ -42,10 +41,18 @@ bool FGetBaseStationOffsetsTask::IsComplete() const
 	return HasAcquiredTransforms;
 }
 
-const TMap<int32, FTransform>& FGetBaseStationOffsetsTask::GetResults() const
+void FGetBaseStationOffsetsTask::GetResults(TMap<int32, FTransform>* BaseStationOffsetsResults) const
 {
-	check(HasAcquiredTransforms);
-	return BaseStationResults;
+	check(BaseStationOffsets.Num() + CalibratedBaseStationOffsets->Num() >= TargetNumBaseStationOffsets)
+
+	for(const auto& baseStation : BaseStationOffsets)
+	{
+		check(!BaseStationOffsetsResults->Contains(baseStation.Key))
+		if(baseStation.Value.HasCompleteHistory())
+		{
+			BaseStationOffsetsResults->Add(baseStation.Key, baseStation.Value.GetAveragedTransform());
+		}
+	}
 }
 
 void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
@@ -61,33 +68,40 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 		return;
 	}
 
-	//Determine the current position of the tracker relative to the calibrated base stations.
-	FVector averagedCurrentTrackerLocation;
-	FVector	averagedCurrentTrackerRotationEuler;
-	int numCurrentBaseStationOffsetSamples = 0;
-	for(const auto& initialBaseOffset : (*CalibratedBaseStationOffsets))
+	FTransform currentRelativeTrackerTransform {};
 	{
-		FVector baseStationLocation;
-		FQuat baseStationRotation;
-		if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(initialBaseOffset.Key, baseStationLocation, baseStationRotation))
+		//Determine the current position of the tracker relative to the calibrated base stations.
+		FVector averagedCurrentTrackerLocation;
+		FVector	averagedCurrentTrackerRotationEuler;
+		int numCurrentBaseStationOffsetSamples = 0;
+		for (const auto& initialBaseOffset : (*CalibratedBaseStationOffsets))
 		{
-			FTransform currentOffset = FPhysicalObjectTrackingUtility::GetRelativeTransform(
-				trackerLocation, trackerRotation, 
-				baseStationLocation, baseStationRotation);
-			averagedCurrentTrackerLocation += currentOffset.GetLocation();
-			averagedCurrentTrackerRotationEuler += currentOffset.GetRotation().Euler();
-			++numCurrentBaseStationOffsetSamples;
+			FVector baseStationLocation;
+			FQuat baseStationRotation;
+			if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(initialBaseOffset.Key, baseStationLocation, baseStationRotation))
+			{
+				FTransform currentOffset = FPhysicalObjectTrackingUtility::GetRelativeTransform(
+					trackerLocation, trackerRotation,
+					baseStationLocation, baseStationRotation);
+				averagedCurrentTrackerLocation += currentOffset.GetLocation();
+				averagedCurrentTrackerRotationEuler += currentOffset.GetRotation().Euler();
+				++numCurrentBaseStationOffsetSamples;
+			}
 		}
-	}
 
-	if(numCurrentBaseStationOffsetSamples > 1)
-	{
-		averagedCurrentTrackerLocation /= numCurrentBaseStationOffsetSamples;
-		averagedCurrentTrackerRotationEuler /= numCurrentBaseStationOffsetSamples;
-	}
-	else
-	{
-		return;
+		if (numCurrentBaseStationOffsetSamples > 1)
+		{
+			averagedCurrentTrackerLocation /= numCurrentBaseStationOffsetSamples;
+			averagedCurrentTrackerRotationEuler /= numCurrentBaseStationOffsetSamples;
+			currentRelativeTrackerTransform = FTransform(
+				FQuat::MakeFromEuler(averagedCurrentTrackerRotationEuler),
+				averagedCurrentTrackerLocation);
+		}
+		else
+		{
+			//If no calibrated base station could be tracked, don't sample.
+			return;
+		}
 	}
 
 	for(int32 id: baseStationIds)
@@ -107,12 +121,10 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 					trackerLocation, trackerRotation, 
 					baseStationLocation, baseStationRotation);
 
-				//Calculate the offset from the neutral point (Led Volume Origin) to the base station.
-				//1. Get the current transformation of the target tracker relative to the already calibrated base stations.
-				//2. Add the relative offset to the base station to the trackers position.
-				const FTransform baseStationOffsetToNeutral =
-
-				samples.AddSample(relativeTransformation);
+				//Calculate the offset from the neutral point (Led Volume Origin) to the base station. Offset is calculated
+				//by adding the relative offset from the tracker to the base station to the current relative transform of the tracker.
+				const FTransform baseStationTransform = currentRelativeTrackerTransform + currentRelativeTransformation;
+				samples.AddSample(baseStationTransform);
 			}
 		}
 	}
@@ -127,7 +139,7 @@ bool FGetBaseStationOffsetsTask::HasCompleteBaseStationsHistory()
 
 	//For each base station that currently has been detected, check if we have
 	//gathered a full samples history for at least the target number of base stations.
-	unsigned int currentCompleteBaseStationOffsets = 0;
+	int currentCompleteBaseStationOffsets = 0;
 	for(const auto& baseStation : BaseStationOffsets)
 	{
 		if(baseStation.Value.HasCompleteHistory())
@@ -135,16 +147,5 @@ bool FGetBaseStationOffsetsTask::HasCompleteBaseStationsHistory()
 			++currentCompleteBaseStationOffsets;
 		}
 	}
-	return (currentCompleteBaseStationOffsets >= TargetNumBaseStationOffsets);
-}
-
-void FGetBaseStationOffsetsTask::BuildBaseStationResults()
-{
-	check(BaseStationOffsets.Num() + CalibratedBaseStationOffsets->Num() >= TargetNumBaseStationOffsets)
-
-	for(const auto& baseStation : BaseStationOffsets)
-	{
-		check(baseStation.Value.HasCompleteHistory())
-		BaseStationResults.Add(baseStation.Key, baseStation.Value.GetAveragedTransform());
-	}
+	return (currentCompleteBaseStationOffsets + CalibratedBaseStationOffsets->Num() >= TargetNumBaseStationOffsets);
 }

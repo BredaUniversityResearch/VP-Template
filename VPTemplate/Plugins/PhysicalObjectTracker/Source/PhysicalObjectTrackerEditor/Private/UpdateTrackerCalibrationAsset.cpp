@@ -1,6 +1,6 @@
 #include "UpdateTrackerCalibrationAsset.h"
 
-#include "PhysicalObjectTracker.h"
+#include "PhysicalObjectTrackingUtility.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "Framework/Notifications/NotificationManager.h"
 
@@ -72,6 +72,7 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 		if(GetBaseStationOffsetsTask->IsComplete())
 		{
 			m_CalibrationState = ECalibrationState::Done;
+			GetBaseStationOffsetsTask->GetResults(&CalibratedBaseStationOffsets);
 
 			OnBaseStationOffsetsAcquired();
 			GetBaseStationOffsetsTask.Reset();
@@ -113,7 +114,13 @@ void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired()
 void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired()
 {
 	//Set all the offsets to the origin from the base stations.
+	for(const auto& baseStation : CalibratedBaseStationOffsets)
+	{
+		FString baseStationSerialId;
+		FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(baseStation.Key, baseStationSerialId);
 
+		TargetAsset->SetBaseStationOffsetToOrigin(baseStationSerialId, baseStation.Value);
+	}
 
 	if (TargetAsset->MarkPackageDirty())
 	{

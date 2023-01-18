@@ -10,6 +10,14 @@ void UPhysicalObjectTrackingReferencePoint::SetNeutralTransform(const FQuat& Neu
 	NeutralRotationInverse = NeutralRotation.Inverse();
 }
 
+void UPhysicalObjectTrackingReferencePoint::SetBaseStationOffsetToOrigin(const FString& BaseStationSerialId, const FTransform& OffsetToOrigin)
+{
+	if(!BaseStationSerialId.IsEmpty())
+	{
+		BaseStationOffsetsToOrigin.Add(BaseStationSerialId, OffsetToOrigin);
+	}
+}
+
 const FQuat& UPhysicalObjectTrackingReferencePoint::GetNeutralRotationInverse() const
 {
 	return NeutralRotationInverse;

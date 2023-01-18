@@ -49,6 +49,7 @@ private:
 
 	//The offset to the origin point for all base stations.
 	//Stored with serial ids of the base stations as these don't change in-between different sessions, while device ids might.
+	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	TMap<FString, FTransform> BaseStationOffsetsToOrigin;
 
 };

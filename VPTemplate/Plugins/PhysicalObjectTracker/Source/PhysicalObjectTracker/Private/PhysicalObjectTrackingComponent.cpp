@@ -70,27 +70,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		FTransform trackerFromReference;
 		if (TrackingSpaceReference != nullptr)
 		{
-			TArray<int32> baseStationIds;
-			TrackingSpaceReference->GetBaseStationIds(baseStationIds);
-
-			TMap<int32, FBaseStationOffset> currentBaseStationOffsets;
-			for (int32 baseStation : baseStationIds)
-			{
-				FVector baseStationPosition;
-				FQuat baseStationRotation;
-				if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(baseStation, baseStationPosition, baseStationRotation))
-				{
-					const FVector positionOffset = baseStationPosition - trackedPosition;
-					const FQuat rotationOffset = trackedOrientation * baseStationRotation.Inverse();
-					currentBaseStationOffsets.Add(baseStation, FBaseStationOffset{ positionOffset, rotationOffset });
-				}
-			}
-
-			FTransform relativeTransform;
-			TrackingSpaceReference->CalcTransformationFromBaseStations(currentBaseStationOffsets, relativeTransform);
-
-			trackerFromReference = TrackingSpaceReference->ApplyTransformation(relativeTransform.GetLocation(), relativeTransform.GetRotation());
-			//trackerFromReference = TrackingSpaceReference->ApplyTransformation(trackedPosition, trackedOrientation);
+			trackerFromReference = TrackingSpaceReference->ApplyTransformation(trackedPosition, trackedOrientation);
 		}
 		else
 		{
