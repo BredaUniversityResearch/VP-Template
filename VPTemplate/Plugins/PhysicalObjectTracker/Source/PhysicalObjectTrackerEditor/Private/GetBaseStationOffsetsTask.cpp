@@ -3,13 +3,15 @@
 #include "PhysicalObjectTrackingUtility.h"
 
 FGetBaseStationOffsetsTask::FGetBaseStationOffsetsTask(
-	int32 TargetTracker,
+	int32 InTargetTrackerId,
 	int32 InTargetNumBaseStationOffsets,
-	const TMap<int32, FTransform>* CompletedBaseStations)
+	const FTransform& InTargetTrackerNeutralOffsetToSteamVROrigin,
+	TMap<int32, FTransform>* InCalibratedBaseStationOffsets)
 	:
-TargetTrackerId(TargetTracker),
+TargetTrackerId(InTargetTrackerId),
 TargetNumBaseStationOffsets(InTargetNumBaseStationOffsets),
-CompletedBaseStationsIds(CompletedBaseStations)
+TargetTrackerNeutralOffsetToSteamVROrigin(InTargetTrackerNeutralOffsetToSteamVROrigin),
+CalibratedBaseStationOffsets(InCalibratedBaseStationOffsets)
 {}
 
 void FGetBaseStationOffsetsTask::Tick(float DeltaTime)
@@ -59,19 +61,56 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 		return;
 	}
 
+	//Determine the current position of the tracker relative to the calibrated base stations.
+	FVector averagedCurrentTrackerLocation;
+	FVector	averagedCurrentTrackerRotationEuler;
+	int numCurrentBaseStationOffsetSamples = 0;
+	for(const auto& initialBaseOffset : (*CalibratedBaseStationOffsets))
+	{
+		FVector baseStationLocation;
+		FQuat baseStationRotation;
+		if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(initialBaseOffset.Key, baseStationLocation, baseStationRotation))
+		{
+			FTransform currentOffset = FPhysicalObjectTrackingUtility::GetRelativeTransform(
+				trackerLocation, trackerRotation, 
+				baseStationLocation, baseStationRotation);
+			averagedCurrentTrackerLocation += currentOffset.GetLocation();
+			averagedCurrentTrackerRotationEuler += currentOffset.GetRotation().Euler();
+			++numCurrentBaseStationOffsetSamples;
+		}
+	}
+
+	if(numCurrentBaseStationOffsetSamples > 1)
+	{
+		averagedCurrentTrackerLocation /= numCurrentBaseStationOffsetSamples;
+		averagedCurrentTrackerRotationEuler /= numCurrentBaseStationOffsetSamples;
+	}
+	else
+	{
+		return;
+	}
+
 	for(int32 id: baseStationIds)
 	{
-		if(!CompletedBaseStationsIds->Contains(id))
+		//Only sample base stations that are not yet calibrated.
+		if(!CalibratedBaseStationOffsets->Contains(id))
 		{
 			FTrackerTransformHistory& samples = BaseStationOffsets.FindOrAdd(id, { SampleSizeSeconds * SamplesPerSecond });
+
 
 			FVector baseStationLocation;
 			FQuat baseStationRotation;
 			if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(id, baseStationLocation, baseStationRotation))
 			{
-				const FTransform relativeTransformation =  FPhysicalObjectTrackingUtility::GetRelativeTransform(
+				//Offset from the target tracker to the base station at the time of sampling (, when the tracker is moving)
+				const FTransform currentRelativeTransformation =  FPhysicalObjectTrackingUtility::GetRelativeTransform(
 					trackerLocation, trackerRotation, 
 					baseStationLocation, baseStationRotation);
+
+				//Calculate the offset from the neutral point (Led Volume Origin) to the base station.
+				//1. Get the current transformation of the target tracker relative to the already calibrated base stations.
+				//2. Add the relative offset to the base station to the trackers position.
+				const FTransform baseStationOffsetToNeutral =
 
 				samples.AddSample(relativeTransformation);
 			}
@@ -81,7 +120,7 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 
 bool FGetBaseStationOffsetsTask::HasCompleteBaseStationsHistory()
 {
-	if(BaseStationOffsets.Num() + CompletedBaseStationsIds->Num() < TargetNumBaseStationOffsets)
+	if(BaseStationOffsets.Num() + CalibratedBaseStationOffsets->Num() < TargetNumBaseStationOffsets)
 	{
 		return false;
 	}
@@ -101,7 +140,7 @@ bool FGetBaseStationOffsetsTask::HasCompleteBaseStationsHistory()
 
 void FGetBaseStationOffsetsTask::BuildBaseStationResults()
 {
-	check(BaseStationOffsets.Num() + CompletedBaseStationsIds->Num() >= TargetNumBaseStationOffsets)
+	check(BaseStationOffsets.Num() + CalibratedBaseStationOffsets->Num() >= TargetNumBaseStationOffsets)
 
 	for(const auto& baseStation : BaseStationOffsets)
 	{

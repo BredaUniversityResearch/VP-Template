@@ -22,11 +22,11 @@ class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingReferencePoint: public UD
 
 public:
 	void SetNeutralTransform(const FQuat& NeutralRotation, const FVector& NeutralPosition);
+	void SetBaseStationOffsetToOrigin(const FString& BaseStationSerialId, const FTransform& OffsetToOrigin);
 
 	const FQuat& GetNeutralRotationInverse() const;
 	const FVector& GetNeutralOffset() const;
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
-	
 
 private:
 
@@ -48,8 +48,8 @@ private:
 	bool InvertRollRotation{ false };
 
 	//The offset to the origin point for all base stations.
-	TMap<FString, FTransform> BaseStationOffsets;
-
+	//Stored with serial ids of the base stations as these don't change in-between different sessions, while device ids might.
+	TMap<FString, FTransform> BaseStationOffsetsToOrigin;
 
 };
 

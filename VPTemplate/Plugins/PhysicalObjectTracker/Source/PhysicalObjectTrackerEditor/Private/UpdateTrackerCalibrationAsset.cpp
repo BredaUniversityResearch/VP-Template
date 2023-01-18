@@ -61,7 +61,7 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 		if (GetTrackerStaticPositionTask->IsComplete())
 		{
 			TrackerNeutralTransform = GetTrackerStaticPositionTask->GetResult();
-			BaseStationOffsets = GetTrackerStaticPositionTask->GetBaseStationResults();
+			CalibratedBaseStationOffsets = GetTrackerStaticPositionTask->GetBaseStationResults();
 			m_CalibrationState = ECalibrationState::DetectingBaseStations;
 
 			OnTrackerTransformAcquired();
@@ -98,23 +98,23 @@ void FUpdateTrackerCalibrationAsset::OnTrackerIdentified()
 
 void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired()
 {
-	TArray<int32> calibratedBaseStationIds;
-	BaseStationOffsets.GetKeys(calibratedBaseStationIds);
+	//Set the neutral transformation and rotation of the tracker. (At calibration, it is simply the values received from SteamVR)
+	TargetAsset->SetNeutralTransform(TrackerNeutralTransform.GetRotation(), TrackerNeutralTransform.GetLocation());
 
 	GetBaseStationOffsetsTask = MakeUnique<FGetBaseStationOffsetsTask>(
 		TrackerId,
 		MinBaseStationsCalibrated,
-		calibratedBaseStationIds);
-
+		TrackerNeutralTransform,
+		&CalibratedBaseStationOffsets);
+	
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForBaseStationDetection", "Move around the tracker to detect the base stations..."));
 }
 
 void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired()
 {
-	//Compute the neutral transform
-	//For base station offset, 
+	//Set all the offsets to the origin from the base stations.
 
-	TargetAsset->SetNeutralTransform();
+
 	if (TargetAsset->MarkPackageDirty())
 	{
 		m_ProcessNotification->SetText(LOCTEXT("TrackerTransformFound", "Reference point asset updated!"));
@@ -127,18 +127,6 @@ void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired()
 		m_ProcessNotification->Fadeout();
 		m_ProcessNotification->SetCompletionState(SNotificationItem::CS_Fail);
 	}
-}
-
-void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& Transform) const
-{
-	//TargetAsset->SetNeutralTransform(Transform.GetRotation(), Transform.GetLocation());
-	TargetAsset->SetNeutralTransform(FQuat::Identity, FVector::ZeroVector);
-	for(auto baseStation : BaseStationOffsets)
-	{
-		const FVector positionOffset = baseStation.Value.GetLocation() - Transform.GetLocation();
-		const FQuat rotationOffset = Transform.GetRotation() * baseStation.Value.GetRotation().Inverse();
-	}
-
 }
 
 void FUpdateTrackerCalibrationAsset::Cleanup()

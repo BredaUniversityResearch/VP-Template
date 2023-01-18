@@ -45,6 +45,6 @@ public:
 
 	int32 TrackerId{ -1 };
 	FTransform TrackerNeutralTransform;
-	TMap<int32, FTransform> BaseStationOffsets;
+	TMap<int32, FTransform> CalibratedBaseStationOffsets;
 };
 

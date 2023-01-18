@@ -96,6 +96,8 @@ void FGetTrackerStaticTransformTask::TakeBaseStationSamples(const FTransform& Tr
 		FQuat baseStationRotation;
 		if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(id, baseStationLocation, baseStationRotation))
 		{
+			//The tracker is assumed to be static at this point and thus the offsets to the base stations should simply be
+			//the current base-station transform - the current tracker transform.
 			const FTransform relativeTransformation = FPhysicalObjectTrackingUtility::GetRelativeTransform(
 				TrackerTransform, FTransform(baseStationRotation, baseStationLocation));
 
