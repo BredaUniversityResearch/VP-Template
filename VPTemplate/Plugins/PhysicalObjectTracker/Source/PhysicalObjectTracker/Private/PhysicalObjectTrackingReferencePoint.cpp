@@ -28,6 +28,11 @@ const FVector& UPhysicalObjectTrackingReferencePoint::GetNeutralOffset() const
 	return NeutralOffset;
 }
 
+const TMap<FString, FTransform>& UPhysicalObjectTrackingReferencePoint::GetBaseStationOffsetsToOrigin() const
+{
+	return BaseStationOffsetsToOrigin;
+}
+
 FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(const FVector& TrackedPosition,
 	const FQuat& TrackedRotation) const
 {

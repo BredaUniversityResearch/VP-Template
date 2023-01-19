@@ -28,6 +28,8 @@ public:
 	const FVector& GetNeutralOffset() const;
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
 
+	const TMap<FString, FTransform>& GetBaseStationOffsetsToOrigin() const;
+
 private:
 
 	static FTransform GetAveragedTransform(const TArray<FBaseStationOffset>& OffsetDifferences);

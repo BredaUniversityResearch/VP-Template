@@ -18,23 +18,24 @@ public:
 	bool IsComplete() const;
 	const FTransform& GetResult() const;
 	//Returns the offsets of the base stations to the tracker. (tracker transform + offset = base station transform)
-	const TMap<int32, FTransform>& GetBaseStationResults() const;
+	TMap<int32, FTransform>& GetBaseStationResults();
 
 	FORCEINLINE TStatId GetStatId() const { RETURN_QUICK_DECLARE_CYCLE_STAT(DetectTrackerShakeTask, STATGROUP_ThreadPoolAsyncTasks); }
 private:
 
-	void TakeBaseStationSamples(const FTransform& TrackerTransform);
-	bool HasCompleteBaseStationsHistory();
+	void TakeBaseStationSamples();
+	bool HasCompleteBaseStationsHistoryAndBelowVelocityThreshold(float Threshold) const;
 	void BuildStaticBaseStationResults();
 
-	int32 m_TargetTrackerId;
-	FTransform m_Result;
+	int32 TargetTrackerId;
+	FTransform Result;
 	//Store the offsets of the base station to the tracker. (tracker transform + offset = base station transform)
-	TMap<int32, FTransform> m_BaseStationResults;	
-	bool m_HasAcquiredTransform{ false };
+	TMap<int32, FTransform> BaseStationResults;	
+	bool HasAcquiredTransform{ false };
+	bool HasAcquiredBaseStationOffsets{ false };
 
 	float SampleDeltaTimeAccumulator{ 0.0f };
-	FTrackerTransformHistory m_TransformHistory;
+	FTrackerTransformHistory TransformHistory;
 
 	TMap<int32, FTrackerTransformHistory> BaseStationOffsets;
 };

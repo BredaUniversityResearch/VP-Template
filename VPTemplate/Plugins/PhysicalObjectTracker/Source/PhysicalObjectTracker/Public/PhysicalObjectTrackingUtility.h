@@ -9,15 +9,5 @@ public:
 	static bool FindSerialIdFromDeviceId(int32 SteamVRDeviceId, FString& SerialId);
 
 	static void GetAllTrackingReferenceDeviceIds(TArray<int32>& DeviceIds);
-
-	static FTransform GetRelativeTransform(
-		const FVector& LocationA,
-		const FQuat& OrientationA,
-		const FVector& LocationB,
-		const FQuat& OrientationB);
-
-	static FTransform GetRelativeTransform(
-		const FTransform& TransformationA,
-		const FTransform& TransformationB);
 };
 

@@ -60,24 +60,26 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 	case ECalibrationState::WaitingForStaticPosition:
 		if (GetTrackerStaticPositionTask->IsComplete())
 		{
-			TrackerNeutralTransform = GetTrackerStaticPositionTask->GetResult();
-			CalibratedBaseStationOffsets = GetTrackerStaticPositionTask->GetBaseStationResults();
-			m_CalibrationState = ECalibrationState::DetectingBaseStations;
+			//m_CalibrationState = ECalibrationState::DetectingBaseStations;
+			m_CalibrationState = ECalibrationState::Done;
 
-			OnTrackerTransformAcquired();
+			OnTrackerTransformAcquired(GetTrackerStaticPositionTask->GetResult(), GetTrackerStaticPositionTask->GetBaseStationResults());
 			GetTrackerStaticPositionTask.Reset();
+
+			UpdateAsset();
 		}
 		break;
-	case ECalibrationState::DetectingBaseStations:
+	/*case ECalibrationState::DetectingBaseStations:
 		if(GetBaseStationOffsetsTask->IsComplete())
 		{
 			m_CalibrationState = ECalibrationState::Done;
-			GetBaseStationOffsetsTask->GetResults(&CalibratedBaseStationOffsets);
 
-			OnBaseStationOffsetsAcquired();
+			OnBaseStationOffsetsAcquired(GetBaseStationOffsetsTask->GetResults());
 			GetBaseStationOffsetsTask.Reset();
+
+			UpdateAsset();
 		}
-		break;
+		break;*/
 	case ECalibrationState::Done:
 		break;
 	default:
@@ -97,29 +99,51 @@ void FUpdateTrackerCalibrationAsset::OnTrackerIdentified()
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForTrackerStaticPosition", "Waiting for tracker steady position..."));
 }
 
-void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired()
+void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& TrackerTransform, TMap<int32, FTransform>& BaseStationOffsets)
 {
 	//Set the neutral transformation and rotation of the tracker. (At calibration, it is simply the values received from SteamVR)
-	TargetAsset->SetNeutralTransform(TrackerNeutralTransform.GetRotation(), TrackerNeutralTransform.GetLocation());
+	TrackerNeutralTransform = TrackerTransform;
+	CalibratedBaseStationOffsets.Append(BaseStationOffsets);
 
 	GetBaseStationOffsetsTask = MakeUnique<FGetBaseStationOffsetsTask>(
 		TrackerId,
 		MinBaseStationsCalibrated,
-		TrackerNeutralTransform,
-		&CalibratedBaseStationOffsets);
+		TrackerTransform,
+		CalibratedBaseStationOffsets);
 	
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForBaseStationDetection", "Move around the tracker to detect the base stations..."));
 }
 
-void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired()
+void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired(const TMap<int32, FTransform>& CalculatedBaseStationOffsets)
 {
 	//Set all the offsets to the origin from the base stations.
-	for(const auto& baseStation : CalibratedBaseStationOffsets)
+	for (const auto& baseStation : CalculatedBaseStationOffsets)
+	{
+		if (!CalibratedBaseStationOffsets.Contains(baseStation.Key))
+		{
+			CalibratedBaseStationOffsets.Add(baseStation);
+		}
+	}
+}
+
+void FUpdateTrackerCalibrationAsset::UpdateAsset() const
+{
+	TargetAsset->SetNeutralTransform(TrackerNeutralTransform.GetRotation(), TrackerNeutralTransform.GetLocation());
+
+	for (const auto& baseStation : CalibratedBaseStationOffsets)
 	{
 		FString baseStationSerialId;
-		FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(baseStation.Key, baseStationSerialId);
-
-		TargetAsset->SetBaseStationOffsetToOrigin(baseStationSerialId, baseStation.Value);
+		if (FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(baseStation.Key, baseStationSerialId))
+		{
+			TargetAsset->SetBaseStationOffsetToOrigin(baseStationSerialId, baseStation.Value);
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(
+				1, 30.0f, FColor::Red,
+				FString::Format(TEXT("Could not get Device Serial Id of base station with Device Id: \"{0}\""),
+					FStringFormatOrderedArguments({ baseStation.Key })));
+		}
 	}
 
 	if (TargetAsset->MarkPackageDirty())
@@ -134,6 +158,7 @@ void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired()
 		m_ProcessNotification->Fadeout();
 		m_ProcessNotification->SetCompletionState(SNotificationItem::CS_Fail);
 	}
+	
 }
 
 void FUpdateTrackerCalibrationAsset::Cleanup()

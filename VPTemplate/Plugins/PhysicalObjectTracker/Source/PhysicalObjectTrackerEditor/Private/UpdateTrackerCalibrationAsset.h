@@ -28,8 +28,9 @@ public:
 
 	void OnCancelCalibration();
 	void OnTrackerIdentified();
-	void OnTrackerTransformAcquired();
-	void OnBaseStationOffsetsAcquired();
+	void OnTrackerTransformAcquired(const FTransform& TrackerTransform, TMap<int32, FTransform>& BaseStationOffsets);
+	void OnBaseStationOffsetsAcquired(const TMap<int32, FTransform>& CalculatedBaseStationOffsets);
+	void UpdateAsset() const;
 
 	void Cleanup();
 	bool IsCompleted() const;
