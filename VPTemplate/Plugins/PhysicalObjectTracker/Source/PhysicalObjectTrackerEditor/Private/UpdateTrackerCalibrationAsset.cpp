@@ -130,6 +130,7 @@ void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 {
 	TargetAsset->SetNeutralTransform(TrackerNeutralTransform.GetRotation(), TrackerNeutralTransform.GetLocation());
 
+	TargetAsset->ResetBaseStationOffsets();
 	for (const auto& baseStation : CalibratedBaseStationOffsets)
 	{
 		FString baseStationSerialId;

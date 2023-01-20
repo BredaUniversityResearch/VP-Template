@@ -6,7 +6,7 @@
 class FGetTrackerStaticTransformTask : public FTickableEditorObject
 {
 
-	static constexpr int MinStaticBaseStationOffsets = 2;
+	static constexpr int MinStaticBaseStationOffsets = 4;
 	static constexpr int SampleSizeSeconds = 5;
 	static constexpr int SamplesPerSecond = 10;
 	static constexpr float AverageVelocityThreshold = 0.5f;

@@ -23,10 +23,12 @@ class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingReferencePoint: public UD
 public:
 	void SetNeutralTransform(const FQuat& NeutralRotation, const FVector& NeutralPosition);
 	void SetBaseStationOffsetToOrigin(const FString& BaseStationSerialId, const FTransform& OffsetToOrigin);
+	void ResetBaseStationOffsets();
 
 	const FQuat& GetNeutralRotationInverse() const;
 	const FVector& GetNeutralOffset() const;
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
+	bool GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& WorldTransform) const;
 
 	const TMap<FString, FTransform>& GetBaseStationOffsetsToOrigin() const;
 

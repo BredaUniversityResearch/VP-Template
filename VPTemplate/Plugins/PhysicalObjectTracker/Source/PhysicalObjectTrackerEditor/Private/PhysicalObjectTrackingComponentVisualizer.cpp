@@ -137,15 +137,14 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				FRotator rotation;
 				if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
 				{
-					FMatrix transformMatrix = FMatrix::Identity;
+					const FQuat weirdRotation = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
+
+					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion() * weirdRotation);
+					if (worldReference != nullptr)
 					{
-						FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion() * FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f)));
-						if (worldReference != nullptr)
-						{
-							FTransform::Multiply(&transform, &transform, worldReference);
-						}
-						transformMatrix = transform.ToMatrixNoScale();
+						FTransform::Multiply(&transform, &transform, worldReference);
 					}
+					const FMatrix transformMatrix = transform.ToMatrixNoScale();
 
 					FColor wireBoxColor = FColor::Black;
 
@@ -159,14 +158,21 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 							wireBoxColor = *lightHouseColor;
 						}
 
-						if(const FTransform* lightHouseOffset = baseStationOffsets.Find(lightHouseSerialId))
+						FTransform offsetTransform;
+						if(reference->GetBaseStationWorldTransform(lightHouseSerialId, offsetTransform))
 						{
-							const FMatrix offsetMatrix = lightHouseOffset->ToMatrixNoScale();
+							if (worldReference != nullptr)
+							{
+								FTransform::Multiply(&offsetTransform, &offsetTransform, worldReference);
+							}
+							const FMatrix offsetTransformMatrix = offsetTransform.ToMatrixNoScale();
+
 							constexpr float scale = 0.7;
 							const FColor offsetColor(wireBoxColor.R * scale, wireBoxColor.G * scale, wireBoxColor.B * scale);
-							DrawWireBox(PDI, offsetMatrix, FBox(FVector(-10.f), FVector(10.f)), offsetColor, 0, 1.f);
-							DrawWireFrustrum2(PDI, offsetMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,
-								LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, FColor::Orange, 0, 2.0f);
+
+							DrawWireBox(PDI, offsetTransformMatrix, FBox(FVector(-10.f), FVector(10.f)), offsetColor, 0, 1.5f);
+							DrawWireFrustrum2(PDI, offsetTransformMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,
+								LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, FColor::Orange, 0, 2.5f);
 						}
 					}
 

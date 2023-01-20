@@ -54,13 +54,13 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(baseStationIds);
 	if (baseStationIds.IsEmpty()) { return; }
 
-	FTransform trackerTransform = FTransform::Identity;
+	FTransform trackerTransformInverse = FTransform::Identity;
 	{
 		FVector trackerLocation;
 		FQuat trackerRotation;
 		if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(TargetTrackerId, trackerLocation, trackerRotation))
 		{
-			trackerTransform = FTransform(trackerRotation, trackerLocation);
+			trackerTransformInverse = FTransform(trackerRotation, trackerLocation);
 		}
 		else
 		{
@@ -81,9 +81,12 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 			FQuat baseStationRotation;
 			if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(initialBaseOffset.Key, baseStationLocation, baseStationRotation))
 			{
-				FTransform currentOffset = trackerTransform.GetRelativeTransform(FTransform(baseStationRotation, baseStationLocation));
-				averagedCurrentTrackerLocation += currentOffset.GetLocation();
-				averagedCurrentTrackerRotationEuler += currentOffset.GetRotation().Euler();
+				const FVector offsetTranslation = trackerTransformInverse.TransformPosition(baseStationLocation);
+				const FQuat offsetRotation = trackerTransformInverse.TransformRotation(baseStationRotation);
+
+
+				averagedCurrentTrackerLocation += offsetTranslation;
+				averagedCurrentTrackerRotationEuler += offsetRotation.Euler();
 				++numCurrentBaseStationOffsetSamples;
 			}
 		}
@@ -115,13 +118,7 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 			FQuat baseStationRotation;
 			if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(id, baseStationLocation, baseStationRotation))
 			{
-				//Offset from the target tracker to the base station at the time of sampling (, when the tracker is moving)
-				const FTransform currentRelativeTransformation = trackerTransform.GetRelativeTransform(FTransform(baseStationRotation, baseStationLocation));
 
-				//Calculate the offset from the neutral point (Led Volume Origin) to the base station. Offset is calculated
-				//by adding the relative offset from the tracker to the base station to the current relative transform of the tracker.
-				const FTransform baseStationTransform = currentRelativeTrackerTransform + currentRelativeTransformation;
-				samples.AddSample(baseStationTransform);
 			}
 		}
 	}

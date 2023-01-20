@@ -73,18 +73,6 @@ void FGetTrackerStaticTransformTask::TakeBaseStationSamples()
 		return;
 	}
 
-	FTransform trackerTransform = FTransform::Identity;
-	{
-		FVector trackerLocation;
-		FQuat trackerRotation;
-		if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(TargetTrackerId, trackerLocation, trackerRotation))
-		{
-			trackerTransform = FTransform(trackerRotation, trackerLocation);
-		}
-		//Dont sample if the target tracker could not be sampled.
-		else return;
-	}
-
 	for(int32 id : baseStationIds)
 	{
 		FTrackerTransformHistory& samples = BaseStationOffsets.FindOrAdd(id, { SampleSizeSeconds * SamplesPerSecond });
@@ -93,13 +81,7 @@ void FGetTrackerStaticTransformTask::TakeBaseStationSamples()
 		FQuat baseStationRotation;
 		if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(id, baseStationLocation, baseStationRotation))
 		{
-			//The tracker is assumed to be static at this point and thus the offsets to the base stations should simply be
-			//the current base-station transform - the current tracker transform.
-
-			const FTransform relativeTransform = ;
-
-			samples.AddSample()
-			
+			samples.AddSample(FTransform(baseStationRotation, baseStationLocation));
 		}
 	}
 }
@@ -132,7 +114,13 @@ void FGetTrackerStaticTransformTask::BuildStaticBaseStationResults()
 	{
 		if(baseStation.Value.HasCompleteHistory())
 		{
-			BaseStationResults.Add(baseStation.Key, baseStation.Value.GetAveragedTransform());
+			const FTransform baseStationTransform = baseStation.Value.GetAveragedTransform();
+
+			//Get the translation between the tracker and the base station and reverse the rotation that is applied to it.
+			const FVector relativeTranslation = Result.GetRotation().Inverse() * (baseStationTransform.GetLocation() - Result.GetLocation());
+			const FQuat relativeRotation = baseStationTransform.GetRotation() * Result.GetRotation().Inverse();
+
+			BaseStationResults.Add(baseStation.Key, FTransform(relativeRotation, relativeTranslation));
 		}
 	}
 }
