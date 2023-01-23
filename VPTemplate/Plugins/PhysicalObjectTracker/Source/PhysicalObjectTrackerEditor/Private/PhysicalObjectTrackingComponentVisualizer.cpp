@@ -129,17 +129,15 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 			TArray<int32> deviceIds;
 			USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, deviceIds);
 
-			const TMap<FString, FTransform>& baseStationOffsets = reference->GetBaseStationOffsetsToOrigin();
-
-			for (int32 deviceId : deviceIds)
+			for (const int32 deviceId : deviceIds)
 			{
 				FVector position;
 				FRotator rotation;
 				if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
 				{
-					const FQuat weirdRotation = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
+					const FQuat baseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
 
-					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion() * weirdRotation);
+					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion() * baseStationRotationFix);
 					if (worldReference != nullptr)
 					{
 						FTransform::Multiply(&transform, &transform, worldReference);

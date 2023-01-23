@@ -60,16 +60,13 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 	case ECalibrationState::WaitingForStaticPosition:
 		if (GetTrackerStaticPositionTask->IsComplete())
 		{
-			//m_CalibrationState = ECalibrationState::DetectingBaseStations;
-			m_CalibrationState = ECalibrationState::Done;
+			m_CalibrationState = ECalibrationState::DetectingBaseStations;
 
 			OnTrackerTransformAcquired(GetTrackerStaticPositionTask->GetResult(), GetTrackerStaticPositionTask->GetBaseStationResults());
 			GetTrackerStaticPositionTask.Reset();
-
-			UpdateAsset();
 		}
 		break;
-	/*case ECalibrationState::DetectingBaseStations:
+	case ECalibrationState::DetectingBaseStations:
 		if(GetBaseStationOffsetsTask->IsComplete())
 		{
 			m_CalibrationState = ECalibrationState::Done;
@@ -79,7 +76,7 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 
 			UpdateAsset();
 		}
-		break;*/
+		break;
 	case ECalibrationState::Done:
 		break;
 	default:

@@ -54,39 +54,35 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(baseStationIds);
 	if (baseStationIds.IsEmpty()) { return; }
 
-	FTransform trackerTransformInverse = FTransform::Identity;
+	const FQuat baseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
+	FTransform relativeTrackerTransform = FTransform::Identity;
+
 	{
 		FVector trackerLocation;
 		FQuat trackerRotation;
-		if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(TargetTrackerId, trackerLocation, trackerRotation))
+		if (!FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(TargetTrackerId, trackerLocation, trackerRotation))
 		{
-			trackerTransformInverse = FTransform(trackerRotation, trackerLocation);
-		}
-		else
-		{
-			//Stop sampling if the target tracker could not be sampled.
 			return;
 		}
-	}
+		const FQuat trackerRotationInverse = trackerRotation.Inverse();
 
-	FTransform currentRelativeTrackerTransform = FTransform::Identity;
-	{
 		//Determine the current position of the tracker relative to the calibrated base stations.
 		FVector averagedCurrentTrackerLocation = FVector::ZeroVector;
 		FVector	averagedCurrentTrackerRotationEuler = FVector::ZeroVector;
 		int numCurrentBaseStationOffsetSamples = 0;
+
 		for (const auto& initialBaseOffset : CalibratedBaseStationOffsets)
 		{
 			FVector baseStationLocation;
 			FQuat baseStationRotation;
 			if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(initialBaseOffset.Key, baseStationLocation, baseStationRotation))
 			{
-				const FVector offsetTranslation = trackerTransformInverse.TransformPosition(baseStationLocation);
-				const FQuat offsetRotation = trackerTransformInverse.TransformRotation(baseStationRotation);
+				//Get the translation between the tracker and the base station and reverse the rotation that is applied to it.
+				const FVector trackerToBaseCurrentTranslation = trackerRotationInverse * (baseStationLocation - trackerLocation);
+				const FQuat trackerToBaseCurrentRotation = (baseStationRotation * baseStationRotationFix) * trackerRotationInverse;
 
-
-				averagedCurrentTrackerLocation += offsetTranslation;
-				averagedCurrentTrackerRotationEuler += offsetRotation.Euler();
+				averagedCurrentTrackerLocation += (initialBaseOffset.Value.GetLocation() - trackerToBaseCurrentTranslation);
+				averagedCurrentTrackerRotationEuler += (trackerToBaseCurrentRotation * initialBaseOffset.Value.GetRotation().Inverse()).Euler();
 				++numCurrentBaseStationOffsetSamples;
 			}
 		}
@@ -95,7 +91,7 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 		{
 			averagedCurrentTrackerLocation /= numCurrentBaseStationOffsetSamples;
 			averagedCurrentTrackerRotationEuler /= numCurrentBaseStationOffsetSamples;
-			currentRelativeTrackerTransform = FTransform(
+			relativeTrackerTransform = FTransform(
 				FQuat::MakeFromEuler(averagedCurrentTrackerRotationEuler),
 				averagedCurrentTrackerLocation);
 		}
@@ -113,12 +109,17 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 		{
 			FTrackerTransformHistory& samples = BaseStationOffsets.FindOrAdd(id, { SampleSizeSeconds * SamplesPerSecond });
 
-
 			FVector baseStationLocation;
 			FQuat baseStationRotation;
 			if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(id, baseStationLocation, baseStationRotation))
 			{
+				const FVector trackerToBaseStationTranslation = relativeTrackerTransform.GetRotation().Inverse() * (baseStationLocation - relativeTrackerTransform.GetLocation());
+				const FQuat trackerToBaseStationRotation = (baseStationRotation * baseStationRotationFix) * relativeTrackerTransform.GetRotation().Inverse();
 
+				const FVector baseToOriginTranslation = relativeTrackerTransform.GetLocation() + trackerToBaseStationTranslation;
+				const FQuat baseToOriginRotation = relativeTrackerTransform.GetRotation() * trackerToBaseStationRotation;
+
+				samples.AddSample(FTransform(baseToOriginRotation, baseToOriginTranslation));
 			}
 		}
 	}

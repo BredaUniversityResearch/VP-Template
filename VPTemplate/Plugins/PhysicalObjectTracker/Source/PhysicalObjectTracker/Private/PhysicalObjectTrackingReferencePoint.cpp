@@ -63,8 +63,8 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(const FVec
 	}
 	orientation = rotationInversionFix.Quaternion();
 
-	FVector devicePosition = GetNeutralRotationInverse() * (TrackedPosition - GetNeutralOffset());
-	FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);
+	const FVector devicePosition = GetNeutralRotationInverse() * (TrackedPosition - GetNeutralOffset());
+	const FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);
 	return FTransform(orientation, position);
 }
 
@@ -78,12 +78,7 @@ bool UPhysicalObjectTrackingReferencePoint::GetBaseStationWorldTransform(const F
 				FRotationMatrix::Make(FQuat(FVector::YAxisVector,
 					FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
 
-			FTransform transform;
-			transform.SetFromMatrix(deviceToWorldSpace);
-
-			const FQuat weirdRotation = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
-
-			FQuat orientation = baseStationOffset->GetRotation() * weirdRotation; //The rotation is stored relative to the tracker's neutral rotation. 
+			FQuat orientation = baseStationOffset->GetRotation(); //The rotation is stored relative to the tracker's neutral rotation. 
 
 			FRotator rotationInversionFix = FRotator(orientation);
 			if (InvertPitchRotation)
@@ -100,8 +95,8 @@ bool UPhysicalObjectTrackingReferencePoint::GetBaseStationWorldTransform(const F
 			}
 			orientation = rotationInversionFix.Quaternion();
 
-			FVector devicePosition = baseStationOffset->GetLocation(); //The position is stored relative to the neutral position and rotation.
-			FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);
+			const FVector devicePosition = baseStationOffset->GetLocation(); //The position is stored relative to the neutral position and rotation.
+			const FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);
 			WorldTransform = FTransform(orientation, position);
 			return true;
 		}

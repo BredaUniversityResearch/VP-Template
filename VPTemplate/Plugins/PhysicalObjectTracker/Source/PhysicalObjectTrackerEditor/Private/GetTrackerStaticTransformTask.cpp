@@ -109,6 +109,7 @@ bool FGetTrackerStaticTransformTask::HasCompleteBaseStationsHistoryAndBelowVeloc
 void FGetTrackerStaticTransformTask::BuildStaticBaseStationResults()
 {
 	check(BaseStationOffsets.Num() >= MinStaticBaseStationOffsets);
+	const FQuat baseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
 
 	for(const auto& baseStation : BaseStationOffsets)
 	{
@@ -118,7 +119,7 @@ void FGetTrackerStaticTransformTask::BuildStaticBaseStationResults()
 
 			//Get the translation between the tracker and the base station and reverse the rotation that is applied to it.
 			const FVector relativeTranslation = Result.GetRotation().Inverse() * (baseStationTransform.GetLocation() - Result.GetLocation());
-			const FQuat relativeRotation = baseStationTransform.GetRotation() * Result.GetRotation().Inverse();
+			const FQuat relativeRotation = (baseStationTransform.GetRotation() * baseStationRotationFix) * Result.GetRotation().Inverse();
 
 			BaseStationResults.Add(baseStation.Key, FTransform(relativeRotation, relativeTranslation));
 		}
