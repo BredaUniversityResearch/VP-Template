@@ -4,9 +4,12 @@
 
 #include "SteamVRFunctionLibrary.h"
 
-FGetTrackerStaticTransformTask::FGetTrackerStaticTransformTask(int32 a_TargetTrackerId)
-	: TargetTrackerId(a_TargetTrackerId)
-	, TransformHistory(SampleSizeSeconds * SamplesPerSecond)
+FGetTrackerStaticTransformTask::FGetTrackerStaticTransformTask(
+	int32 a_TargetTrackerId, 
+	int32 InMinStaticBaseStationOffsets)
+	: TargetTrackerId(a_TargetTrackerId),
+	MinStaticBaseStationOffsets(InMinStaticBaseStationOffsets),
+	TransformHistory(SampleSizeSeconds * SamplesPerSecond)
 {
 }
 
@@ -95,7 +98,7 @@ bool FGetTrackerStaticTransformTask::HasCompleteBaseStationsHistoryAndBelowVeloc
 
 	//For each base station that currently has been seen, check if at least
 	//we have gathered a full sample history that has an average velocity below the threshold for at least the minimum number of base stations.
-	unsigned int currentCompleteStaticBaseStationOffsets = 0;
+	int currentCompleteStaticBaseStationOffsets = 0;
 	for(const auto& baseStation : BaseStationOffsets)
 	{
 		if(baseStation.Value.HasCompleteHistory() && baseStation.Value.GetAverageVelocity() < Threshold)

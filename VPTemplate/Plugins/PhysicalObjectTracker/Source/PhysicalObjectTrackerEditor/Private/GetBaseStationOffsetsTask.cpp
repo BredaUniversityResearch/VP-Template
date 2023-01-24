@@ -50,6 +50,11 @@ TMap<int32, FTransform>& FGetBaseStationOffsetsTask::GetResults()
 
 void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 {
+	//- Get the current offset to a known base station
+	//- Get the difference in the current and initial offset to the known base station to determine the position of the tracker
+	//- Get the current offset to a new base station
+	//- 
+
 	TArray<int32> baseStationIds;
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(baseStationIds);
 	if (baseStationIds.IsEmpty()) { return; }
@@ -81,16 +86,27 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 				const FVector trackerToBaseCurrentTranslation = trackerRotationInverse * (baseStationLocation - trackerLocation);
 				const FQuat trackerToBaseCurrentRotation = (baseStationRotation * baseStationRotationFix) * trackerRotationInverse;
 
-				averagedCurrentTrackerLocation += (initialBaseOffset.Value.GetLocation() - trackerToBaseCurrentTranslation);
-				averagedCurrentTrackerRotationEuler += (trackerToBaseCurrentRotation * initialBaseOffset.Value.GetRotation().Inverse()).Euler();
+				const FVector trackerRelativeTranslation = initialBaseOffset.Value.GetLocation() - trackerToBaseCurrentTranslation;
+				const FQuat trackerRelativeRotation = initialBaseOffset.Value.GetRotation() * trackerToBaseCurrentRotation.Inverse();
+
+				if(UWorld* editorWorld = GEditor->GetEditorWorldContext().World())
+				{
+					//Somehow convert the relative translation into a world space position.
+					DrawDebugSolidBox(editorWorld, FBox(FVector(-10.f), FVector(10.f)), FColor::Orange, FTransform(trackerRelativeRotation, trackerRelativeTranslation), false, 2, 0);
+				}
+
+				averagedCurrentTrackerLocation += trackerRelativeTranslation;
+				averagedCurrentTrackerRotationEuler += trackerRelativeRotation.Euler();
 				++numCurrentBaseStationOffsetSamples;
 			}
+			//TODO: temporarily only take one sample and do not average as I am not sure if the averaging works. (Although I am also not sure if the relative calculation works).
+			if (numCurrentBaseStationOffsetSamples == 1) { break; }
 		}
 
-		if (numCurrentBaseStationOffsetSamples > 1)
+		if (numCurrentBaseStationOffsetSamples >= 1)
 		{
-			averagedCurrentTrackerLocation /= numCurrentBaseStationOffsetSamples;
-			averagedCurrentTrackerRotationEuler /= numCurrentBaseStationOffsetSamples;
+			averagedCurrentTrackerLocation = averagedCurrentTrackerLocation / numCurrentBaseStationOffsetSamples;
+			averagedCurrentTrackerRotationEuler = averagedCurrentTrackerRotationEuler / numCurrentBaseStationOffsetSamples;
 			relativeTrackerTransform = FTransform(
 				FQuat::MakeFromEuler(averagedCurrentTrackerRotationEuler),
 				averagedCurrentTrackerLocation);
@@ -100,6 +116,7 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 			//If no calibrated base station could be tracked, don't sample.
 			return;
 		}
+
 	}
 
 	for(int32 id: baseStationIds)
@@ -116,8 +133,9 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 				const FVector trackerToBaseStationTranslation = relativeTrackerTransform.GetRotation().Inverse() * (baseStationLocation - relativeTrackerTransform.GetLocation());
 				const FQuat trackerToBaseStationRotation = (baseStationRotation * baseStationRotationFix) * relativeTrackerTransform.GetRotation().Inverse();
 
+				//The relative tracker transform and tracker to base transform should be in the same space (reference point space)
 				const FVector baseToOriginTranslation = relativeTrackerTransform.GetLocation() + trackerToBaseStationTranslation;
-				const FQuat baseToOriginRotation = relativeTrackerTransform.GetRotation() * trackerToBaseStationRotation;
+				const FQuat baseToOriginRotation = trackerToBaseStationRotation * relativeTrackerTransform.GetRotation();
 
 				samples.AddSample(FTransform(baseToOriginRotation, baseToOriginTranslation));
 			}

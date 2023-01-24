@@ -91,7 +91,7 @@ void FUpdateTrackerCalibrationAsset::OnCancelCalibration()
 
 void FUpdateTrackerCalibrationAsset::OnTrackerIdentified()
 {
-	GetTrackerStaticPositionTask = MakeUnique<FGetTrackerStaticTransformTask>(TrackerId);
+	GetTrackerStaticPositionTask = MakeUnique<FGetTrackerStaticTransformTask>(TrackerId, MinStaticBaseStationsCalibrated);
 
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForTrackerStaticPosition", "Waiting for tracker steady position..."));
 }

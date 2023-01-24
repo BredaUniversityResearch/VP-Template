@@ -165,18 +165,20 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 							}
 							const FMatrix offsetTransformMatrix = offsetTransform.ToMatrixNoScale();
 
-							constexpr float scale = 0.7;
+							constexpr float scale = 0.6;
 							const FColor offsetColor(wireBoxColor.R * scale, wireBoxColor.G * scale, wireBoxColor.B * scale);
 
-							DrawWireBox(PDI, offsetTransformMatrix, FBox(FVector(-10.f), FVector(10.f)), offsetColor, 0, 1.5f);
+							DrawWireBox(PDI, offsetTransformMatrix, FBox(FVector(-5.f), FVector(5.f)), offsetColor, 0, 1.5f);
+							DrawDirectionalArrow(PDI, offsetTransformMatrix, offsetColor, 60.f, 5.f, 0, 1.5f);
 							DrawWireFrustrum2(PDI, offsetTransformMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,
-								LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, FColor::Orange, 0, 2.5f);
+								LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, offsetColor, 0, 2.5f);
 						}
 					}
 
-					DrawWireBox(PDI, transformMatrix, FBox(FVector(-4.0f), FVector(4.0f)), wireBoxColor, 0, 2.0f);
+					DrawWireBox(PDI, transformMatrix, FBox(FVector(-8.0f), FVector(8.0f)), wireBoxColor, 0, 2.0f);
+					DrawDirectionalArrow(PDI, transformMatrix, wireBoxColor, 100.f, 10.f, 0, 1.f);
 					DrawWireFrustrum2(PDI, transformMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,
-						LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, FColor::Green, 0, 2.0f);
+						LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, wireBoxColor, 0, 2.0f);
 					
 				}
 			}
