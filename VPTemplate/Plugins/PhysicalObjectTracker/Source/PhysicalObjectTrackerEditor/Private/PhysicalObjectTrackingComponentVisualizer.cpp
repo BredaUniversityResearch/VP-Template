@@ -179,7 +179,11 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 					DrawDirectionalArrow(PDI, transformMatrix, wireBoxColor, 100.f, 10.f, 0, 1.f);
 					DrawWireFrustrum2(PDI, transformMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,
 						LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, wireBoxColor, 0, 2.0f);
-					
+
+					const FMatrix rawTransform = FTransform(rotation, position).ToMatrixNoScale();
+					DrawWireBox(PDI, rawTransform, FBox(FVector(-5.0f), FVector(5.0f)), wireBoxColor, 0, 2.0f);
+					DrawDirectionalArrow(PDI, rawTransform, wireBoxColor, 150.f, 15.f, 0, 1.f);
+
 				}
 			}
 		}

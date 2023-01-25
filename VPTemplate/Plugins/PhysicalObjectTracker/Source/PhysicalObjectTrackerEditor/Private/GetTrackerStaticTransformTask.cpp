@@ -112,19 +112,25 @@ bool FGetTrackerStaticTransformTask::HasCompleteBaseStationsHistoryAndBelowVeloc
 void FGetTrackerStaticTransformTask::BuildStaticBaseStationResults()
 {
 	check(BaseStationOffsets.Num() >= MinStaticBaseStationOffsets);
-	const FQuat baseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
 
 	for(const auto& baseStation : BaseStationOffsets)
 	{
 		if(baseStation.Value.HasCompleteHistory())
 		{
+			static const FQuat BaseStationRotationFix = FQuat(FVector::RightVector, FMath::DegreesToRadians(0.0f));
+			static const FMatrix DeviceToWorldSpace =
+				FRotationMatrix::Make(FQuat(FVector::YAxisVector,
+					FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
+
 			const FTransform baseStationTransform = baseStation.Value.GetAveragedTransform();
 
 			//Get the translation between the tracker and the base station and reverse the rotation that is applied to it.
-			const FVector relativeTranslation = Result.GetRotation().Inverse() * (baseStationTransform.GetLocation() - Result.GetLocation());
-			const FQuat relativeRotation = (baseStationTransform.GetRotation() * baseStationRotationFix) * Result.GetRotation().Inverse();
+			const FVector relativeTranslation = Result.GetRotation().Inverse().RotateVector(baseStationTransform.GetLocation() - Result.GetLocation());
+			const FQuat relativeRotation = (baseStationTransform.GetRotation() * BaseStationRotationFix) * Result.GetRotation().Inverse();
 
-			BaseStationResults.Add(baseStation.Key, FTransform(relativeRotation, relativeTranslation));
+			const FVector worldSpacePosition = DeviceToWorldSpace.TransformPosition(relativeTranslation);
+
+			BaseStationResults.Add(baseStation.Key, FTransform(relativeRotation, worldSpacePosition));
 		}
 	}
 }

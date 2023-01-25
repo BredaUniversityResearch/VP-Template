@@ -51,15 +51,17 @@ TMap<int32, FTransform>& FGetBaseStationOffsetsTask::GetResults()
 void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 {
 	//- Get the current offset to a known base station
-	//- Get the difference in the current and initial offset to the known base station to determine the position of the tracker
+	//- Get the difference in the current and initial offset to the known base station to determine the relative position of the tracker
 	//- Get the current offset to a new base station
-	//- 
 
 	TArray<int32> baseStationIds;
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(baseStationIds);
 	if (baseStationIds.IsEmpty()) { return; }
 
 	const FQuat baseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
+	const FMatrix deviceToWorldSpace =
+		FRotationMatrix::Make(FQuat(FVector::YAxisVector,
+			FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
 	FTransform relativeTrackerTransform = FTransform::Identity;
 
 	{
@@ -83,19 +85,20 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 			if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(initialBaseOffset.Key, baseStationLocation, baseStationRotation))
 			{
 				//Get the translation between the tracker and the base station and reverse the rotation that is applied to it.
-				const FVector trackerToBaseCurrentTranslation = trackerRotationInverse * (baseStationLocation - trackerLocation);
+				const FVector trackerToBaseCurrentWorldPosition = deviceToWorldSpace.TransformPosition(trackerRotationInverse.RotateVector(baseStationLocation - trackerLocation));
 				const FQuat trackerToBaseCurrentRotation = (baseStationRotation * baseStationRotationFix) * trackerRotationInverse;
 
-				const FVector trackerRelativeTranslation = initialBaseOffset.Value.GetLocation() - trackerToBaseCurrentTranslation;
-				const FQuat trackerRelativeRotation = initialBaseOffset.Value.GetRotation() * trackerToBaseCurrentRotation.Inverse();
+				//The relative translation in world-Space as offset is stored in world-space
+				const FVector trackerRelativePosition = initialBaseOffset.Value.GetLocation() - trackerToBaseCurrentWorldPosition;
+				const FQuat trackerRelativeRotation = trackerToBaseCurrentRotation.Inverse() * initialBaseOffset.Value.GetRotation() ;
 
-				if(UWorld* editorWorld = GEditor->GetEditorWorldContext().World())
+				if (UWorld* editorWorld = GEditor->GetEditorWorldContext().World())
 				{
-					//Somehow convert the relative translation into a world space position.
-					DrawDebugSolidBox(editorWorld, FBox(FVector(-10.f), FVector(10.f)), FColor::Orange, FTransform(trackerRelativeRotation, trackerRelativeTranslation), false, 2, 0);
+					const FVector arrowEnd = trackerRelativePosition + trackerRelativeRotation.RotateVector(FVector::ForwardVector * 100.f);
+					DrawDebugDirectionalArrow(editorWorld, trackerRelativePosition, arrowEnd, 10.f, FColor::Emerald, false, 1, 0, 1.f);
 				}
 
-				averagedCurrentTrackerLocation += trackerRelativeTranslation;
+				averagedCurrentTrackerLocation += trackerRelativePosition;
 				averagedCurrentTrackerRotationEuler += trackerRelativeRotation.Euler();
 				++numCurrentBaseStationOffsetSamples;
 			}
