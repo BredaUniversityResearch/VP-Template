@@ -19,7 +19,7 @@ class FUpdateTrackerCalibrationAsset : public FTickableEditorObject
 	};
 
 	static constexpr int MinBaseStationsCalibrated = 4;
-	static constexpr int MinStaticBaseStationsCalibrated = 4;
+	static constexpr int MinBaseStationsCalibratedStatic = 4;
 
 public:
 	FUpdateTrackerCalibrationAsset(UPhysicalObjectTrackingReferencePoint* a_TargetAsset);
@@ -29,7 +29,7 @@ public:
 
 	void OnCancelCalibration();
 	void OnTrackerIdentified();
-	void OnTrackerTransformAcquired(const FTransform& TrackerTransform, TMap<int32, FTransform>& BaseStationOffsets);
+	void OnTrackerTransformAcquired(const FTransform& TrackerTransform, const TMap<int32, FTransform>& BaseStationOffsets);
 	void OnBaseStationOffsetsAcquired(const TMap<int32, FTransform>& CalculatedBaseStationOffsets);
 	void UpdateAsset() const;
 

@@ -20,7 +20,7 @@ void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
 		FNotificationInfo spinner(LOCTEXT("CalibrateShakeController", "Please shake tracker to use for calibration..."));
 		spinner.bUseThrobber = true;
 		spinner.ExpireDuration = 1e25f;
-		spinner.FadeOutDuration = 5.0f;
+		spinner.FadeOutDuration = 30.0f;
 		spinner.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("CalibrationCancel", "Cancel"), LOCTEXT("CalibrationCancel", "Cancel"),
 			FSimpleDelegate::CreateRaw(this, &FUpdateTrackerCalibrationAsset::OnCancelCalibration)));
 		m_ProcessNotification = FSlateNotificationManager::Get().AddNotification(spinner);
@@ -91,12 +91,12 @@ void FUpdateTrackerCalibrationAsset::OnCancelCalibration()
 
 void FUpdateTrackerCalibrationAsset::OnTrackerIdentified()
 {
-	GetTrackerStaticPositionTask = MakeUnique<FGetTrackerStaticTransformTask>(TrackerId, MinStaticBaseStationsCalibrated);
+	GetTrackerStaticPositionTask = MakeUnique<FGetTrackerStaticTransformTask>(TrackerId, MinBaseStationsCalibratedStatic);
 
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForTrackerStaticPosition", "Waiting for tracker steady position..."));
 }
 
-void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& TrackerTransform, TMap<int32, FTransform>& BaseStationOffsets)
+void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& TrackerTransform, const TMap<int32, FTransform>& BaseStationOffsets)
 {
 	//Set the neutral transformation and rotation of the tracker. (At calibration, it is simply the values received from SteamVR)
 	TrackerNeutralTransform = TrackerTransform;

@@ -31,10 +31,9 @@ private:
 
 	//Store the offsets of the base station to the tracker. (tracker transform + offset = base station transform)
 	TMap<int32, FTransform> BaseStationResults;
-	const int32 MinStaticBaseStationOffsets;
+	const int32 MinBaseStationResults;
 
-	bool HasAcquiredTransform{ false };
-	bool HasAcquiredBaseStationOffsets{ false };
+	bool HasAcquiredTransformsAndOffsets{ false };
 
 	float SampleDeltaTimeAccumulator{ 0.0f };
 	FTrackerTransformHistory TransformHistory;
