@@ -69,6 +69,10 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(const FVec
 
 bool UPhysicalObjectTrackingReferencePoint::GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& WorldTransform) const
 {
+	static const FMatrix deviceToWorldSpace =
+		FRotationMatrix::Make(FQuat(FVector::YAxisVector,
+			FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
+
 	if(!BaseStationSerialId.IsEmpty())
 	{
 		if(const FTransform* baseStationOffset = BaseStationOffsetsToOrigin.Find(BaseStationSerialId))
@@ -90,10 +94,8 @@ bool UPhysicalObjectTrackingReferencePoint::GetBaseStationWorldTransform(const F
 			}
 			orientation = rotationInversionFix.Quaternion();
 
-			//const FVector devicePosition = baseStationOffset->GetLocation(); //The position is stored relative to the neutral position and rotation.
-			//const FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);const FVector devicePosition = baseStationOffset->GetLocation(); //The position is stored relative to the neutral position and rotation.
-			const FVector4 position = baseStationOffset->GetLocation();
-			WorldTransform = FTransform(orientation, position);
+			const FVector4 devicePosition = baseStationOffset->GetLocation();
+			WorldTransform = FTransform(orientation, deviceToWorldSpace.TransformPosition(devicePosition));
 			return true;
 		}
 	}

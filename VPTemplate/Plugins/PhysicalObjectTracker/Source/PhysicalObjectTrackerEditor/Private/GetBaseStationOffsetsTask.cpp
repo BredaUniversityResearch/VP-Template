@@ -59,11 +59,8 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 	if (baseStationIds.IsEmpty()) { return; }
 
 	const FQuat baseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
-	const FMatrix deviceToWorldSpace =
-		FRotationMatrix::Make(FQuat(FVector::YAxisVector,
-			FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
-	FTransform relativeTrackerTransform = FTransform::Identity;
 
+	FTransform relativeTrackerTransform = FTransform::Identity;
 	{
 		FVector trackerLocation;
 		FQuat trackerRotation;
@@ -85,7 +82,7 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 			if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(initialBaseOffset.Key, baseStationLocation, baseStationRotation))
 			{
 				//Get the translation between the tracker and the base station and reverse the rotation that is applied to it.
-				const FVector trackerToBaseCurrentWorldPosition = deviceToWorldSpace.TransformPosition(trackerRotationInverse.RotateVector(baseStationLocation - trackerLocation));
+				const FVector trackerToBaseCurrentWorldPosition = trackerRotationInverse.RotateVector(baseStationLocation - trackerLocation);
 				const FQuat trackerToBaseCurrentRotation = (baseStationRotation * baseStationRotationFix) * trackerRotationInverse;
 
 				//The relative translation in world-Space as offset is stored in world-space
@@ -94,8 +91,12 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 
 				if (UWorld* editorWorld = GEditor->GetEditorWorldContext().World())
 				{
-					const FVector arrowEnd = trackerRelativePosition + trackerRelativeRotation.RotateVector(FVector::ForwardVector * 100.f);
-					DrawDebugDirectionalArrow(editorWorld, trackerRelativePosition, arrowEnd, 10.f, FColor::Emerald, false, 1, 0, 1.f);
+					static const FMatrix deviceToWorldSpace =
+						FRotationMatrix::Make(FQuat(FVector::YAxisVector,
+							FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
+					const FVector arrowStart = deviceToWorldSpace.TransformPosition(trackerRelativePosition);
+					const FVector arrowEnd = deviceToWorldSpace.TransformPosition(trackerRelativePosition + trackerRelativeRotation.RotateVector(FVector::ForwardVector * 100.f));
+					DrawDebugDirectionalArrow(editorWorld,  arrowStart, arrowEnd, 10.f, FColor::Emerald, false, 1, 0, 1.f);
 				}
 
 				averagedCurrentTrackerLocation += trackerRelativePosition;

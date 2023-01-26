@@ -16,12 +16,12 @@ namespace
 
 	static const TMap<FString, FColor> LightHouseColors
 	{
-		{FString{"LHB-4DA74639"}, FColor::Orange},
+		{FString{"LHB-4DA74639"}, FColor::Red},
 		{FString{"LHB-397A56CC"}, FColor::Blue},
-		{FString{"LHB-1BEC1CA4"}, FColor::Cyan},
-		{FString{"LHB-2239FAC8"}, FColor::Emerald},
-		{FString{"LHB-2A1A0096"}, FColor::Turquoise},
-		{FString{"LHB-B6A41014"}, FColor::Purple}
+		{FString{"LHB-1BEC1CA4"}, FColor::Green},
+		{FString{"LHB-2239FAC8"}, FColor::Yellow},
+		{FString{"LHB-2A1A0096"}, FColor::Cyan},
+		{FString{"LHB-B6A41014"}, FColor::Magenta}
 	};
 
 	void DrawWireFrustrum(FPrimitiveDrawInterface* PDI, const FMatrix& FrustumToWorld, const FColor& Color, uint8 DepthPriorityGroup, float Thickness, float DepthBias = 0.0f, bool ScreenSpace = false)
@@ -175,7 +175,6 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 							DrawDirectionalArrow(PDI, offsetTransformMatrix, offsetColor, 60.f, 5.f, 0, 1.5f);
 							DrawWireFrustrum2(PDI, offsetTransformMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,
 								LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, offsetColor, 0, 2.5f);
-							DrawDirectionalArrow(PDI, offsetTransformMatrix, offsetColor, 150.f, 10.f, 0, 1.f);
 						}
 					}
 
@@ -183,33 +182,12 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 					DrawWireFrustrum2(PDI, transformMatrix, LighthouseV2HorizontalFov, LighthouseV2HorizontalFov / LighthouseV2VerticalFov,
 						LighthouseV2MinTrackingDistance, LighthouseV2MaxTrackingDistance, lightHouseColor, 0, 2.0f);
 					DrawDirectionalArrow(PDI, transformMatrix, lightHouseColor, 100.f, 10.f, 0, 2.f);
-
+					
 					const FColor rawColor(lightHouseColor.R * 0.75, lightHouseColor.G * 0.75, lightHouseColor.B * 0.75);
 					FMatrix rawTransform = FTransform(rotation, position).ToMatrixNoScale();
 					DrawWireBox(PDI, rawTransform, FBox(FVector(-7.f), FVector(7.f)), rawColor, 0, 0.5f);
 					DrawDirectionalArrow(PDI, rawTransform, rawColor, 100.f, 10.f, 0, 1.f);
-
-					const FColor worldColor(lightHouseColor.R * 0.5, lightHouseColor.G * 0.5, lightHouseColor.B * 0.5);
-					FTransform trackingToWorld = GEngine->XRSystem->GetTrackingToWorldTransform();
-					rawTransform = (trackingToWorld * FTransform(rotation, position)).ToMatrixNoScale();
-					DrawWireBox(PDI, rawTransform, FBox(FVector(-5.f), FVector(5.f)), worldColor, 0, 0.5f);
-					DrawDirectionalArrow(PDI, rawTransform, worldColor, 100.f, 10.f, 0, 1.f);
-
-					const FColor originColor(lightHouseColor.R * 0.25, lightHouseColor.G * 0.25, lightHouseColor.B * 0.25);
-					FTransform trackingOrigin = FTransform::Identity;
-					GEngine->XRSystem->GetTrackingOriginTransform(EHMDTrackingOrigin::Floor, trackingOrigin);
-					rawTransform = (trackingOrigin.Inverse() * FTransform(rotation, position)).ToMatrixNoScale();
-					DrawWireBox(PDI, rawTransform, FBox(FVector(-3.f), FVector(3.f)), originColor, 0, 0.5f);
-					DrawDirectionalArrow(PDI, rawTransform, originColor, 100.f, 10.f, 0, 1.f);
-
-					FQuat poseRotation;
-					FVector poseLocation;
-					if(GEngine->XRSystem->GetCurrentPose(deviceId, poseRotation, poseLocation))
-					{
-						rawTransform = FTransform(poseRotation, poseLocation).ToMatrixNoScale();
-						DrawWireBox(PDI, rawTransform, FBox(FVector(-2.f), FVector(2.f)), FColor::Red, 0, 0.5f);
-						DrawDirectionalArrow(PDI, rawTransform, originColor, 100.f, 10.f, 0, 1.f);
-					}
+					DrawDirectionalArrow(PDI, FQuat(FVector::RightVector, FMath::DegreesToRadians(90.f)).ToMatrix() * rawTransform, rawColor, 50.f, 10.f, 0, .5f);
 					
 				}
 			}
