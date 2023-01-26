@@ -4,15 +4,16 @@
 
 #include "SteamVRFunctionLibrary.h"
 
-FGetTrackerStaticTransformTask::FGetTrackerStaticTransformTask(int32 a_TargetTrackerId)
-	: TargetTrackerId(a_TargetTrackerId)
-	, TransformHistory(SampleSizeSeconds * SamplesPerSecond)
+FGetTrackerStaticTransformTask::FGetTrackerStaticTransformTask(int32 a_TargetTrackerId, int32 MinStaticBaseStationOffsets)
+	: TargetTrackerId(a_TargetTrackerId),
+	MinBaseStationResults(MinStaticBaseStationOffsets),
+	TransformHistory(SampleSizeSeconds * SamplesPerSecond)
 {
 }
 
 void FGetTrackerStaticTransformTask::Tick(float DeltaTime)
 {
-	if (HasAcquiredTransform && HasAcquiredBaseStationOffsets)
+	if (HasAcquiredTransformsAndOffsets)
 	{
 		return;
 	}
@@ -23,42 +24,34 @@ void FGetTrackerStaticTransformTask::Tick(float DeltaTime)
 	{
 		SampleDeltaTimeAccumulator -= SecondsBetweenSamples;
 
-		if (!HasAcquiredTransform)
+		TransformHistory.TakeSample(TargetTrackerId);
+		TakeBaseStationSamples();
+
+		if(	TransformHistory.HasCompleteHistory() && 
+			TransformHistory.GetAverageVelocity() < AverageVelocityThreshold &&
+			HasCompleteBaseStationsHistoryAndBelowVelocityThreshold(AverageVelocityThreshold))
 		{
-			TransformHistory.TakeSample(TargetTrackerId);
-			if(	TransformHistory.HasCompleteHistory() && 
-				TransformHistory.GetAverageVelocity() < AverageVelocityThreshold)
-			{
-				HasAcquiredTransform = true;
-				Result = TransformHistory.GetAveragedTransform();
-			}
-		}
-		else if (!HasAcquiredBaseStationOffsets)
-		{
-			TakeBaseStationSamples();
-			if (HasCompleteBaseStationsHistoryAndBelowVelocityThreshold(AverageVelocityThreshold))
-			{
-				HasAcquiredBaseStationOffsets = true;
-				BuildStaticBaseStationResults();
-			}
+			HasAcquiredTransformsAndOffsets = true;
+			Result = TransformHistory.GetAveragedTransform();
+			BuildStaticBaseStationResults();
 		}
 	}
 }
 
 bool FGetTrackerStaticTransformTask::IsComplete() const
 {
-	return HasAcquiredTransform && HasAcquiredBaseStationOffsets;
+	return HasAcquiredTransformsAndOffsets;
 }
 
 const FTransform& FGetTrackerStaticTransformTask::GetResult() const
 {
-	check(HasAcquiredTransform);
+	check(HasAcquiredTransformsAndOffsets);
 	return Result;
 }
 
 TMap<int32, FTransform>& FGetTrackerStaticTransformTask::GetBaseStationResults()
 {
-	check(HasAcquiredBaseStationOffsets);
+	check(HasAcquiredTransformsAndOffsets);
 	return BaseStationResults;
 }
 
@@ -88,14 +81,14 @@ void FGetTrackerStaticTransformTask::TakeBaseStationSamples()
 
 bool FGetTrackerStaticTransformTask::HasCompleteBaseStationsHistoryAndBelowVelocityThreshold(float Threshold) const
 {
-	if (BaseStationOffsets.Num() < MinStaticBaseStationOffsets)
+	if (BaseStationOffsets.Num() < MinBaseStationResults)
 	{
 		return false;
 	}
 
 	//For each base station that currently has been seen, check if at least
 	//we have gathered a full sample history that has an average velocity below the threshold for at least the minimum number of base stations.
-	unsigned int currentCompleteStaticBaseStationOffsets = 0;
+	int currentCompleteStaticBaseStationOffsets = 0;
 	for(const auto& baseStation : BaseStationOffsets)
 	{
 		if(baseStation.Value.HasCompleteHistory() && baseStation.Value.GetAverageVelocity() < Threshold)
@@ -103,12 +96,12 @@ bool FGetTrackerStaticTransformTask::HasCompleteBaseStationsHistoryAndBelowVeloc
 			++currentCompleteStaticBaseStationOffsets;
 		}
 	}
-	return (currentCompleteStaticBaseStationOffsets >= MinStaticBaseStationOffsets);
+	return (currentCompleteStaticBaseStationOffsets >= MinBaseStationResults);
 }
 
 void FGetTrackerStaticTransformTask::BuildStaticBaseStationResults()
 {
-	check(BaseStationOffsets.Num() >= MinStaticBaseStationOffsets);
+	check(BaseStationOffsets.Num() >= MinBaseStationResults);
 	const FQuat baseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
 
 	for(const auto& baseStation : BaseStationOffsets)
