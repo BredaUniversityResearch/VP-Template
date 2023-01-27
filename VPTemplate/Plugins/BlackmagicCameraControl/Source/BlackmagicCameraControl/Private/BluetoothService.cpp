@@ -181,8 +181,13 @@ void FBluetoothService::FBluetoothWorker::OnDeviceUpdated(const DeviceWatcher&,	
 void FBluetoothService::FBluetoothWorker::TryConnectToDevice(const winrt::hstring& DeviceId)
 {
 	IAsyncOperation<BluetoothLEDevice> connectTask = BluetoothLEDevice::FromIdAsync(DeviceId);
-	connectTask.Completed([this](IAsyncOperation<BluetoothLEDevice> connectedDeviceOp, AsyncStatus)
+	connectTask.Completed([this](IAsyncOperation<BluetoothLEDevice> connectedDeviceOp, AsyncStatus status)
 		{
+			if (status != AsyncStatus::Completed)
+			{
+				return;
+			}
+
 			const auto& connectedDevice = connectedDeviceOp.GetResults();
 			GattDeviceServicesResult servicesResult = connectedDevice.GetGattServicesAsync().get();
 			int foundRequiredServices = 0;
