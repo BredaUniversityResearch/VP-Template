@@ -5,10 +5,9 @@
 
 bool FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(int32 SteamVRDeviceId, FVector& Position, FQuat& Orientation)
 {
-	FRotator trackedOrientation;
-	if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(SteamVRDeviceId, Position, trackedOrientation))
+	if (GEngine && GEngine->XRSystem && SteamVRDeviceId != -1)
 	{
-		Orientation = trackedOrientation.Quaternion();
+		GEngine->XRSystem->GetCurrentPose(SteamVRDeviceId, Orientation, Position);
 		return true;
 	}
 	return false;

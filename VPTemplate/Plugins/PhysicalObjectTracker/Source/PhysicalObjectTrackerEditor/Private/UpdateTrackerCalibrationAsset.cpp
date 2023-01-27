@@ -125,24 +125,9 @@ void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired(const TMap<int
 
 void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 {
-	TargetAsset->SetNeutralTransform(TrackerNeutralTransform.GetRotation(), TrackerNeutralTransform.GetLocation());
+	TargetAsset->SetOriginTransform(TrackerNeutralTransform.GetRotation(), TrackerNeutralTransform.GetLocation());
 
-	TargetAsset->ResetBaseStationOffsets();
-	for (const auto& baseStation : CalibratedBaseStationOffsets)
-	{
-		FString baseStationSerialId;
-		if (FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(baseStation.Key, baseStationSerialId))
-		{
-			TargetAsset->SetBaseStationOffsetToOrigin(baseStationSerialId, baseStation.Value);
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(
-				1, 30.0f, FColor::Red,
-				FString::Format(TEXT("Could not get Device Serial Id of base station with Device Id: \"{0}\""),
-					FStringFormatOrderedArguments({ baseStation.Key })));
-		}
-	}
+	TargetAsset->SetBaseStationOffsets(CalibratedBaseStationOffsets);
 
 	if (TargetAsset->MarkPackageDirty())
 	{

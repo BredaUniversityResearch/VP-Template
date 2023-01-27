@@ -21,27 +21,18 @@ class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingReferencePoint: public UD
 	GENERATED_BODY()
 
 public:
-	void SetNeutralTransform(const FQuat& NeutralRotation, const FVector& NeutralPosition);
-	void SetBaseStationOffsetToOrigin(const FString& BaseStationSerialId, const FTransform& OffsetToOrigin);
-	void ResetBaseStationOffsets();
+	void SetOriginTransform(const FQuat& NeutralRotation, const FVector& NeutralPosition);
+	void SetBaseStationOffsets(const TMap<int32, FTransform>& OffsetByTrackedId);
 
 	const FQuat& GetNeutralRotationInverse() const;
 	const FVector& GetNeutralOffset() const;
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
-	bool GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& WorldTransform) const;
-
-	const TMap<FString, FTransform>& GetBaseStationOffsetsToOrigin() const;
+	bool GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& Result) const;
 
 private:
 
 	static FTransform GetAveragedTransform(const TArray<FBaseStationOffset>& OffsetDifferences);
 
-	//Base this off the offsets to the base stations.
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	FQuat NeutralRotationInverse;
-	//Base this off the offsets to the base stations.
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	FVector NeutralOffset;
 	/* Flips up/down rotation */
 	UPROPERTY(EditAnywhere, Category= "PhysicalObjectTrackingReferencePoint|Rotation")
 	bool InvertPitchRotation{ false };
@@ -51,8 +42,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|Rotation")
 	bool InvertRollRotation{ false };
 
-	//The offset to the origin point for all base stations.
-	//Stored with serial ids of the base stations as these don't change in-between different sessions, while device ids might.
+	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
+	FQuat CalibrationSteamVRToOriginRotation;
+	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
+	FVector CalibrationSteamVRToOriginOffset;
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	TMap<FString, FTransform> BaseStationOffsetsToOrigin;
 

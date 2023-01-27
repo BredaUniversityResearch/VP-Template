@@ -14,7 +14,7 @@ public:
 		int32 InTargetTrackerId, 
 		int32 InTargetNumBaseStationOffsets,
 		const FTransform& InTargetTrackerNeutralOffsetToSteamVROrigin,
-		const TMap<int32, FTransform>& InCalibratedBaseStationOffsets);
+		const TMap<int32, FTransform>& InCalibratedBaseStationOffsetzs);
 
 	virtual void Tick(float DeltaTime) override;
 

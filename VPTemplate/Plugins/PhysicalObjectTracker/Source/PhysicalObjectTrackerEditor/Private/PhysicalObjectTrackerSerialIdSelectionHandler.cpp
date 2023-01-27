@@ -33,7 +33,7 @@ void FPhysicalObjectTrackerSerialIdSelectionHandler::MenuExtenderImpl(FMenuBuild
             MenuBuilder.AddMenuEntry(
                 LOCTEXT("SelectTracker", "Select Tracker"),
                 LOCTEXT("SelectTrackerDesc", "Select the tracker that this Serial Id should represent."),
-                FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.ViewOptions", "LevelEditor.ViewOptions.Small"),
+                FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.ViewOptions", "LevelEditor.ViewOptions.Small"),
                 FUIAction(FExecuteAction::CreateLambda([this, serialIdAsset]() 
                     {
 						UPhysicalObjectTrackerSerialId* serialId = Cast<UPhysicalObjectTrackerSerialId>(serialIdAsset.GetAsset());
