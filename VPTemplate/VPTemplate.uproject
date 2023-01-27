@@ -157,10 +157,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "DMXProtocol",
-			"Enabled": true
-		},
-		{
 			"Name": "MovieRenderPipeline",
 			"Enabled": true
 		},
@@ -179,10 +175,23 @@
 		{
 			"Name": "CradleLightControl",
 			"Enabled": false
+		},
+		{
+			"Name": "DMXProtocol",
+			"Enabled": true
+		},
+		{
+			"Name": "DMXEngine",
+			"Enabled": true
+		},
+		{
+			"Name": "DMXFixtures",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
 		"WindowsNoEditor",
-		"Windows"
+		"Windows",
+		"HoloLens"
 	]
 }
