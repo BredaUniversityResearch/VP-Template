@@ -87,6 +87,8 @@ public:
 
 	FCriticalSection ReconnectQueueLock;
 	TArray<winrt::hstring> DeviceIdConnectRetryQueue;
+	FCriticalSection RunningConnectTaskLock;
+	std::vector<IAsyncOperation<BluetoothLEDevice>> RunningConnectTasks; //So.. TArray relies on placement new, which is explicitly disabled for IUnknown implementers. std::vector allows us to keep a handle around for as long as we need. This _should_ be fine since this value is not accessible outside this translation unit.
 
 	FBluetoothWorkerRunnable UpdateThreadRunnable;
 	FRunnableThread* UpdateThread;
@@ -133,6 +135,15 @@ FBluetoothService::FBluetoothWorker::FBluetoothWorker(IBMCCDataReceivedHandler* 
 
 FBluetoothService::FBluetoothWorker::~FBluetoothWorker()
 {
+	{
+		FScopeLock connectTaskLock(&RunningConnectTaskLock);
+		for (IAsyncOperation<BluetoothLEDevice>& task : RunningConnectTasks)
+		{
+			task.Cancel();
+		}
+		RunningConnectTasks.clear();
+	}
+
 	BLEDeviceWatcher.Stop();
 	BLEDeviceWatcher.Added(BLEDeviceWatcher_Added);
 	BLEDeviceWatcher.Removed(BLEDeviceWatcher_Removed);
@@ -169,7 +180,8 @@ void FBluetoothService::FBluetoothWorker::OnDeviceUpdated(const DeviceWatcher&,	
 
 void FBluetoothService::FBluetoothWorker::TryConnectToDevice(const winrt::hstring& DeviceId)
 {
-	BluetoothLEDevice::FromIdAsync(DeviceId).Completed([this](IAsyncOperation<BluetoothLEDevice> connectedDeviceOp, AsyncStatus)
+	IAsyncOperation<BluetoothLEDevice> connectTask = BluetoothLEDevice::FromIdAsync(DeviceId);
+	connectTask.Completed([this](IAsyncOperation<BluetoothLEDevice> connectedDeviceOp, AsyncStatus)
 		{
 			const auto& connectedDevice = connectedDeviceOp.GetResults();
 			GattDeviceServicesResult servicesResult = connectedDevice.GetGattServicesAsync().get();
@@ -209,7 +221,13 @@ void FBluetoothService::FBluetoothWorker::TryConnectToDevice(const winrt::hstrin
 					}
 				}
 			}
+
+			FScopeLock connectTaskLock(&RunningConnectTaskLock);
+			RunningConnectTasks.erase(std::remove(RunningConnectTasks.begin(), RunningConnectTasks.end(), connectedDeviceOp), RunningConnectTasks.end());
 		});
+
+	FScopeLock lock(&RunningConnectTaskLock);
+	RunningConnectTasks.push_back(std::move(connectTask));
 }
 
 FBluetoothDeviceConnection* FBluetoothService::FBluetoothWorker::FindDeviceByHandle(BMCCDeviceHandle Target)
