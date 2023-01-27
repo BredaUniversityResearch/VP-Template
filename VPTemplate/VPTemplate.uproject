@@ -183,6 +183,6 @@
 	],
 	"TargetPlatforms": [
 		"WindowsNoEditor",
-		"HoloLens"
+		"Windows"
 	]
 }
