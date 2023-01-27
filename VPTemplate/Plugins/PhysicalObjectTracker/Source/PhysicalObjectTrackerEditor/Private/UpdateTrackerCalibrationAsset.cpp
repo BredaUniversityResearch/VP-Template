@@ -99,8 +99,9 @@ void FUpdateTrackerCalibrationAsset::OnTrackerIdentified()
 void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform& TrackerTransform, const TMap<int32, FTransform>& BaseStationOffsets)
 {
 	//Set the neutral transformation and rotation of the tracker. (At calibration, it is simply the values received from SteamVR)
-	TrackerNeutralTransform = TrackerTransform;
+	TrackerCalibrationTransform = TrackerTransform;
 	CalibratedBaseStationOffsets.Append(BaseStationOffsets);
+	CalibratedBaseStationOffsets.GetKeys(StaticallyCalibratedBaseStations);
 
 	GetBaseStationOffsetsTask = MakeUnique<FGetBaseStationOffsetsTask>(
 		TrackerId,
@@ -125,7 +126,7 @@ void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired(const TMap<int
 
 void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 {
-	TargetAsset->SetNeutralTransform(TrackerNeutralTransform.GetRotation(), TrackerNeutralTransform.GetLocation());
+	TargetAsset->SetTrackerCalibrationTransform(TrackerCalibrationTransform);
 
 	TargetAsset->ResetBaseStationOffsets();
 	for (const auto& baseStation : CalibratedBaseStationOffsets)
@@ -133,7 +134,13 @@ void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 		FString baseStationSerialId;
 		if (FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(baseStation.Key, baseStationSerialId))
 		{
-			TargetAsset->SetBaseStationOffsetToOrigin(baseStationSerialId, baseStation.Value);
+			FColor baseStationColor = FColor::Black;
+			if(const FColor* color = FPhysicalObjectTrackingUtility::BaseStationColors.Find(baseStationSerialId))
+			{
+				baseStationColor = *color;
+			}
+			const bool staticallyCalibrated = StaticallyCalibratedBaseStations.Contains(baseStation.Key);
+			TargetAsset->SetBaseStationOffsetToOrigin(baseStationSerialId, baseStation.Value, baseStationColor, staticallyCalibrated);
 		}
 		else
 		{

@@ -32,7 +32,7 @@ void FGetTrackerStaticTransformTask::Tick(float DeltaTime)
 			HasCompleteBaseStationsHistoryAndBelowVelocityThreshold(AverageVelocityThreshold))
 		{
 			HasAcquiredTransformsAndOffsets = true;
-			Result = TransformHistory.GetAveragedTransform();
+			TrackerResult = FPhysicalObjectTrackingUtility::FixTrackerTransform(TransformHistory.GetAveragedTransform());
 			BuildStaticBaseStationResults();
 		}
 	}
@@ -46,7 +46,7 @@ bool FGetTrackerStaticTransformTask::IsComplete() const
 const FTransform& FGetTrackerStaticTransformTask::GetResult() const
 {
 	check(HasAcquiredTransformsAndOffsets);
-	return Result;
+	return TrackerResult;
 }
 
 TMap<int32, FTransform>& FGetTrackerStaticTransformTask::GetBaseStationResults()
@@ -102,19 +102,13 @@ bool FGetTrackerStaticTransformTask::HasCompleteBaseStationsHistoryAndBelowVeloc
 void FGetTrackerStaticTransformTask::BuildStaticBaseStationResults()
 {
 	check(BaseStationOffsets.Num() >= MinBaseStationResults);
-	static const FQuat BaseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
 
 	for(const auto& baseStation : BaseStationOffsets)
 	{
 		if(baseStation.Value.HasCompleteHistory())
 		{
 			const FTransform baseStationTransform = baseStation.Value.GetAveragedTransform();
-
-			//Get the translation between the tracker and the base station and reverse the rotation that is applied to it.
-			const FVector relativeTranslation = Result.GetRotation().Inverse().RotateVector(baseStationTransform.GetLocation() - Result.GetLocation());
-			const FQuat relativeRotation = (baseStationTransform.GetRotation() * BaseStationRotationFix) * Result.GetRotation().Inverse();
-
-			BaseStationResults.Add(baseStation.Key, FTransform(relativeRotation, relativeTranslation));
+			BaseStationResults.Add(baseStation.Key, baseStationTransform * TrackerResult.Inverse());
 		}
 	}
 }

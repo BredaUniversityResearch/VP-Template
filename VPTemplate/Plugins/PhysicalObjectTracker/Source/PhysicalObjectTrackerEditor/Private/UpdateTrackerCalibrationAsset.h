@@ -18,7 +18,7 @@ class FUpdateTrackerCalibrationAsset : public FTickableEditorObject
 		Done,
 	};
 
-	static constexpr int MinBaseStationsCalibrated = 6;
+	static constexpr int MinBaseStationsCalibrated = 4;
 	static constexpr int MinBaseStationsCalibratedStatic = 4;
 
 public:
@@ -46,7 +46,8 @@ public:
 	TUniquePtr<FGetBaseStationOffsetsTask> GetBaseStationOffsetsTask;
 
 	int32 TrackerId{ -1 };
-	FTransform TrackerNeutralTransform;
+	FTransform TrackerCalibrationTransform;
 	TMap<int32, FTransform> CalibratedBaseStationOffsets;
+	TSet<int32> StaticallyCalibratedBaseStations;
 };
 

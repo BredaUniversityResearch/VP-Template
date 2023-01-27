@@ -26,18 +26,16 @@ private:
 	bool HasCompleteBaseStationsHistoryAndBelowVelocityThreshold(float Threshold) const;
 	void BuildStaticBaseStationResults();
 
-	int32 TargetTrackerId;
-	FTransform Result;
-
-	//Store the offsets of the base station to the tracker. (tracker transform + offset = base station transform)
-	TMap<int32, FTransform> BaseStationResults;
+	const int32 TargetTrackerId;
 	const int32 MinBaseStationResults;
 
+	FTransform TrackerResult;
+	TMap<int32, FTransform> BaseStationResults; //Store the offsets of the base station to the tracker. (tracker transform + offset = base station transform)
+
 	bool HasAcquiredTransformsAndOffsets{ false };
-
 	float SampleDeltaTimeAccumulator{ 0.0f };
-	FTrackerTransformHistory TransformHistory;
 
+	FTrackerTransformHistory TransformHistory;
 	TMap<int32, FTrackerTransformHistory> BaseStationOffsets;
 };
 

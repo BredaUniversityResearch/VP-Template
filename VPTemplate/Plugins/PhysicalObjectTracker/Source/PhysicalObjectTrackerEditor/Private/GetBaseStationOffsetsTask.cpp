@@ -62,17 +62,21 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 
 	FTransform relativeTrackerTransform = FTransform::Identity;
 	{
-		FVector trackerLocation;
-		FQuat trackerRotation;
-		if (!FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(TargetTrackerId, trackerLocation, trackerRotation))
+		FTransform trackerTransform = FTransform::Identity;
 		{
-			return;
+			FVector trackerLocation;
+			FQuat trackerRotation;
+			if(!FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(TargetTrackerId, trackerLocation, trackerRotation))
+			{
+				return;	//If the target tracker could not be tracker, we can not get the relative offsets to the base stations so no need to sample the base stations and simply return.
+			}
+			
+			trackerTransform = FPhysicalObjectTrackingUtility::FixTrackerTransform(FTransform(trackerRotation, trackerLocation));
 		}
-		const FQuat trackerRotationInverse = trackerRotation.Inverse();
 
-		//Determine the current position of the tracker relative to the calibrated base stations.
-		FVector averagedCurrentTrackerLocation = FVector::ZeroVector;
-		FVector	averagedCurrentTrackerRotationEuler = FVector::ZeroVector;
+		//Determine the current position of the tracker relative to the already calibrated base stations.
+		FVector averageOriginToTrackerTranslation = FVector::ZeroVector;
+		FVector	averageOriginToTrackerRotationEuler = FVector::ZeroVector;
 		int numCurrentBaseStationOffsetSamples = 0;
 
 		for (const auto& initialBaseOffset : CalibratedBaseStationOffsets)
@@ -81,26 +85,19 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 			FQuat baseStationRotation;
 			if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(initialBaseOffset.Key, baseStationLocation, baseStationRotation))
 			{
-				//Get the translation between the tracker and the base station and reverse the rotation that is applied to it.
-				const FVector trackerToBaseCurrentWorldPosition = trackerRotationInverse.RotateVector(baseStationLocation - trackerLocation);
-				const FQuat trackerToBaseCurrentRotation = (baseStationRotation * baseStationRotationFix) * trackerRotationInverse;
+				const FTransform baseStationTransform = FTransform(baseStationRotation, baseStationLocation);
+				const FTransform trackerToBaseStation = baseStationTransform * trackerTransform.Inverse();
+				const FTransform originToTracker = initialBaseOffset.Value * trackerToBaseStation.Inverse();
 
-				//The relative translation in world-Space as offset is stored in world-space
-				const FVector trackerRelativePosition = initialBaseOffset.Value.GetLocation() - trackerToBaseCurrentWorldPosition;
-				const FQuat trackerRelativeRotation = trackerToBaseCurrentRotation.Inverse() * initialBaseOffset.Value.GetRotation() ;
-
-				if (UWorld* editorWorld = GEditor->GetEditorWorldContext().World())
+				if (GEditor && GEditor->GetEditorWorldContext().World())
 				{
-					static const FMatrix deviceToWorldSpace =
-						FRotationMatrix::Make(FQuat(FVector::YAxisVector,
-							FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
-					const FVector arrowStart = deviceToWorldSpace.TransformPosition(trackerRelativePosition);
-					const FVector arrowEnd = deviceToWorldSpace.TransformPosition(trackerRelativePosition + trackerRelativeRotation.RotateVector(FVector::ForwardVector * 100.f));
-					DrawDebugDirectionalArrow(editorWorld,  arrowStart, arrowEnd, 10.f, FColor::Emerald, false, 1, 0, 1.f);
+					const FVector arrowStart = trackerToBaseStation.TransformPosition(FVector::ZeroVector);
+					const FVector arrowEnd = trackerToBaseStation.TransformPosition(FVector::ForwardVector * 100.f);
+					DrawDebugDirectionalArrow(GEditor->GetEditorWorldContext().World(), arrowStart, arrowEnd, 10.f, FColor::Orange, false, 2, 0, 1.f);
 				}
 
-				averagedCurrentTrackerLocation += trackerRelativePosition;
-				averagedCurrentTrackerRotationEuler += trackerRelativeRotation.Euler();
+				averageOriginToTrackerTranslation += originToTracker.GetTranslation();
+				averageOriginToTrackerRotationEuler += originToTracker.GetRotation().Euler();
 				++numCurrentBaseStationOffsetSamples;
 			}
 			//TODO: temporarily only take one sample and do not average as I am not sure if the averaging works. (Although I am also not sure if the relative calculation works).
@@ -109,11 +106,9 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 
 		if (numCurrentBaseStationOffsetSamples >= 1)
 		{
-			averagedCurrentTrackerLocation = averagedCurrentTrackerLocation / numCurrentBaseStationOffsetSamples;
-			averagedCurrentTrackerRotationEuler = averagedCurrentTrackerRotationEuler / numCurrentBaseStationOffsetSamples;
-			relativeTrackerTransform = FTransform(
-				FQuat::MakeFromEuler(averagedCurrentTrackerRotationEuler),
-				averagedCurrentTrackerLocation);
+			averageOriginToTrackerTranslation = averageOriginToTrackerTranslation / numCurrentBaseStationOffsetSamples;
+			averageOriginToTrackerRotationEuler = averageOriginToTrackerRotationEuler / numCurrentBaseStationOffsetSamples;
+			relativeTrackerTransform = FTransform(FQuat::MakeFromEuler(averageOriginToTrackerRotationEuler), averageOriginToTrackerTranslation);
 		}
 		else
 		{

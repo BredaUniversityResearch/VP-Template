@@ -71,3 +71,9 @@ FTransform FPhysicalObjectTrackingUtility::GetRelativeTransformToBaseStation(con
 {
 	return GetRelativeTransformToBaseStation(TransformTracker.GetLocation(), TransformTracker.GetRotation(), TransformBaseStation.GetLocation(), TransformBaseStation.GetRotation());
 }
+
+FTransform FPhysicalObjectTrackingUtility::FixTrackerTransform(const FTransform& TrackerDeviceSpaceTransform)
+{
+	const FTransform TrackerRotationFix = FTransform(FQuat::MakeFromEuler(FVector(0.f, 90.f, 180.f)));
+	return TrackerRotationFix * TrackerDeviceSpaceTransform;
+}
