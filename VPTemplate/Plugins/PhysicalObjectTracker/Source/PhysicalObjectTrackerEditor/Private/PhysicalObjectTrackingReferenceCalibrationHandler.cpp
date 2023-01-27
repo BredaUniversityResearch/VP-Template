@@ -29,7 +29,7 @@ void FPhysicalObjectTrackingReferenceCalibrationHandler::MenuExtenderImpl(FMenuB
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("SetFromTracker", "Set From Tracker"),
 				LOCTEXT("SetFromTrackerDesc", "Sets the calibration point data from the selected tracker."),
-				FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.ViewOptions", "LevelEditor.ViewOptions.Small"),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.ViewOptions", "LevelEditor.ViewOptions.Small"),
 				FUIAction(FExecuteAction::CreateLambda([this, SelectedAssets]()
 					{
 						if (m_RunningCalibrationTask != nullptr && !m_RunningCalibrationTask->IsCompleted())

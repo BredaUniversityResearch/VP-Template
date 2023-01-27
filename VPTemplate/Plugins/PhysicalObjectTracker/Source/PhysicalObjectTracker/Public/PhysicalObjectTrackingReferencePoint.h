@@ -21,15 +21,14 @@ class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingReferencePoint: public UD
 	GENERATED_BODY()
 
 public:
-	void SetOriginTransform(const FQuat& NeutralRotation, const FVector& NeutralPosition);
-	void SetBaseStationOffsets(const TMap<int32, FTransform>& OffsetByTrackedId);
+	void SetTrackerCalibrationTransform(const FTransform& TrackerOriginTransform);
+	void SetBaseStationCalibrationTransforms(const TMap<int32, FTransform>& OffsetByTrackedId);
 
-	const FQuat& GetNeutralRotationInverse() const;
-	const FVector& GetNeutralOffset() const;
+	const FTransform& GetTrackerCalibrationTransform() const;
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
 	bool GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& Result) const;
 
-private:
+//private:
 
 	static FTransform GetAveragedTransform(const TArray<FBaseStationOffset>& OffsetDifferences);
 
@@ -43,11 +42,9 @@ private:
 	bool InvertRollRotation{ false };
 
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	FQuat CalibrationSteamVRToOriginRotation;
+	FTransform CalibrationTrackerTransform;
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	FVector CalibrationSteamVRToOriginOffset;
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	TMap<FString, FTransform> BaseStationOffsetsToOrigin;
+	TMap<FString, FTransform> BaseStationOffsetsTransformsAtCalibration;
 
 };
 

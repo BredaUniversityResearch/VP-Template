@@ -173,7 +173,7 @@ void FGetBaseStationOffsetsTask::BuildBaseStationResults()
 	{
 		if(baseStation.Value.HasCompleteHistory())
 		{
-			BaseStationResults.Add(baseStation.Key, baseStation.Value.GetAveragedTransform());
+			BaseStationResults.Add(baseStation.Key, baseStation.Value.GetAveragedTransform(0.5f));
 		}
 	}
 }

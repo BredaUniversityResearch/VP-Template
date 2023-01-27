@@ -16,9 +16,9 @@ namespace
 
 	static const TMap<FString, FColor> LightHouseColors
 	{
-		{FString{"LHB-4DA74639"}, FColor::Red},		//Right front
-		{FString{"LHB-397A56CC"}, FColor::Green},	//Right back
-		{FString{"LHB-1BEC1CA4"}, FColor::Blue},	//Middle Right
+		{FString{"LHB-4DA74639"}, FColor::Red}, //Right front
+		{FString{"LHB-397A56CC"}, FColor::Green}, //Right back
+		{FString{"LHB-1BEC1CA4"}, FColor::Blue}, //Middle Right
 		{FString{"LHB-2239FAC8"}, FColor::Yellow},
 		{FString{"LHB-B6A41014"}, FColor::Magenta}, //Left back
 		{FString{"LHB-2A1A0096"}, FColor::Cyan},
@@ -132,19 +132,16 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 		const UPhysicalObjectTrackingReferencePoint* reference = targetComponent->GetTrackingReferencePoint();
 		if (reference != nullptr)
 		{
-			const FTransform* worldReference = targetComponent->GetWorldReferencePoint();
-			FPhysicalObjectTrackerEditor::DebugDrawTrackingReferenceLocations(reference, worldReference);
-
 			TArray<int32> deviceIds;
 			USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, deviceIds);
 
 			for (const int32 deviceId : deviceIds)
 			{
-				FVector baseStationPosition;
-				FQuat baseStationRotation;
+				FVector baseStationPosition = FVector::ZeroVector;
+				FQuat baseStationRotation = FQuat::Identity;
 				if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(deviceId, baseStationPosition, baseStationRotation))
 				{
-					FColor lightHouseColor = FColor::Black;
+					FLinearColor lightHouseColor = FColor::Black;
 					FString lightHouseSerialId{};
 					if (FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(deviceId, lightHouseSerialId))
 					{
@@ -158,17 +155,53 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 						}
 					}
 
+					FLinearColor rawColor(lightHouseColor.R * 0.75, lightHouseColor.G * 0.75, lightHouseColor.B * 0.75);
+					FTransform currentBaseStationTransform = FTransform(baseStationRotation, baseStationPosition);
+					DrawBaseStationReference(PDI, rawColor.ToFColor(false), currentBaseStationTransform);
 
 
-					//SteamVR space output.
-					FColor rawColor(lightHouseColor.R * 0.75, lightHouseColor.G * 0.75, lightHouseColor.B * 0.75);
-					FTransform baseStationTransform = FTransform(baseStationRotation, baseStationPosition);
-					DrawBaseStationReference(PDI, rawColor, baseStationTransform);
+					FTransform currentTrackerPosition = FTransform(trackerRot, trackerPos);
 
-					FTransform baseStationOffset = baseStationTransform * FTransform(trackerRot, trackerPos).Inverse();
-					rawColor = FColor(lightHouseColor.R, lightHouseColor.G, lightHouseColor.B);
-					DrawBaseStationReference(PDI, rawColor, baseStationOffset);
+					FTransform baseStationStoredOffset;
+					if (reference->GetBaseStationWorldTransform(lightHouseSerialId, baseStationStoredOffset))
+					{
+						/*
+						 * So = Steam Origin Calibration	= 0, 0,			0, 0,  0
+						 * A = BaseStation Calibration 		= 10, 12		0, 90, 0
+						 * B = Tracker Calibration Spot 	= 5, 3			0,  0, 0
+						 * C = A - B						= 5, 9			0, 90, 0
+						 * Oc = B							= 5, 3
+						 *
+						 * //Calculate back.
+						 *
+						 * Soc = Steam Origin Current 		= 5, 0, 		90, 0, 0
+						 * D = BaseStation Current			= 15, 12		90, 90, 0
+						 * E = Tracker Current				= 10, 8 		90, 0, 0
+						 * F = A - D 						= -5, 0			-90, 0, 0
+						 * G = E + F						= 5, 8			0, 0, 0
+						 * T = G - B						= 0, 5			0, 0, 0
+						 *
+						 * G' = E - B						= 5, 5			90, 0, 0
+						 * T' = G' + F						= 0, 5, 		0, 0, 0
+						 *
+						 * G = Oc + A
+						 */
 
+						 //Base station calibration
+						FTransform A = baseStationStoredOffset;
+						//Tracker calibration
+						FTransform B = reference->GetTrackerCalibrationTransform();
+
+						FTransform D = currentBaseStationTransform;
+						FTransform E = currentTrackerPosition;
+
+						FTransform F = FTransform(D.GetRotation().Inverse() * A.GetRotation(), A.GetLocation() - D.GetLocation());
+						FTransform G = FTransform(B.GetRotation().Inverse() * E.GetRotation(), E.GetLocation() - B.GetLocation());
+
+						FTransform T = FTransform(F.GetRotation() * G.GetRotation(), G.GetLocation() + F.GetLocation());
+						DrawDirectionalArrow(PDI, T.ToMatrixNoScale(), FColor::Magenta, 200.0f, 30.0f, 0, 2);
+					}
+					break;
 				}
 			}
 		}

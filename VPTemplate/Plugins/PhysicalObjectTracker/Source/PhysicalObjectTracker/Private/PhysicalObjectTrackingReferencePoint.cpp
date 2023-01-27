@@ -2,27 +2,23 @@
 
 #include "PhysicalObjectTrackingUtility.h"
 
-void UPhysicalObjectTrackingReferencePoint::SetOriginTransform(const FQuat& NeutralRotation,
-	const FVector& NeutralPosition)
+void UPhysicalObjectTrackingReferencePoint::SetTrackerCalibrationTransform(const FTransform& TrackerOriginTransform)
 {
 	check(!IsRunningGame());
-	CalibrationSteamVRToOriginOffset = NeutralPosition;
-	CalibrationSteamVRToOriginRotation = NeutralRotation.Inverse();
+	CalibrationTrackerTransform = TrackerOriginTransform;
 }
 
-void UPhysicalObjectTrackingReferencePoint::SetBaseStationOffsets(const TMap<int32, FTransform>& Offsets)
+void UPhysicalObjectTrackingReferencePoint::SetBaseStationCalibrationTransforms(const TMap<int32, FTransform>& Offsets)
 {
-	BaseStationOffsetsToOrigin.Empty();
+	BaseStationOffsetsTransformsAtCalibration.Empty();
 	for (const auto& baseStation : Offsets)
 	{
 		FString baseStationSerialId;
 		if (FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(baseStation.Key, baseStationSerialId))
 		{
 			FTransform baseStationTransform = baseStation.Value;
-			FQuat rotation = baseStation.Value.GetRotation() * CalibrationSteamVRToOriginRotation;
-			FVector offset = (CalibrationSteamVRToOriginRotation * baseStation.Value.GetLocation()) - CalibrationSteamVRToOriginOffset;
 
-			BaseStationOffsetsToOrigin.Add(baseStationSerialId, FTransform(rotation, offset));
+			BaseStationOffsetsTransformsAtCalibration.Add(baseStationSerialId, baseStationTransform);
 		}
 		else
 		{
@@ -34,20 +30,17 @@ void UPhysicalObjectTrackingReferencePoint::SetBaseStationOffsets(const TMap<int
 	}
 }
 
-const FQuat& UPhysicalObjectTrackingReferencePoint::GetNeutralRotationInverse() const
+const FTransform& UPhysicalObjectTrackingReferencePoint::GetTrackerCalibrationTransform() const
 {
-	return CalibrationSteamVRToOriginRotation;
-}
-
-const FVector& UPhysicalObjectTrackingReferencePoint::GetNeutralOffset() const
-{
-	return CalibrationSteamVRToOriginOffset;
+	return CalibrationTrackerTransform;
 }
 
 FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(const FVector& TrackedPosition,
 	const FQuat& TrackedRotation) const
 {
-	static const FMatrix deviceToWorldSpace = 
+
+	return FTransform(TrackedRotation, TrackedPosition);
+	/*static const FMatrix deviceToWorldSpace = 
 		FRotationMatrix::Make(FQuat(FVector::YAxisVector, 
 			FMath::DegreesToRadians(90))) * FScaleMatrix::Make(FVector(1.0f, -1.0f, -1.0f));
 
@@ -70,12 +63,12 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(const FVec
 
 	const FVector devicePosition = GetNeutralRotationInverse() * (TrackedPosition - GetNeutralOffset());
 	const FVector4 position = deviceToWorldSpace.TransformPosition(devicePosition);
-	return FTransform(orientation, position);
+	return FTransform(orientation, position);*/
 }
 
 bool UPhysicalObjectTrackingReferencePoint::GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& Result) const
 {
-	if (const FTransform* calibration = BaseStationOffsetsToOrigin.Find(BaseStationSerialId))
+	if (const FTransform* calibration = BaseStationOffsetsTransformsAtCalibration.Find(BaseStationSerialId))
 	{
 		Result = FTransform(calibration->GetRotation(), calibration->GetLocation());
 		return true;

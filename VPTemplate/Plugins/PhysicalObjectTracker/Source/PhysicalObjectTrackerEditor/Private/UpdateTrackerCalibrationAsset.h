@@ -18,8 +18,8 @@ class FUpdateTrackerCalibrationAsset : public FTickableEditorObject
 		Done,
 	};
 
-	static constexpr int MinBaseStationsCalibrated = 4;
-	static constexpr int MinBaseStationsCalibratedStatic = 4;
+	static constexpr int MinBaseStationsCalibrated = 3;
+	static constexpr int MinBaseStationsCalibratedStatic = 3;
 
 public:
 	FUpdateTrackerCalibrationAsset(UPhysicalObjectTrackingReferencePoint* a_TargetAsset);

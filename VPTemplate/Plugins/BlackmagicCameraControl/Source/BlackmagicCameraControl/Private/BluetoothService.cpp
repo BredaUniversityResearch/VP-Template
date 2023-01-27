@@ -188,6 +188,9 @@ void FBluetoothService::FBluetoothWorker::TryConnectToDevice(const winrt::hstrin
 				return;
 			}
 
+			//Lock the connect task lock so we don't exit while this is running.
+			FScopeLock connectTaskLock(&RunningConnectTaskLock);
+
 			const auto& connectedDevice = connectedDeviceOp.GetResults();
 			GattDeviceServicesResult servicesResult = connectedDevice.GetGattServicesAsync().get();
 			int foundRequiredServices = 0;
@@ -227,7 +230,6 @@ void FBluetoothService::FBluetoothWorker::TryConnectToDevice(const winrt::hstrin
 				}
 			}
 
-			FScopeLock connectTaskLock(&RunningConnectTaskLock);
 			RunningConnectTasks.erase(std::remove(RunningConnectTasks.begin(), RunningConnectTasks.end(), connectedDeviceOp), RunningConnectTasks.end());
 		});
 

@@ -32,7 +32,7 @@ void FGetTrackerStaticTransformTask::Tick(float DeltaTime)
 			HasCompleteBaseStationsHistoryAndBelowVelocityThreshold(AverageVelocityThreshold))
 		{
 			HasAcquiredTransformsAndOffsets = true;
-			Result = TransformHistory.GetAveragedTransform();
+			Result = TransformHistory.GetAveragedTransform(0.5f);
 			BuildStaticBaseStationResults();
 		}
 	}
@@ -107,7 +107,7 @@ void FGetTrackerStaticTransformTask::BuildStaticBaseStationResults()
 	{
 		if(baseStation.Value.HasCompleteHistory())
 		{
-			const FTransform baseStationTransform = baseStation.Value.GetAveragedTransform();
+			const FTransform baseStationTransform = baseStation.Value.GetAveragedTransform(0.5f);
 			BaseStationResults.Add(baseStation.Key, baseStationTransform);
 		}
 	}

@@ -170,7 +170,7 @@
 		},
 		{
 			"Name": "BlackmagicCameraControl",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "PhysicalObjectTracker",

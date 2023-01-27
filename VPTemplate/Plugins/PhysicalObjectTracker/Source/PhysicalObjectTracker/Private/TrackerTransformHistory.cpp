@@ -130,10 +130,11 @@ FTransform FTrackerTransformHistory::GetAveragedTransform(const UPhysicalObjectT
 	return GetAveragedTransformOverSampleCount(sampleCount);
 }
 
-FTransform FTrackerTransformHistory::GetAveragedTransform() const
+FTransform FTrackerTransformHistory::GetAveragedTransform(float sampleCountPercent) const
 {
-	check(m_History.Num() > 0);
-	return GetAveragedTransformOverSampleCount(m_History.Num());
+	int samplesToTake = FMath::CeilToInt(static_cast<float>(m_History.Num()) * sampleCountPercent);
+	check(samplesToTake > 0);
+	return GetAveragedTransformOverSampleCount(samplesToTake);
 }
 
 void FTrackerTransformHistory::SetFromFilterSettings(UPhysicalObjectTrackingFilterSettings* FilterSettings)

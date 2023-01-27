@@ -125,9 +125,9 @@ void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired(const TMap<int
 
 void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 {
-	TargetAsset->SetOriginTransform(TrackerNeutralTransform.GetRotation(), TrackerNeutralTransform.GetLocation());
+	TargetAsset->SetTrackerCalibrationTransform(TrackerNeutralTransform);
 
-	TargetAsset->SetBaseStationOffsets(CalibratedBaseStationOffsets);
+	TargetAsset->SetBaseStationCalibrationTransforms(CalibratedBaseStationOffsets);
 
 	if (TargetAsset->MarkPackageDirty())
 	{
