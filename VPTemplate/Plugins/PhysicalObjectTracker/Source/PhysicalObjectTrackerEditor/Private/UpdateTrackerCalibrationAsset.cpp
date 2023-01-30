@@ -1,5 +1,6 @@
 #include "UpdateTrackerCalibrationAsset.h"
 
+#include "PhysicalObjectTrackingComponentVisualizer.h"
 #include "PhysicalObjectTrackingUtility.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "Framework/Notifications/NotificationManager.h"
@@ -107,7 +108,7 @@ void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform
 		TrackerId,
 		MinBaseStationsCalibrated,
 		TrackerTransform,
-		CalibratedBaseStationOffsets);
+		&CalibratedBaseStationOffsets);
 	
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForBaseStationDetection", "Move around the tracker to detect the base stations..."));
 }
@@ -135,12 +136,12 @@ void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 		if (FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(baseStation.Key, baseStationSerialId))
 		{
 			FColor baseStationColor = FColor::Black;
-			if(const FColor* color = FPhysicalObjectTrackingUtility::BaseStationColors.Find(baseStationSerialId))
+			if(const FColor* color = FPhysicalObjectTrackingComponentVisualizer::BaseStationColors.Find(baseStationSerialId))
 			{
 				baseStationColor = *color;
 			}
 			const bool staticallyCalibrated = StaticallyCalibratedBaseStations.Contains(baseStation.Key);
-			TargetAsset->SetBaseStationOffsetToOrigin(baseStationSerialId, baseStation.Value, baseStationColor, staticallyCalibrated);
+			TargetAsset->SetBaseStationCalibrationTransform(baseStationSerialId, baseStation.Value, baseStationColor, staticallyCalibrated);
 		}
 		else
 		{

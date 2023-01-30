@@ -86,7 +86,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		{
 			TransformationTargetComponent.Get()->SetWorldTransform(filteredTransform);
 		}
-		else
+		else if(!HasTransformationTargetComponent)
 		{
 			GetOwner()->SetActorTransform(filteredTransform);
 		}
@@ -139,24 +139,13 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 
 void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 {
-	if (TrackerSerialId == nullptr)
+	if (TrackerSerialId == nullptr || TrackerSerialId->SerialId.IsEmpty())
 	{
 		CurrentTargetDeviceId = -1;
 		if(GetOwner() != nullptr)
 		{
 			GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
-				FString::Format(TEXT("PhysicalObjectTrackingComponent is refreshing the device id without a TrackerSerialId referenced on object \"{0}\""),
-					FStringFormatOrderedArguments({ GetOwner()->GetName() })));
-		}
-		return;
-	}
-	if(TrackerSerialId->SerialId.IsEmpty())
-	{
-		CurrentTargetDeviceId = -1;
-		if (GetOwner() != nullptr)
-		{
-			GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
-				FString::Format(TEXT("PhysicalObjectTrackingComponent is refreshing the device id with an empty TrackerSerialId referenced on object \"{0}\""),
+				FString::Format(TEXT("PhysicalObjectTrackingComponent is refreshing the device id without a valid TrackerSerialId referenced on object \"{0}\""),
 					FStringFormatOrderedArguments({ GetOwner()->GetName() })));
 		}
 		return;

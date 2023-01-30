@@ -151,9 +151,7 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				FRotator rotation;
 				if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
 				{
-					const FQuat baseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
-
-					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion() * baseStationRotationFix);
+					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion());
 					if (worldReference != nullptr)
 					{
 						FTransform::Multiply(&transform, &transform, worldReference);
@@ -166,13 +164,14 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 					{
 						//Determine the debug color of the light house.
 						{
-							const FColor* color = FPhysicalObjectTrackingUtility::BaseStationColors.Find(lightHouseSerialId);
+							const FColor* color = BaseStationColors.Find(lightHouseSerialId);
 							if (color != nullptr)
 							{
 								lightHouseColor = *color;
 							}
 						}
 
+						//Visualize the base stations with the stored calibration data.
 						FTransform offsetTransform;
 						if(reference->GetBaseStationWorldTransform(lightHouseSerialId, offsetTransform))
 						{
@@ -183,18 +182,17 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 
 							constexpr float colorRatio = 0.7;
 							const FColor offsetColor(lightHouseColor.R * colorRatio, lightHouseColor.G * colorRatio, lightHouseColor.B * colorRatio);
-							//DrawBaseStationReference(PDI, offsetColor, offsetTransform);
+							DrawBaseStationReference(PDI, offsetColor, offsetTransform);
 						}
 					}
 
-					//DrawBaseStationReference(PDI, lightHouseColor, transform);
+					//Visualize the base stations with the current SteamVR data
+					DrawBaseStationReference(PDI, lightHouseColor, transform);
 
 				}
 			}
 
-
-
-			// SteamVR Space debug drawing
+			//Tracker visualization.
 
 			TArray<int32> trackerIds;
 			USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::Other, trackerIds);
@@ -206,36 +204,19 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				FTransform trackerTransform = FTransform::Identity;
 				if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(trackerId, trackerPosition, trackerRotation))
 				{
-					const FColor trackerColor = FColor::Purple;
+					const FColor trackerColor = FColor::Orange;
 					trackerTransform = FPhysicalObjectTrackingUtility::FixTrackerTransform(FTransform(trackerRotation, trackerPosition));
-					DrawAxisBox(PDI, trackerColor, trackerTransform);
-				}
 
-				for(const int32 baseId : deviceIds)
-				{
-					FVector basePosition;
-					FQuat baseRotation;
-					if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(baseId, basePosition, baseRotation))
+					FTransform trackerWorldTransform = reference->ApplyTransformation(trackerTransform.GetLocation(), trackerTransform.GetRotation());
+					if(worldReference != nullptr)
 					{
-						FColor baseColor = FColor::Cyan;
-						FString lightHouseSerialId{};
-						if (FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(baseId, lightHouseSerialId))
-						{
-							if(const auto lightHouseColor = FPhysicalObjectTrackingUtility::BaseStationColors.Find(lightHouseSerialId))
-							{
-								baseColor = *lightHouseColor;
-							}
-						}
-
-						FLinearColor rawColor = baseColor;
-						rawColor *= 0.5;
-
-						FTransform rawTransform = FTransform(baseRotation, basePosition);
-						DrawAxisBox(PDI, rawColor.ToFColor(false), rawTransform);
-
-						FTransform relativeTransform = rawTransform * trackerTransform.Inverse();
-						DrawAxisBox(PDI, baseColor, relativeTransform);
+						FTransform::Multiply(&trackerWorldTransform, &trackerWorldTransform, worldReference);
 					}
+					//DrawAxisBox(PDI, trackerColor, trackerWorldTransform);
+
+					FTransform trackerWorldTransformRelative = reference->GetTrackerWorldTransform(trackerTransform);
+					DrawAxisBox(PDI, trackerColor, trackerWorldTransformRelative);
+
 				}
 			}
 		}

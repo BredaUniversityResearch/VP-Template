@@ -33,23 +33,30 @@ class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingReferencePoint: public UD
 	GENERATED_BODY()
 
 public:
-	void SetTrackerCalibrationTransform(const FTransform& InTransform);
-	void SetBaseStationOffsetToOrigin(
+
+	void SetTrackerCalibrationTransform(const FTransform& Transform);
+	void SetBaseStationCalibrationTransform(
 		const FString& BaseStationSerialId, 
-		const FTransform& OffsetTransform, 
+		const FTransform& Transform, 
 		const FColor& Color, 
 		bool StaticCalibration);
 	void ResetBaseStationOffsets();
 
-	const FTransform& GetTrackerCalibrationTransform() const;\
-	const TMap<FString, FTransform>& GetBaseStationOffsetCalibrationTransforms() const;
+	const FTransform& GetTrackerCalibrationTransform() const;
+	const TMap<FString, FTransform>& GetBaseStationCalibrationTransforms() const;
 
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
+
+	FTransform GetTrackerWorldTransform(const FTransform& TrackerCurrentTransform) const;
+	//Only used for drawing debug visualizations, uses string lookups which are slow.
 	bool GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& WorldTransform) const;
 
 private:
 
-	
+	virtual void PostInitProperties() override;
+	//virtual void PostLoad() override;
+	void MapBaseStationIds();
+
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	FTransform TrackerCalibrationTransform;
 	/* Flips up/down rotation */
@@ -64,10 +71,12 @@ private:
 	//The offset to the origin point for all base stations.
 	//Stored with serial ids of the base stations as these don't change in-between different sessions, while device ids might.
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	TMap<FString, FTransform> BaseStationOffsetCalibrationTransforms;
-
+	TMap<FString, FTransform> BaseStationCalibrationTransforms;
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
+
+	UPROPERTY(Transient)
+	TMap<int32, FTransform> BaseStationIdToCalibrationTransform;
 
 };
 

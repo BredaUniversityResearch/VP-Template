@@ -12,9 +12,9 @@ class FGetBaseStationOffsetsTask : public FTickableEditorObject
 public:
 	FGetBaseStationOffsetsTask(
 		int32 InTargetTrackerId, 
-		int32 InTargetNumBaseStationOffsets,
-		const FTransform& InTargetTrackerNeutralOffsetToSteamVROrigin,
-		const TMap<int32, FTransform>& InCalibratedBaseStationOffsets);
+		int32 InTargetNumBaseStationTransforms,
+		const FTransform& InTargetTrackerCalibrationTransform,
+		const TMap<int32, FTransform>* InCalibratedBaseStationTransforms);
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -31,13 +31,13 @@ private:
 	float SampleDeltaTimeAccumulator{ 0.0f };
 	bool HasAcquiredTransforms{ false };
 
-	TMap<int32, FTrackerTransformHistory> BaseStationOffsets;
+	TMap<int32, FTrackerTransformHistory> BaseStationTransforms;
 	TMap<int32, FTransform> BaseStationResults;
 
-	const int32 TargetTrackerId;
-	const int32 TargetNumBaseStationOffsets;
-	//The offset between the SteamVR origin and Led Volume Origin (0,0,0) when the target tracker is at the Led Volume Origin (neutral position).
-	const FTransform TargetTrackerNeutralOffsetToSteamVROrigin;
-	const TMap<int32, FTransform> CalibratedBaseStationOffsets;
+	const int32 TargetTrackerId {-1};
+	const int32 TargetNumBaseStationTransforms;
+
+	const FTransform TargetTrackerCalibrationTransform;
+	const TMap<int32, FTransform>* CalibratedBaseStationTransforms;
 
 };

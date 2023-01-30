@@ -53,25 +53,6 @@ void FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(TArray<int
 	USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, DeviceIds);
 }
 
-FTransform FPhysicalObjectTrackingUtility::GetRelativeTransformToBaseStation(
-	const FVector& LocationTracker, 
-	const FQuat& RotationTracker, 
-	const FVector& LocationBaseStation, 
-	const FQuat& RotationBaseStation)
-{
-	static const FQuat BaseStationRotationFix = FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(90.0f));
-
-	const FVector relativeTranslation = RotationTracker.Inverse() * (LocationBaseStation - LocationTracker);
-	const FQuat relativeRotation = (RotationBaseStation * BaseStationRotationFix) * RotationTracker.Inverse();
-
-	return FTransform(relativeRotation, relativeTranslation);
-}
-
-FTransform FPhysicalObjectTrackingUtility::GetRelativeTransformToBaseStation(const FTransform& TransformTracker, const FTransform& TransformBaseStation)
-{
-	return GetRelativeTransformToBaseStation(TransformTracker.GetLocation(), TransformTracker.GetRotation(), TransformBaseStation.GetLocation(), TransformBaseStation.GetRotation());
-}
-
 FTransform FPhysicalObjectTrackingUtility::FixTrackerTransform(const FTransform& TrackerDeviceSpaceTransform)
 {
 	const FTransform TrackerRotationFix = FTransform(FQuat::MakeFromEuler(FVector(0.f, 90.f, 180.f)));

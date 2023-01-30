@@ -21,7 +21,7 @@ public:
 	float GetAverageRotationalVelocity() const;
 	const FTransform& GetLatest() const;
 	FTransform GetAveragedTransform(const UPhysicalObjectTrackingFilterSettings* FilterSettings) const;
-	FTransform GetAveragedTransform() const;
+	FTransform GetAveragedTransform(float SampleCountPercentage) const;
 
 	void SetFromFilterSettings(UPhysicalObjectTrackingFilterSettings* FilterSettings);
 
