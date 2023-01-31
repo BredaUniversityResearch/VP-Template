@@ -11,7 +11,7 @@ public:
 
 	void AddSample(const FTransform& a_Transform);
 	void ClearSampleHistory();
-	void TakeSample(int32 a_TargetTrackerId);
+	bool TakeSample(int32 a_TargetTrackerId);
 
 	bool HasCompleteHistory() const;
 	float GetMaxDistanceFromFirstSample() const;
@@ -21,6 +21,7 @@ public:
 	float GetAverageRotationalVelocity() const;
 	const FTransform& GetLatest() const;
 	FTransform GetAveragedTransform(const UPhysicalObjectTrackingFilterSettings* FilterSettings) const;
+	FTransform GetAveragedTransform(float SampleCountPercentage) const;
 
 	void SetFromFilterSettings(UPhysicalObjectTrackingFilterSettings* FilterSettings);
 

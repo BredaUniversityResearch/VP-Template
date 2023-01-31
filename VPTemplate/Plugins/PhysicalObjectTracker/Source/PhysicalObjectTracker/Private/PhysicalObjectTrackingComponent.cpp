@@ -1,11 +1,14 @@
 #include "PhysicalObjectTrackingComponent.h"
 
 #include "PhysicalObjectTracker.h"
+#include "PhysicalObjectTrackerSerialId.h"
 #include "PhysicalObjectTrackingFilterSettings.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "PhysicalObjectTrackingUtility.h"
 #include "SteamVRFunctionLibrary.h"
 #include "SteamVRInputDeviceFunctionLibrary.h"
+
+#include"Engine/EngineTypes.h"
 
 UPhysicalObjectTrackingComponent::UPhysicalObjectTrackingComponent(const FObjectInitializer& ObjectInitializer)
 {
@@ -20,9 +23,21 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 	Super::OnRegister();
 	if (FilterSettings != nullptr)
 	{
-		FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
+		FilterSettingsChangedHandle.Reset();      
+		FilterSettingsChangedHandle = FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
 	}
-	RefreshDeviceId();
+	if (TrackerSerialId != nullptr)
+	{
+		SerialIdChangedHandle.Reset();
+		SerialIdChangedHandle = TrackerSerialId->OnSerialIdChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback);
+		RefreshDeviceId();
+	}
+	if(TrackingSpaceReference != nullptr)
+	{
+		TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+	}
+
+	ExtractTransformationTargetComponentReferenceIfValid();
 	OnFilterSettingsChangedCallback();
 }
 
@@ -32,20 +47,24 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 	if (TrackingSpaceReference == nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(1, 30.0f, FColor::Red, 
-			FString::Format(TEXT("PhysicalObjectTrackingComponent does not have a reference referenced on object \"{0}\""), 
-				FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+			FString::Format(TEXT("PhysicalObjectTrackingComponent \"{0}\" does not have reference a tracking space on object \"{1}\""), 
+				FStringFormatOrderedArguments({GetName(),  GetOwner()->GetName() })));
 	}
+
+	TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+	
 }
 
 void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick Tick,
 	FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, Tick, ThisTickFunction);
+	if (TrackerSerialId == nullptr) { return; }
 
 	if (CurrentTargetDeviceId == -1)
-	{		
+	{
 		DeviceIdAcquireTimer += DeltaTime;
-		if (DeviceIdAcquireTimer < DeviceReacquireInterval)
+		if (DeviceIdAcquireTimer > DeviceReacquireInterval) 
 		{
 			RefreshDeviceId();
 			DeviceIdAcquireTimer -= DeviceReacquireInterval;
@@ -54,30 +73,32 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 	}
 
 	FVector trackedPosition;
-	FQuat trackedOrientation;
+	FQuat trackedOrientation;	
 	if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(CurrentTargetDeviceId, trackedPosition, trackedOrientation))
 	{
-		FTransform trackerFromReference;
+		FTransform trackerFromReference = FPhysicalObjectTrackingUtility::FixTrackerTransform(FTransform(trackedOrientation, trackedPosition));
 		if (TrackingSpaceReference != nullptr)
 		{
-			trackerFromReference = TrackingSpaceReference->ApplyTransformation(trackedPosition, trackedOrientation);
-		}
-		else
-		{
-			trackerFromReference = FTransform(trackedOrientation, trackedPosition);
+			trackerFromReference = TrackingSpaceReference->GetTrackerWorldTransform(trackerFromReference);
 		}
 
 		if (WorldReferencePoint != nullptr)
 		{
 			trackerFromReference.SetLocation(WorldReferencePoint->GetActorTransform().TransformPosition(trackerFromReference.GetLocation()));
-			//trackerFromReference.SetLocation((WorldReferencePoint->GetActorTransform().GetRotation() * trackerFromReference.GetLocation()) + WorldReferencePoint->GetActorTransform().GetLocation());
 			trackerFromReference.SetRotation(WorldReferencePoint->GetActorTransform().TransformRotation(trackerFromReference.GetRotation()));
 		}
 
 		m_TransformHistory.AddSample(trackerFromReference);
-		FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
+		const FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
 
-		GetOwner()->SetActorTransform(filteredTransform);
+		if(HasTransformationTargetComponent && TransformationTargetComponent != nullptr)
+		{
+			TransformationTargetComponent.Get()->SetWorldTransform(filteredTransform);
+		}
+		else if(!HasTransformationTargetComponent)
+		{
+			GetOwner()->SetActorTransform(filteredTransform);
+		}
 	}
 	else
 	{
@@ -86,6 +107,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 	}
 
 }
+
 #if WITH_EDITOR
 void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -93,12 +115,15 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 
 	if (PropertyChangedEvent.MemberProperty != nullptr)
 	{
-		if (PropertyChangedEvent.MemberProperty->HasMetaData("DeviceSerialId"))
+		//TODO: check if this event is enough to update device id if serial id changes
+		//either by being set in the property or the data asset being changed.
+		if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TrackerSerialId")))
 		{
-			RefreshDeviceId();
-			if (CurrentTargetDeviceId == -1)
+			SerialIdChangedHandle.Reset();
+			if (TrackerSerialId != nullptr)
 			{
-				DeviceIdAcquireTimer = 0.0f;
+				SerialIdChangedHandle = TrackerSerialId->OnSerialIdChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback);
+				OnTrackerSerialIdChangedCallback();
 			}
 		}
 		else if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("FilterSettings")))
@@ -106,23 +131,40 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 			FilterSettingsChangedHandle.Reset();
 			if (FilterSettings != nullptr)
 			{
-				FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
+				FilterSettingsChangedHandle = FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
 			}
+		}
+		else if(PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TrackingSpaceReference")))
+		{
+			if(TrackingSpaceReference != nullptr)
+			{
+				TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+			}
+		}
+		else if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TransformationTargetComponentReference")))
+		{
+			ExtractTransformationTargetComponentReferenceIfValid();
 		}
 	}
 }
 #endif
-void UPhysicalObjectTrackingComponent::SelectTracker()
-{
-	auto& TrackerEditorModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
-	TrackerEditorModule.DeviceDetectionEvent.Broadcast(this);
-	
-}
 
 void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 {
+	if (TrackerSerialId == nullptr || TrackerSerialId->GetSerialId().IsEmpty())
+	{
+		CurrentTargetDeviceId = -1;
+		if(GetOwner() != nullptr)
+		{
+			GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
+				FString::Format(TEXT("PhysicalObjectTrackingComponent is refreshing the device id without a valid TrackerSerialId referenced on object \"{0}\""),
+					FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+		}
+		return;
+	}
+
 	int32 foundDeviceId;
-	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(SerialId, foundDeviceId))
+	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(TrackerSerialId->GetSerialId(), foundDeviceId))
 	{
 		if (CurrentTargetDeviceId != foundDeviceId)
 		{
@@ -160,4 +202,39 @@ void UPhysicalObjectTrackingComponent::DebugCheckIfTrackingTargetExists() const
 void UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback()
 {
 	m_TransformHistory.SetFromFilterSettings(FilterSettings);
+}
+
+void UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback()
+{
+	RefreshDeviceId();
+	if (CurrentTargetDeviceId == -1)
+	{
+		DeviceIdAcquireTimer = 0.0f;
+	}
+}
+
+void UPhysicalObjectTrackingComponent::ExtractTransformationTargetComponentReferenceIfValid()
+{
+    AActor* owningActor =  GetOwner();
+	if (HasTransformationTargetComponent && owningActor != nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Blue, FString(TEXT("ExtractingComponentReference")));
+		UActorComponent* transformationTargetActorComponent = TransformationTargetComponentReference.GetComponent(owningActor);
+		if (transformationTargetActorComponent != nullptr)
+		{
+			TransformationTargetComponent = Cast<USceneComponent>(transformationTargetActorComponent);
+			if (TransformationTargetComponent == nullptr)
+			{
+				GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
+					FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a component that is or inherits from a scene component as movement target component. Component in actor: \"{0}\""),
+						FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+			}
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
+				FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a valid component as movement target component. Component in actor: \"{0}\""),
+					FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+		}
+	}
 }

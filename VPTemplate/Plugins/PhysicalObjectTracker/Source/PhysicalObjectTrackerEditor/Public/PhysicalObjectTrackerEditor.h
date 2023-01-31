@@ -4,10 +4,8 @@
 
 class FComponentVisualizer;
 class FPhysicalObjectTrackingReferenceCalibrationHandler;
-class FDetectTrackerShakeTask;
+class FPhysicalObjectTrackerSerialIdSelectionHandler;
 class UPhysicalObjectTrackingReferencePoint;
-
-DECLARE_DELEGATE_OneParam(FShakeTaskFinished, uint32)
 
 class FPhysicalObjectTrackerEditor : public IModuleInterface
 {
@@ -20,14 +18,9 @@ public:
 	static void DebugDrawTrackingReferenceLocations(const UPhysicalObjectTrackingReferencePoint* PhysicalReferencePoint, const FTransform* WorldTransform);
 
 private:
-	void OnDeviceDetectionStarted(class UPhysicalObjectTrackingComponent* TargetTrackingComponent);
-
-	void StopDeviceSelection();
 
 	TUniquePtr<FPhysicalObjectTrackingReferenceCalibrationHandler> m_TrackingCalibrationHandler{};
-
-	TUniquePtr<FDetectTrackerShakeTask> m_ShakeDetectTask;
-	TSharedPtr<SNotificationItem> m_ShakeProcessNotification;
+	TUniquePtr<FPhysicalObjectTrackerSerialIdSelectionHandler> m_TrackerSerialIdSelectionHandler{};
 
 	TSharedPtr<FComponentVisualizer> m_ComponentVisualizer;
 

@@ -38,3 +38,23 @@ bool FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(FString SerialId, 
 	return false;
 }
 
+bool FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(int32 SteamVRDeviceId, FString& SerialId)
+{
+	if(GEngine && GEngine->XRSystem && SteamVRDeviceId != -1)
+	{
+		SerialId = GEngine->XRSystem->GetTrackedDevicePropertySerialNumber(SteamVRDeviceId);
+		return(!SerialId.IsEmpty());
+	}
+	return false;
+}
+
+void FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(TArray<int32>& DeviceIds)
+{
+	USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, DeviceIds);
+}
+
+FTransform FPhysicalObjectTrackingUtility::FixTrackerTransform(const FTransform& TrackerDeviceSpaceTransform)
+{
+	const FTransform TrackerRotationFix = FTransform(FQuat::MakeFromEuler(FVector(0.f, 90.f, 180.f)));
+	return TrackerRotationFix * TrackerDeviceSpaceTransform;
+}

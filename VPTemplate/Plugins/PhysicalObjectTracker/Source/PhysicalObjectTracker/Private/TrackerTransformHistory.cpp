@@ -50,18 +50,19 @@ void FTrackerTransformHistory::ClearSampleHistory()
 	m_History.Reset();
 }
 
-void FTrackerTransformHistory::TakeSample(int32 a_TargetTrackerId)
+bool FTrackerTransformHistory::TakeSample(int32 a_TargetTrackerId)
 {
 	FVector trackerPosition;
 	FQuat trackerRotation;
 	if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(a_TargetTrackerId, trackerPosition, trackerRotation))
 	{
 		AddSample(FTransform(trackerRotation, trackerPosition));
-		
+		return true;
 	}
 	else
 	{
 		ClearSampleHistory();
+		return false;
 	}
 }
 
@@ -127,6 +128,14 @@ FTransform FTrackerTransformHistory::GetAveragedTransform(const UPhysicalObjectT
 		GetAverageRotationalVelocity(), FilterSettings->MinExpectedRotationalVelocity, FilterSettings->MaxExpectedRotationalVelocity));
 
 	return GetAveragedTransformOverSampleCount(sampleCount);
+}
+
+FTransform FTrackerTransformHistory::GetAveragedTransform(float SampleCountPercentage) const
+{
+	check(m_History.Num() > 0);
+	const int samplesToTake = FMath::CeilToInt(static_cast<float>(m_History.Num()) * SampleCountPercentage);
+	check(samplesToTake > 0);
+	return GetAveragedTransformOverSampleCount(samplesToTake);
 }
 
 void FTrackerTransformHistory::SetFromFilterSettings(UPhysicalObjectTrackingFilterSettings* FilterSettings)

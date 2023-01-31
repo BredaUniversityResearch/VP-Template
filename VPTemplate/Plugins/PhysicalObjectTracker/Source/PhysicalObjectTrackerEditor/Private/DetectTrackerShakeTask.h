@@ -4,6 +4,8 @@
 #include "Containers/RingBuffer.h"
 #include "PhysicalObjectTrackerEditor.h"
 
+DECLARE_DELEGATE_OneParam(FShakeTaskFinished, uint32)
+
 struct FTrackerTransform
 {
 public:
