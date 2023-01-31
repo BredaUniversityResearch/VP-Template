@@ -23,14 +23,21 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 	Super::OnRegister();
 	if (FilterSettings != nullptr)
 	{
+		FilterSettingsChangedHandle.Reset();      
 		FilterSettingsChangedHandle = FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
 	}
 	if (TrackerSerialId != nullptr)
 	{
+		SerialIdChangedHandle.Reset();
 		SerialIdChangedHandle = TrackerSerialId->OnSerialIdChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback);
 		RefreshDeviceId();
 	}
-	ExtractComponentReferenceIfValid();
+	if(TrackingSpaceReference != nullptr)
+	{
+		TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+	}
+
+	ExtractTransformationTargetComponentReferenceIfValid();
 	OnFilterSettingsChangedCallback();
 }
 
@@ -43,6 +50,8 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 			FString::Format(TEXT("PhysicalObjectTrackingComponent \"{0}\" does not have reference a tracking space on object \"{1}\""), 
 				FStringFormatOrderedArguments({GetName(),  GetOwner()->GetName() })));
 	}
+
+	TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
 	
 }
 
@@ -70,7 +79,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		FTransform trackerFromReference = FPhysicalObjectTrackingUtility::FixTrackerTransform(FTransform(trackedOrientation, trackedPosition));
 		if (TrackingSpaceReference != nullptr)
 		{
-			trackerFromReference = TrackingSpaceReference->ApplyTransformation(trackerFromReference.GetLocation(), trackerFromReference.GetRotation());
+			trackerFromReference = TrackingSpaceReference->GetTrackerWorldTransform(trackerFromReference);
 		}
 
 		if (WorldReferencePoint != nullptr)
@@ -114,11 +123,7 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 			if (TrackerSerialId != nullptr)
 			{
 				SerialIdChangedHandle = TrackerSerialId->OnSerialIdChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback);
-				RefreshDeviceId();
-				if (CurrentTargetDeviceId == -1)
-				{
-					DeviceIdAcquireTimer = 0.0f;
-				}
+				OnTrackerSerialIdChangedCallback();
 			}
 		}
 		else if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("FilterSettings")))
@@ -129,9 +134,16 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 				FilterSettingsChangedHandle = FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
 			}
 		}
+		else if(PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TrackingSpaceReference")))
+		{
+			if(TrackingSpaceReference != nullptr)
+			{
+				TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+			}
+		}
 		else if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TransformationTargetComponentReference")))
 		{
-			ExtractComponentReferenceIfValid();
+			ExtractTransformationTargetComponentReferenceIfValid();
 		}
 	}
 }
@@ -139,7 +151,7 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 
 void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 {
-	if (TrackerSerialId == nullptr || TrackerSerialId->SerialId.IsEmpty())
+	if (TrackerSerialId == nullptr || TrackerSerialId->GetSerialId().IsEmpty())
 	{
 		CurrentTargetDeviceId = -1;
 		if(GetOwner() != nullptr)
@@ -152,7 +164,7 @@ void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 	}
 
 	int32 foundDeviceId;
-	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(TrackerSerialId->SerialId, foundDeviceId))
+	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(TrackerSerialId->GetSerialId(), foundDeviceId))
 	{
 		if (CurrentTargetDeviceId != foundDeviceId)
 		{
@@ -201,7 +213,7 @@ void UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback()
 	}
 }
 
-void UPhysicalObjectTrackingComponent::ExtractComponentReferenceIfValid()
+void UPhysicalObjectTrackingComponent::ExtractTransformationTargetComponentReferenceIfValid()
 {
     AActor* owningActor =  GetOwner();
 	if (HasTransformationTargetComponent && owningActor != nullptr)

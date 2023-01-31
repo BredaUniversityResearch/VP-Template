@@ -37,7 +37,7 @@ private:
 	void DebugCheckIfTrackingTargetExists() const;
 	void OnFilterSettingsChangedCallback();
 	void OnTrackerSerialIdChangedCallback();
-	void ExtractComponentReferenceIfValid();
+	void ExtractTransformationTargetComponentReferenceIfValid();
 
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingReferencePoint* TrackingSpaceReference{nullptr};
@@ -45,6 +45,7 @@ private:
 	AActor* WorldReferencePoint{nullptr};
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingFilterSettings* FilterSettings;
+
 	FDelegateHandle FilterSettingsChangedHandle;
 	FDelegateHandle SerialIdChangedHandle;
 	
@@ -52,7 +53,7 @@ private:
 		meta = (ToolTip = "Configure a component to move according to the tracker, otherwise moves this component's actor."))
 	bool HasTransformationTargetComponent;
 	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
-		meta = (EditCondition = "HasTransformationTargetComponent", EditConditionHides, ToolTip="Leave the Actor field empty to specify a component on this actor."))
+		meta = (ToolTip="Leave the Actor field empty to specify a component on this actor.", EditCondition = "HasTransformationTargetComponent", EditConditionHides))
 	FComponentReference TransformationTargetComponentReference;
 	UPROPERTY(Transient, VisibleAnywhere, Category = "PhysicalObjectTrackingComponent")
 	TObjectPtr<USceneComponent> TransformationTargetComponent {nullptr};

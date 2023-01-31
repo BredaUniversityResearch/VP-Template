@@ -116,7 +116,7 @@ namespace
 		DrawDirectionalArrow(PDI, transformationMatrixRight, FColor::Green, 50.f, 10.f, 0, 1.f);		//Y-axis
 	}
 
-	void DrawBaseStationReference(FPrimitiveDrawInterface* PDI, const FColor& Color, const FTransform& Transformation)
+	void DrawBaseStationReference(FPrimitiveDrawInterface* PDI, const FColor& Color, const FTransform& Transformation, float LineThickness = 2.f)
 	{
 		DrawAxisBox(PDI, Color, Transformation);
 		DrawWireFrustrum2(PDI, Transformation.ToMatrixNoScale(), 
@@ -124,7 +124,7 @@ namespace
 			LighthouseV2HorizontalFov / LighthouseV2VerticalFov, 
 			LighthouseV2MinTrackingDistance, 
 			LighthouseV2MaxTrackingDistance, 
-			Color, 0, 2.0f);
+			Color, 0, LineThickness);
 	}
 }
 
@@ -182,7 +182,7 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 
 							constexpr float colorRatio = 0.7;
 							const FColor offsetColor(lightHouseColor.R * colorRatio, lightHouseColor.G * colorRatio, lightHouseColor.B * colorRatio);
-							DrawBaseStationReference(PDI, offsetColor, offsetTransform);
+							DrawBaseStationReference(PDI, offsetColor, offsetTransform, 3.f);
 						}
 					}
 
@@ -207,14 +207,18 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 					const FColor trackerColor = FColor::Orange;
 					trackerTransform = FPhysicalObjectTrackingUtility::FixTrackerTransform(FTransform(trackerRotation, trackerPosition));
 
-					FTransform trackerWorldTransform = reference->ApplyTransformation(trackerTransform.GetLocation(), trackerTransform.GetRotation());
+					/*FTransform trackerWorldTransform = reference->ApplyTransformation(trackerTransform.GetLocation(), trackerTransform.GetRotation());
 					if(worldReference != nullptr)
 					{
 						FTransform::Multiply(&trackerWorldTransform, &trackerWorldTransform, worldReference);
 					}
-					//DrawAxisBox(PDI, trackerColor, trackerWorldTransform);
+					DrawAxisBox(PDI, trackerColor, trackerWorldTransform);*/
 
 					FTransform trackerWorldTransformRelative = reference->GetTrackerWorldTransform(trackerTransform);
+					if (worldReference != nullptr)
+					{
+						FTransform::Multiply(&trackerWorldTransformRelative, &trackerWorldTransformRelative, worldReference);
+					}
 					DrawAxisBox(PDI, trackerColor, trackerWorldTransformRelative);
 
 				}

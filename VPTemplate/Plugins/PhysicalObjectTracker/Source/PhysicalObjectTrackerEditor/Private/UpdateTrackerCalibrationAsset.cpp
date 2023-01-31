@@ -104,13 +104,10 @@ void FUpdateTrackerCalibrationAsset::OnTrackerTransformAcquired(const FTransform
 	CalibratedBaseStationOffsets.Append(BaseStationOffsets);
 	CalibratedBaseStationOffsets.GetKeys(StaticallyCalibratedBaseStations);
 
-	GetBaseStationOffsetsTask = MakeUnique<FGetBaseStationOffsetsTask>(
-		TrackerId,
-		MinBaseStationsCalibrated,
-		TrackerTransform,
-		&CalibratedBaseStationOffsets);
+	GetBaseStationOffsetsTask = MakeUnique<FGetBaseStationOffsetsTask>(MinBaseStationsCalibrated, &CalibratedBaseStationOffsets);
 	
 	m_ProcessNotification->SetText(LOCTEXT("WaitingForBaseStationDetection", "Move around the tracker to detect the base stations..."));
+	m_ProcessNotification->Pulse(FColor::Cyan);
 }
 
 void FUpdateTrackerCalibrationAsset::OnBaseStationOffsetsAcquired(const TMap<int32, FTransform>& CalculatedBaseStationOffsets)

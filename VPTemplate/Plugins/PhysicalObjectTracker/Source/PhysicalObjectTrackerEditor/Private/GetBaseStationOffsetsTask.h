@@ -11,9 +11,7 @@ class FGetBaseStationOffsetsTask : public FTickableEditorObject
 
 public:
 	FGetBaseStationOffsetsTask(
-		int32 InTargetTrackerId, 
 		int32 InTargetNumBaseStationTransforms,
-		const FTransform& InTargetTrackerCalibrationTransform,
 		const TMap<int32, FTransform>* InCalibratedBaseStationTransforms);
 
 	virtual void Tick(float DeltaTime) override;
@@ -33,11 +31,9 @@ private:
 
 	TMap<int32, FTrackerTransformHistory> BaseStationTransforms;
 	TMap<int32, FTransform> BaseStationResults;
-
-	const int32 TargetTrackerId {-1};
+	
 	const int32 TargetNumBaseStationTransforms;
-
-	const FTransform TargetTrackerCalibrationTransform;
+	
 	const TMap<int32, FTransform>* CalibratedBaseStationTransforms;
 
 };

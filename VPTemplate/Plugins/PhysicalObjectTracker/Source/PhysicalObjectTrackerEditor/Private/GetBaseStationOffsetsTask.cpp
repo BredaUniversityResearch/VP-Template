@@ -3,14 +3,10 @@
 #include "PhysicalObjectTrackingUtility.h"
 
 FGetBaseStationOffsetsTask::FGetBaseStationOffsetsTask(
-	int32 InTargetTrackerId,
 	int32 InTargetNumBaseStationTransforms,
-	const FTransform& InTargetTrackerCalibrationTransform,
 	const TMap<int32, FTransform>* InCalibratedBaseStationTransforms)
 	:
-TargetTrackerId(InTargetTrackerId),
 TargetNumBaseStationTransforms(InTargetNumBaseStationTransforms),
-TargetTrackerCalibrationTransform(InTargetTrackerCalibrationTransform),
 CalibratedBaseStationTransforms(InCalibratedBaseStationTransforms)
 {
 	check(InCalibratedBaseStationTransforms != nullptr)
@@ -56,15 +52,6 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(baseStationIds);
 	if (baseStationIds.IsEmpty()) { return; }
 
-	FVector trackerLocation;
-	FQuat trackerRotation;
-	if(!FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(TargetTrackerId, trackerLocation, trackerRotation))
-	{
-		return;	//If the target tracker could not be tracker, we can not get the relative offsets to the base stations so no need to sample the base stations and simply return.
-	}
-
-	const FTransform trackerTransform = FTransform(trackerRotation, trackerLocation) * TargetTrackerCalibrationTransform.Inverse();
-
 	for(int32 id: baseStationIds)
 	{
 		//Only sample base stations that are not yet calibrated.
@@ -76,9 +63,7 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 			FQuat baseStationRotation;
 			if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(id, baseStationLocation, baseStationRotation))
 			{
-				const FTransform baseStationTransform = FTransform(baseStationRotation, baseStationLocation);
-				const FTransform originToBaseStation = trackerTransform * baseStationTransform;
-				samples.AddSample(originToBaseStation);
+				samples.AddSample(FTransform(baseStationRotation, baseStationLocation));
 			}
 		}
 	}

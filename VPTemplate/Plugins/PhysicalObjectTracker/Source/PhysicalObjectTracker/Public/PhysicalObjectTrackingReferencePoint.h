@@ -45,17 +45,26 @@ public:
 	const FTransform& GetTrackerCalibrationTransform() const;
 	const TMap<FString, FTransform>& GetBaseStationCalibrationTransforms() const;
 
+	//Used for getting base station transformations (legacy function for tracking trackers).
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
 
+	//Get the tracker's world transform. Expects SteamVR space input but with the tracker rotation fix applied to it.
+	//(FPhysicalObjectTrackingUtility::FixTrackerTransform())
 	FTransform GetTrackerWorldTransform(const FTransform& TrackerCurrentTransform) const;
 	//Only used for drawing debug visualizations, uses string lookups which are slow.
 	bool GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& WorldTransform) const;
 
+	void UpdateRuntimeDataIfNeeded();
+
 private:
 
+	virtual void PostLoad() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostInitProperties() override;
-	//virtual void PostLoad() override;
-	void MapBaseStationIds();
+	virtual void PostReinitProperties() override;
+
+	bool HasMappedAllBaseStations() const;
+	bool MapBaseStationIds();
 
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	FTransform TrackerCalibrationTransform;

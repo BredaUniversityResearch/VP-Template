@@ -13,9 +13,14 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
-	FString SerialId;
+	void SetSerialId(const FString& InSerialId);
+	const FString& GetSerialId() const;
 
 	FOnSerialIdChanged OnSerialIdChanged;
+
+private:
+
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
+	FString SerialId;
 
 };
