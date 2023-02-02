@@ -26,7 +26,7 @@ public class DataLink : ModuleRules
 			new string[]
 			{
 				"Core",
-				"Messaging"
+				"Networking"
 			}
 			);
 			
