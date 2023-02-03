@@ -27,7 +27,8 @@ public class DataLink : ModuleRules
 			{
 				"Core",
 				"Networking",
-				"Sockets"
+				"Sockets",
+				"Json"
 			}
 			);
 			
