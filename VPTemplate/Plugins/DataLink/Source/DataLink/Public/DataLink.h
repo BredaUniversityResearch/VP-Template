@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+class FTCPMessagingServer;
+
 class FDataLinkModule : public IModuleInterface
 {
 public:
@@ -12,6 +14,11 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+private:
+
+	TUniquePtr<FTCPMessagingServer> MessagingServer;
+
 };
 
 // - Application or Unreal Engine has event that happens when a take starts recording. (How do we detect when a take starts? Can it be done through unreal? Is it already being done in the data wrangler?)

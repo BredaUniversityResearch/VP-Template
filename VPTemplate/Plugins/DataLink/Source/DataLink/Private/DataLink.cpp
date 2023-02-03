@@ -1,12 +1,16 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "DataLink.h"
+#include "TCPMessagingServer.h"
 
 #define LOCTEXT_NAMESPACE "FDataLinkModule"
 
 void FDataLinkModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+
+	MessagingServer = MakeUnique<FTCPMessagingServer>();
+	MessagingServer->Initialize();
 }
 
 void FDataLinkModule::ShutdownModule()

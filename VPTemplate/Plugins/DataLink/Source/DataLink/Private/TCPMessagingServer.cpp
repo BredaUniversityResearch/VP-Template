@@ -3,12 +3,17 @@
 #include "MessageEndpoint.h"
 #include "MessageEndpointBuilder.h"
 
+FTCPMessagingServer::FTCPMessagingServer()
+    :
+Listener(nullptr)
+{}
+
 void FTCPMessagingServer::Initialize()
 {
 
-	Listener = FTcpListener(FIPv4Endpoint::Any);
-	Listener.OnConnectionAccepted().BindRaw(this, &FTCPMessagingServer::OnConnectionAccepted);
-	Listener.Init();
+	Listener = MakeUnique<FTcpListener>(FIPv4Endpoint(FIPv4Address::Any, 5000));
+	Listener->OnConnectionAccepted().BindRaw(this, &FTCPMessagingServer::OnConnectionAccepted);
+	Listener->Init();
 
 }
 

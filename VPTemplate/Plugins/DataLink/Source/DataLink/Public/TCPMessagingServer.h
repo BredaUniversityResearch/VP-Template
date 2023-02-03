@@ -12,6 +12,8 @@ public:
 	//- A way to process requests that arrive from clients, which can be used to request data for certain time codes or start a data stream etc.
 	//- Maybe functions to encode messages.
 
+	FTCPMessagingServer();
+
 	//Initialize the server to listen at a certain (or all) Ip address(es) and a certain port for incoming connection requests.
 	void Initialize(/*IpAddress = IpAddress::Any, Port*/);
 
@@ -19,6 +21,6 @@ private:
 
 	bool OnConnectionAccepted(FSocket* Socket, const FIPv4Endpoint& RemoteEndPoint);
 
-	FTcpListener Listener;
+	TUniquePtr<FTcpListener> Listener;
 
 };
