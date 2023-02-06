@@ -55,7 +55,7 @@ private:
 	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
 		meta = (ToolTip="Leave the Actor field empty to specify a component on this actor.", EditCondition = "HasTransformationTargetComponent", EditConditionHides))
 	FComponentReference TransformationTargetComponentReference;
-	UPROPERTY(Transient, VisibleAnywhere, Category = "PhysicalObjectTrackingComponent")
+	UPROPERTY(Transient, Category = "PhysicalObjectTrackingComponent", VisibleInstanceOnly)
 	TObjectPtr<USceneComponent> TransformationTargetComponent {nullptr};
 
 	UPROPERTY(Transient)

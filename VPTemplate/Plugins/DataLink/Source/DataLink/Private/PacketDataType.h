@@ -1,6 +1,6 @@
 #pragma once
 
-//Disclaimer: Trick learned from Jens, I take no responsibility but I will put it in my learning log:
+//Disclaimer: Trick learned from Jens:
 //https://stackoverflow.com/questions/21295935/can-a-c-enum-class-have-methods
 class EPacketDataType
 {

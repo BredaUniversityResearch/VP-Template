@@ -1,5 +1,6 @@
 #include "TCPMessaging.h"
 
+#include "DataPacket.h"
 #include "MessageEndpoint.h"
 #include "MessageEndpointBuilder.h"
 
@@ -34,7 +35,7 @@ bool FTCPMessaging::ConnectToSocket(
     int32 SendBufferSize,
     int32 ReceiveBufferSize)
 {
-    if(Socket)
+    if(Socket.IsValid())
     {
         Socket->Close();
         ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket.Get());
@@ -45,7 +46,7 @@ bool FTCPMessaging::ConnectToSocket(
     socketBuilder.WithSendBufferSize(FMath::Max(SendBufferSize, 0));
     socketBuilder.WithReceiveBufferSize(FMath::Max(ReceiveBufferSize, 0));
 
-    if(Socket)
+    if(Socket.IsValid())
     {
         Socket.Reset(socketBuilder.Build());
     }
@@ -72,5 +73,18 @@ bool FTCPMessaging::Send(const TArray<uint8>& Data) const
         int32 sentSize = 0;
         return Socket->Send(Data.GetData(), Data.Num(), sentSize);
 	}
+    return false;
+}
+
+bool FTCPMessaging::Send(const FDataPacket& Packet) const
+{
+    if(Socket)
+    {
+        TArray<uint8> packetData;
+        Packet.Serialize(packetData);
+
+        int32 sentSize = 0;
+        return Socket->Send(packetData.GetData(), packetData.Num(), sentSize);
+    }
     return false;
 }

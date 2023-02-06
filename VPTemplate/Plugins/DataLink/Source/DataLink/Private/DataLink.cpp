@@ -5,6 +5,7 @@
 #include "Editor.h"
 #include "HAL/ConsoleManager.h"
 #include "TCPMessaging.h"
+#include "Engine/TimecodeProvider.h"
 
 DEFINE_LOG_CATEGORY(LogDataLink)
 
@@ -29,6 +30,8 @@ void FDataLinkModule::StartupModule()
 		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSendCommand),
 		0);
 #endif
+
+	
 
 }
 

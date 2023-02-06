@@ -2,6 +2,8 @@
 
 #include "Networking.h"
 
+class FDataPacket;
+
 class DATALINK_API FTCPMessaging
 {
 public:
@@ -13,8 +15,7 @@ public:
 
 	bool ConnectToSocket(const FIPv4Endpoint& RemoteEndpoint, int32 SendBufferSize = 1024, int32 ReceiveBufferSize = 0);
 	bool Send(const TArray<uint8>& Data) const;
-
-	
+	bool Send(const FDataPacket& Packet) const;
 
 private:
 
