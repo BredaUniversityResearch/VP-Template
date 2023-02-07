@@ -9,6 +9,7 @@
 #include "SteamVRInputDeviceFunctionLibrary.h"
 
 #include"Engine/EngineTypes.h"
+#include "Engine/TimecodeProvider.h"
 
 UPhysicalObjectTrackingComponent::UPhysicalObjectTrackingComponent(const FObjectInitializer& ObjectInitializer)
 {
@@ -25,7 +26,7 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 	//Should never fail as this is in the same module.
 	//TODO: check if there is a function that returns the current module instead of using string lookup for the module.
 	const FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
-	trackerModule.OnTrackingComponentRegistered.Broadcast(this->AsShared());
+	trackerModule.OnTrackingComponentRegistered.Broadcast(AsShared());
 
 	if (FilterSettings != nullptr)
 	{
@@ -87,7 +88,10 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		if (TrackingSpaceReference != nullptr)
 		{
 			trackerFromReference = TrackingSpaceReference->GetTrackerWorldTransform(trackerFromReference);
-			OnTrackerTransformUpdate.Broadcast(*this, trackerFromReference); //TODO: maybe change this from being a delegate to a buffer for better performance (async).
+
+			//GEngine->GetTimecodeProvider(); TODO: Seems like FApp::GetTimecode uses this under the hood but it might be necessary to use it directly?
+			FTimecode currentTimeCode = FApp::GetTimecode();
+			OnTrackerTransformUpdate.Broadcast(*this, currentTimeCode, trackerFromReference); //TODO: maybe change this from being a delegate to a buffer for better performance (async).
 		}
 
 		if (WorldReferencePoint != nullptr)

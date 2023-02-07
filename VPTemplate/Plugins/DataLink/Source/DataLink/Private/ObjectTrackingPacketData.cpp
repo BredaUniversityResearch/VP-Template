@@ -11,7 +11,7 @@ TrackerSerialId(InTrackerSerialId),
 TrackerTransform(InTrackerTransform)
 {}
 
-FObjectTrackingData::~FObjectTrackingPacketData()
+FObjectTrackingPacketData::~FObjectTrackingPacketData()
 {}
 
 void FObjectTrackingPacketData::Serialize(TSharedPtr<FJsonObject> JsonDataObject) const

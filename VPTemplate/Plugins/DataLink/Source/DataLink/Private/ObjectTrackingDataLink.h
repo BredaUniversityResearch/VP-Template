@@ -8,6 +8,7 @@ class FObjectTrackingDataLink
 public:
 
     FObjectTrackingDataLink(const TSharedPtr<FTCPMessaging>& Messaging);
+    ~FObjectTrackingDataLink();
 
 private:
 
@@ -18,6 +19,8 @@ private:
         const FTransform& Transform) const;
 
     FDelegateHandle OnTrackerRegisteredDelegate;
+    TArray<FDelegateHandle> TrackerTransformUpdateDelegates;
+
     TSharedPtr<FTCPMessaging> Messaging;
 
 };

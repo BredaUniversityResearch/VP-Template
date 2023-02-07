@@ -15,10 +15,15 @@ Messaging(InMessaging)
     }
 }
 
+FObjectTrackingDataLink::~FObjectTrackingDataLink()
+{
+    OnTrackerRegisteredDelegate.Reset();
+}
+
 void FObjectTrackingDataLink::OnTrackerRegistered(TSharedRef<UPhysicalObjectTrackingComponent> Component)
 {
-    FDelegateHandle trackerUpdateDelegate =  Component->OnTrackerTransformUpdate.AddRaw(this, &FObjectTrackingDataLink::OnTrackerTransformUpdate);
-    //TODO: is it necessary to keep track of the trackers that have been registered?
+    const FDelegateHandle trackerUpdateDelegate = Component->OnTrackerTransformUpdate.AddRaw(this, &FObjectTrackingDataLink::OnTrackerTransformUpdate);
+    TrackerTransformUpdateDelegates.Add(trackerUpdateDelegate);
 }
 
 void FObjectTrackingDataLink::OnTrackerTransformUpdate(
@@ -37,6 +42,11 @@ void FObjectTrackingDataLink::OnTrackerTransformUpdate(
 
     const TSharedPtr<FObjectTrackingPacketData> packetData = 
         MakeShared<FObjectTrackingPacketData>(trackerAssetName, trackerSerialId, Transform);
-    FDataPacket packet(TimeCode, packetData);
+    const FDataPacket packet(TimeCode, packetData);
+
+    if(Messaging.IsValid())
+    {
+        [[maybe_unused]] const bool sent = Messaging->Send(packet);
+    }
 
 }
