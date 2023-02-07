@@ -18,12 +18,12 @@ public:
 		const EPacketDataType DataType;
 	};
 
-	class NoData final : public IData
+	class FNoData final : public IData
 	{
 	public:
 
-		NoData();
-		virtual ~NoData() override;
+		FNoData();
+		virtual ~FNoData() override;
 
 		virtual void Serialize(TSharedPtr<FJsonObject> JsonDataObject) const override;
 	};

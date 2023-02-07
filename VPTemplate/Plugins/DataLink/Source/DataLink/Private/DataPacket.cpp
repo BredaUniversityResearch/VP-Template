@@ -17,7 +17,9 @@ void FDataPacket::Serialize(TArray<uint8>& OutData) const
 
 	if(Data.IsValid())
 	{
-		Data->Serialize(jsonDataPacket);
+		const TSharedPtr<FJsonObject> jsonDataObject = MakeShareable(new FJsonObject());
+		Data->Serialize(jsonDataObject);
+		jsonDataPacket->SetObjectField("Data", jsonDataObject);
 	}
 
 	FString jsonDataString;
@@ -58,13 +60,13 @@ FDataPacket::IData::~IData()
 
 
 
-FDataPacket::NoData::NoData()
+FDataPacket::FNoData::FNoData()
 	:
 IData(EPacketDataType::NONE)
 {}
 
-FDataPacket::NoData::~NoData()
+FDataPacket::FNoData::~FNoData()
 {}
 
-void FDataPacket::NoData::Serialize(TSharedPtr<FJsonObject> JsonDataObject) const
+void FDataPacket::FNoData::Serialize(TSharedPtr<FJsonObject> JsonDataObject) const
 {}

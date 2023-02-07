@@ -4,11 +4,13 @@
 
 #include "PhysicalObjectTrackingComponent.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FTrackerTransformUpdate, const UPhysicalObjectTrackingComponent&, const FTimecode&, const FTransform&)
+
 class UPhysicalObjectTrackingFilterSettings;
 class UPhysicalObjectTrackingReferencePoint;
 class UPhysicalObjectTrackerSerialId;
 UCLASS(ClassGroup = (VirtualProduction), meta = (BlueprintSpawnableComponent))
-class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent: public UActorComponent
+class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent: public UActorComponent, public TSharedFromThis<UPhysicalObjectTrackingComponent>
 {
 	GENERATED_BODY()
 public:
@@ -31,7 +33,9 @@ public:
 	int32 CurrentTargetDeviceId {-1};
 
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
-	UPhysicalObjectTrackerSerialId* TrackerSerialId;
+	TObjectPtr<UPhysicalObjectTrackerSerialId> TrackerSerialIdAsset;
+
+	FTrackerTransformUpdate OnTrackerTransformUpdate;
 
 private:
 	void DebugCheckIfTrackingTargetExists() const;

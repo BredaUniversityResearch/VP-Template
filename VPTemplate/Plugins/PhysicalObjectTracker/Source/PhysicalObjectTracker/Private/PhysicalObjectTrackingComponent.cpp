@@ -21,15 +21,21 @@ UPhysicalObjectTrackingComponent::UPhysicalObjectTrackingComponent(const FObject
 void UPhysicalObjectTrackingComponent::OnRegister()
 {
 	Super::OnRegister();
+
+	//Should never fail as this is in the same module.
+	//TODO: check if there is a function that returns the current module instead of using string lookup for the module.
+	const FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
+	trackerModule.OnTrackingComponentRegistered.Broadcast(this->AsShared());
+
 	if (FilterSettings != nullptr)
 	{
 		FilterSettingsChangedHandle.Reset();      
 		FilterSettingsChangedHandle = FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
 	}
-	if (TrackerSerialId != nullptr)
+	if (TrackerSerialIdAsset != nullptr)
 	{
 		SerialIdChangedHandle.Reset();
-		SerialIdChangedHandle = TrackerSerialId->OnSerialIdChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback);
+		SerialIdChangedHandle = TrackerSerialIdAsset->OnSerialIdChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback);
 		RefreshDeviceId();
 	}
 	if(TrackingSpaceReference != nullptr)
@@ -60,7 +66,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 	FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, Tick, ThisTickFunction);
-	if (TrackerSerialId == nullptr) { return; }
+	if (TrackerSerialIdAsset == nullptr) { return; }
 
 	if (CurrentTargetDeviceId == -1)
 	{
@@ -81,6 +87,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		if (TrackingSpaceReference != nullptr)
 		{
 			trackerFromReference = TrackingSpaceReference->GetTrackerWorldTransform(trackerFromReference);
+			OnTrackerTransformUpdate.Broadcast(*this, trackerFromReference); //TODO: maybe change this from being a delegate to a buffer for better performance (async).
 		}
 
 		if (WorldReferencePoint != nullptr)
@@ -121,9 +128,9 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 		if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TrackerSerialId")))
 		{
 			SerialIdChangedHandle.Reset();
-			if (TrackerSerialId != nullptr)
+			if (TrackerSerialIdAsset != nullptr)
 			{
-				SerialIdChangedHandle = TrackerSerialId->OnSerialIdChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback);
+				SerialIdChangedHandle = TrackerSerialIdAsset->OnSerialIdChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback);
 				OnTrackerSerialIdChangedCallback();
 			}
 		}
@@ -152,7 +159,7 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 
 void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 {
-	if (TrackerSerialId == nullptr || TrackerSerialId->GetSerialId().IsEmpty())
+	if (TrackerSerialIdAsset == nullptr || TrackerSerialIdAsset->GetSerialId().IsEmpty())
 	{
 		CurrentTargetDeviceId = -1;
 		if(GetOwner() != nullptr)
@@ -165,7 +172,7 @@ void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 	}
 
 	int32 foundDeviceId;
-	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(TrackerSerialId->GetSerialId(), foundDeviceId))
+	if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(TrackerSerialIdAsset->GetSerialId(), foundDeviceId))
 	{
 		if (CurrentTargetDeviceId != foundDeviceId)
 		{

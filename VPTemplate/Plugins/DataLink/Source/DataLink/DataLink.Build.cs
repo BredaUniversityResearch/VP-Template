@@ -28,7 +28,8 @@ public class DataLink : ModuleRules
 				"Core",
 				"Networking",
 				"Sockets",
-				"Json"
+				"Json",
+				"PhysicalObjectTracker"
 			}
 			);
 			
