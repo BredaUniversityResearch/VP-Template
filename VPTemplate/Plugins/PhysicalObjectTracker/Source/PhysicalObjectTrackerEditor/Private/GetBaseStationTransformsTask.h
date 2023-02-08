@@ -2,7 +2,7 @@
 #include "TickableEditorObject.h"
 #include "TrackerTransformHistory.h"
 
-class FGetBaseStationOffsetsTask : public FTickableEditorObject
+class FGetBaseStationTransformsTask : public FTickableEditorObject
 {
 
 	static constexpr int SampleSizeSeconds = 5;
@@ -10,7 +10,7 @@ class FGetBaseStationOffsetsTask : public FTickableEditorObject
 
 
 public:
-	FGetBaseStationOffsetsTask(
+	FGetBaseStationTransformsTask(
 		int32 InTargetNumBaseStationTransforms,
 		const TMap<int32, FTransform>* InCalibratedBaseStationTransforms);
 

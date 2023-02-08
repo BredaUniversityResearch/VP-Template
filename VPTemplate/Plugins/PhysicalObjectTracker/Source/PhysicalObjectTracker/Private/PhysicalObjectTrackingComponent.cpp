@@ -76,10 +76,10 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 	FQuat trackedOrientation;	
 	if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(CurrentTargetDeviceId, trackedPosition, trackedOrientation))
 	{
-		FTransform trackerFromReference = FPhysicalObjectTrackingUtility::FixTrackerTransform(FTransform(trackedOrientation, trackedPosition));
+		FTransform trackerFromReference(trackedOrientation, trackedPosition);
 		if (TrackingSpaceReference != nullptr)
 		{
-			trackerFromReference = TrackingSpaceReference->GetTrackerWorldTransform(trackerFromReference);
+			trackerFromReference = TrackingSpaceReference->GetTrackerReferenceSpaceTransform(trackerFromReference);
 		}
 
 		if (WorldReferencePoint != nullptr)

@@ -136,6 +136,11 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 	const UPhysicalObjectTrackingComponent* targetComponent = Cast<UPhysicalObjectTrackingComponent>(Component);
 	if (targetComponent != nullptr)
 	{
+		if(targetComponent->DisableDebugDrawing)
+		{
+			return;
+		}
+
 		const UPhysicalObjectTrackingReferencePoint* reference = targetComponent->GetTrackingReferencePoint();
 		if (reference != nullptr)
 		{
@@ -172,21 +177,43 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 						}
 
 						//Visualize the base stations with the stored calibration data.
-						FTransform offsetTransform;
-						if(reference->GetBaseStationWorldTransform(lightHouseSerialId, offsetTransform))
+						FTransform calibrationTransform;
+						if(reference->GetBaseStationReferenceSpaceTransform(lightHouseSerialId, calibrationTransform))
 						{
+							//Visualize the calibrated base station transforms that are stored in the reference point.
+							FTransform worldBaseStationTransform = calibrationTransform;
 							if (worldReference != nullptr)
 							{
-								FTransform::Multiply(&offsetTransform, &offsetTransform, worldReference);
+								FTransform::Multiply(&worldBaseStationTransform, &worldBaseStationTransform, worldReference);
 							}
 
-							constexpr float colorRatio = 0.7;
-							const FColor offsetColor(lightHouseColor.R * colorRatio, lightHouseColor.G * colorRatio, lightHouseColor.B * colorRatio);
-							DrawBaseStationReference(PDI, offsetColor, offsetTransform, 3.f);
+							constexpr float currentColorRatio = 0.7;
+							const FColor currentColor(
+								lightHouseColor.R * currentColorRatio, 
+								lightHouseColor.G * currentColorRatio, 
+								lightHouseColor.B * currentColorRatio);
+							DrawBaseStationReference(PDI, currentColor, worldBaseStationTransform, 3.f);
+
+							//Can be used to verify offsetting the current base station transforms to the calibrated base station transforms.
+							/*const FTransform currentBaseStationTransform(rotation, position);
+							const FTransform transformOffset = currentBaseStationTransform.GetRelativeTransformReverse(calibrationTransform);
+							FTransform fixedBaseStationTransform = currentBaseStationTransform * transformOffset;
+							if(worldReference != nullptr)
+							{
+								FTransform::Multiply(&fixedBaseStationTransform, &fixedBaseStationTransform, worldReference);
+							}
+
+							constexpr float fixedColorRatio = 0.4;
+							const FColor fixedColor(
+								lightHouseColor.R * fixedColorRatio, 
+								lightHouseColor.G * fixedColorRatio, 
+								lightHouseColor.B * fixedColorRatio);
+
+							DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransform, 4.f);*/
 						}
 					}
 
-					//Visualize the base stations with the current SteamVR data
+					//Visualize the base stations with the current SteamVR transforms
 					DrawBaseStationReference(PDI, lightHouseColor, transform);
 
 				}
@@ -205,8 +232,9 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(trackerId, trackerPosition, trackerRotation))
 				{
 					const FColor trackerColor = FColor::Orange;
-					trackerTransform = FPhysicalObjectTrackingUtility::FixTrackerTransform(FTransform(trackerRotation, trackerPosition));
+					trackerTransform = FTransform(trackerRotation, trackerPosition);
 
+					//Visual the tracker transform when tracker only relative to the original tracker transform.
 					/*FTransform trackerWorldTransform = reference->ApplyTransformation(trackerTransform.GetLocation(), trackerTransform.GetRotation());
 					if(worldReference != nullptr)
 					{
@@ -214,7 +242,8 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 					}
 					DrawAxisBox(PDI, trackerColor, trackerWorldTransform);*/
 
-					FTransform trackerWorldTransformRelative = reference->GetTrackerWorldTransform(trackerTransform);
+					//Visualize the tracker transform when tracked relative to the base stations.
+					FTransform trackerWorldTransformRelative = reference->GetTrackerReferenceSpaceTransform(trackerTransform);
 					if (worldReference != nullptr)
 					{
 						FTransform::Multiply(&trackerWorldTransformRelative, &trackerWorldTransformRelative, worldReference);

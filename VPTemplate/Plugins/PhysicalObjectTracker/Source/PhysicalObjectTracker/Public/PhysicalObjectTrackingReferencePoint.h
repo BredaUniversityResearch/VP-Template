@@ -42,18 +42,26 @@ public:
 		bool StaticCalibration);
 	void ResetBaseStationOffsets();
 
+	//Get the tracker transform in SteamVR space at calibration time that is stored in the reference point.
 	const FTransform& GetTrackerCalibrationTransform() const;
+	//Get the base station transforms in SteamVR space at calibration time,
+	//mapped to the serial ids of the base stations, that are stored in the the reference point
 	const TMap<FString, FTransform>& GetBaseStationCalibrationTransforms() const;
 
-	//Used for getting base station transformations (legacy function for tracking trackers).
+	//Used for getting base station transformations
+	//(legacy function for tracking trackers, currently only used for debug visualization and as fallback function).
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
 
-	//Get the tracker's world transform. Expects SteamVR space input but with the tracker rotation fix applied to it.
-	//(FPhysicalObjectTrackingUtility::FixTrackerTransform())
-	FTransform GetTrackerWorldTransform(const FTransform& TrackerCurrentTransform) const;
-	//Only used for drawing debug visualizations, uses string lookups which are slow.
-	bool GetBaseStationWorldTransform(const FString& BaseStationSerialId, FTransform& WorldTransform) const;
+	//Get the tracker's reference-space transform. Expects raw SteamVR space input.
+	//(tracker rotation fix can be done using FPhysicalObjectTrackingUtility::FixTrackerTransform())
+	FTransform GetTrackerReferenceSpaceTransform(const FTransform& TrackerCurrentTransform) const;
+	//Get the base station's reference-space transform if the serial id matches a stored serial id. Expects raw SteamVR space input.
+	//(Only used for drawing debug visualizations, uses string lookups which are slow.)
+	bool GetBaseStationReferenceSpaceTransform(const FString& BaseStationSerialId, FTransform& WorldTransform) const;
 
+	//Update the run time data if needed, which includes:
+	//- Mapping the base station calibration transforms which are mapped to serial ids as strings
+	//to a map which uses device ids to refer to base stations. (Removes slow string lookups)
 	void UpdateRuntimeDataIfNeeded();
 
 private:

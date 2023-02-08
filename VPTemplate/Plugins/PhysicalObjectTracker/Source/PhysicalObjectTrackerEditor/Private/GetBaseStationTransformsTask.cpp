@@ -1,8 +1,8 @@
-#include "GetBaseStationOffsetsTask.h"
+#include "GetBaseStationTransformsTask.h"
 
 #include "PhysicalObjectTrackingUtility.h"
 
-FGetBaseStationOffsetsTask::FGetBaseStationOffsetsTask(
+FGetBaseStationTransformsTask::FGetBaseStationTransformsTask(
 	int32 InTargetNumBaseStationTransforms,
 	const TMap<int32, FTransform>* InCalibratedBaseStationTransforms)
 	:
@@ -12,7 +12,7 @@ CalibratedBaseStationTransforms(InCalibratedBaseStationTransforms)
 	check(InCalibratedBaseStationTransforms != nullptr)
 }
 
-void FGetBaseStationOffsetsTask::Tick(float DeltaTime)
+void FGetBaseStationTransformsTask::Tick(float DeltaTime)
 {
 	if(HasAcquiredTransforms)
 	{
@@ -35,18 +35,18 @@ void FGetBaseStationOffsetsTask::Tick(float DeltaTime)
 	}
 }
 
-bool FGetBaseStationOffsetsTask::IsComplete() const
+bool FGetBaseStationTransformsTask::IsComplete() const
 {
 	return HasAcquiredTransforms;
 }
 
-TMap<int32, FTransform>& FGetBaseStationOffsetsTask::GetResults()
+TMap<int32, FTransform>& FGetBaseStationTransformsTask::GetResults()
 {
 	check(HasAcquiredTransforms)
 	return BaseStationResults;
 }
 
-void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
+void FGetBaseStationTransformsTask::TakeBaseStationSamples()
 {
 	TArray<int32> baseStationIds;
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(baseStationIds);
@@ -69,7 +69,7 @@ void FGetBaseStationOffsetsTask::TakeBaseStationSamples()
 	}
 }
 
-bool FGetBaseStationOffsetsTask::HasCompleteBaseStationsHistory()
+bool FGetBaseStationTransformsTask::HasCompleteBaseStationsHistory()
 {
 	if(BaseStationTransforms.Num() + CalibratedBaseStationTransforms->Num() < TargetNumBaseStationTransforms)
 	{
@@ -89,7 +89,7 @@ bool FGetBaseStationOffsetsTask::HasCompleteBaseStationsHistory()
 	return (currentCompleteBaseStationOffsets + CalibratedBaseStationTransforms->Num() >= TargetNumBaseStationTransforms);
 }
 
-void FGetBaseStationOffsetsTask::BuildBaseStationResults()
+void FGetBaseStationTransformsTask::BuildBaseStationResults()
 {
 	check(BaseStationTransforms.Num() + CalibratedBaseStationTransforms->Num() >= TargetNumBaseStationTransforms)
 	for(const auto& baseStation : BaseStationTransforms)
