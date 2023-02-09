@@ -12,7 +12,7 @@ public:
 
 private:
 
-    void OnTrackerRegistered(TSharedRef<UPhysicalObjectTrackingComponent> Component);
+    void OnTrackerRegistered(UPhysicalObjectTrackingComponent& Component);
     void OnTrackerTransformUpdate(
         const UPhysicalObjectTrackingComponent& Component, 
         const FTimecode& TimeCode, 

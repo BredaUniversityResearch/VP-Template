@@ -10,7 +10,7 @@ class UPhysicalObjectTrackingFilterSettings;
 class UPhysicalObjectTrackingReferencePoint;
 class UPhysicalObjectTrackerSerialId;
 UCLASS(ClassGroup = (VirtualProduction), meta = (BlueprintSpawnableComponent))
-class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent: public UActorComponent, public TSharedFromThis<UPhysicalObjectTrackingComponent>
+class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent: public UActorComponent
 {
 	GENERATED_BODY()
 public:

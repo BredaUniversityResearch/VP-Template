@@ -20,7 +20,7 @@ FObjectTrackingDataLink::~FObjectTrackingDataLink()
     OnTrackerRegisteredDelegate.Reset();
 }
 
-void FObjectTrackingDataLink::OnTrackerRegistered(TSharedRef<UPhysicalObjectTrackingComponent> Component)
+void FObjectTrackingDataLink::OnTrackerRegistered(UPhysicalObjectTrackingComponent& Component)
 {
     const FDelegateHandle trackerUpdateDelegate = Component->OnTrackerTransformUpdate.AddRaw(this, &FObjectTrackingDataLink::OnTrackerTransformUpdate);
     TrackerTransformUpdateDelegates.Add(trackerUpdateDelegate);

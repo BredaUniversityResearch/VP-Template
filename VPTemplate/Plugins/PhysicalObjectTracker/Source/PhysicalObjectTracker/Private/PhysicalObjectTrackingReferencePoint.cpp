@@ -99,6 +99,7 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 				//1. Calculate the offset transformation between the current transformation and the transformation at calibration.
 				//Should use GetRelativeTransform as this returns leftTransform * inverse(rightTransform) where as
 				//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations. (check function declaration)
+				//TODO: can improve performance by caching the average and only updating it once per x frames. 
 				const FTransform offset = FTransform(currentBaseStationRotation, currentBaseStationPosition).GetRelativeTransform(baseStation.Value);
 				averagedBaseStationOffsetTranslation += offset.GetTranslation();
 				averagedBaseStationOffsetRotation += offset.GetRotation().Euler(); 

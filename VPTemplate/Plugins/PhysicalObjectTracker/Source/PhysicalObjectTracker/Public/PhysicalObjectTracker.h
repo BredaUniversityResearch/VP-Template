@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 
 class UPhysicalObjectTrackingComponent;
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnPhysicalObjectTrackingComponentRegistered, TSharedRef<UPhysicalObjectTrackingComponent>)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPhysicalObjectTrackingComponentRegistered, UPhysicalObjectTrackingComponent&)
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPhysicalObjectTracker, Log, All);
 
