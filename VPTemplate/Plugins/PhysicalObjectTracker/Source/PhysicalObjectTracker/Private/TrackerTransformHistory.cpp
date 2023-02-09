@@ -66,6 +66,11 @@ bool FTrackerTransformHistory::TakeSample(int32 a_TargetTrackerId)
 	}
 }
 
+bool FTrackerTransformHistory::IsEmpty() const
+{
+	return m_History.IsEmpty();
+}
+
 bool FTrackerTransformHistory::HasCompleteHistory() const
 {
 	return m_History.Num() == m_TargetSampleCount;

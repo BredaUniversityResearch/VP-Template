@@ -1,4 +1,5 @@
 #pragma once
+#include "TrackerTransformHistory.h"
 
 #include "PhysicalObjectTrackingReferencePoint.generated.h"
 
@@ -28,11 +29,19 @@ public:
 };
 
 UCLASS(BlueprintType)
-class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingReferencePoint: public UDataAsset
+class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingReferencePoint: public UDataAsset, public FTickableGameObject
 {
 	GENERATED_BODY()
 
 public:
+
+	UPhysicalObjectTrackingReferencePoint(const FObjectInitializer& ObjectInitializer);
+
+	void Tick(float DeltaTime) override;
+
+	bool IsTickableInEditor() const override;
+
+	FORCEINLINE TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UPhysicalObjectTrackingReferencePoint, STATGROUP_Default); }
 
 	void SetTrackerCalibrationTransform(const FTransform& Transform);
 	void SetBaseStationCalibrationTransform(
@@ -74,8 +83,8 @@ private:
 	bool HasMappedAllBaseStations() const;
 	bool MapBaseStationIds();
 
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	FTransform TrackerCalibrationTransform;
+	void UpdateAveragedBaseStationOffset();
+	
 	/* Flips up/down rotation */
 	UPROPERTY(EditAnywhere, Category= "PhysicalObjectTrackingReferencePoint|Rotation")
 	bool InvertPitchRotation{ false };
@@ -85,15 +94,26 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|Rotation")
 	bool InvertRollRotation{ false };
 
-	//The offset to the origin point for all base stations.
-	//Stored with serial ids of the base stations as these don't change in-between different sessions, while device ids might.
+	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
+	FTransform TrackerCalibrationTransform;
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	TMap<FString, FTransform> BaseStationCalibrationTransforms;
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint", meta=(ClampMin=1))
+	int32 BaseStationOffsetHistorySize;
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint", meta=(ClampMin=0.001))
+	float BaseStationOffsetUpdatesPerSecond {4.f};
 
-	UPROPERTY(Transient)
+	//Runtime data
+	
 	TMap<int32, FTransform> BaseStationIdToCalibrationTransform;
+
+	FTrackerTransformHistory AveragedBaseStationOffsetHistory;
+	FTransform AveragedBaseStationOffsetCached;
+	bool AveragedBaseStationOffsetCachedValid{ false };
+
+	float UpdateBaseStationOffsetsDeltaTimeAccumulator{ 0.f };
 
 };
 
