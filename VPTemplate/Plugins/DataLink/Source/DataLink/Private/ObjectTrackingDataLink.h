@@ -12,14 +12,14 @@ public:
 
 private:
 
-    void OnTrackerRegistered(UPhysicalObjectTrackingComponent& Component);
+    void OnTrackerRegistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component);
     void OnTrackerTransformUpdate(
-        const UPhysicalObjectTrackingComponent& Component, 
+        TObjectPtr<UPhysicalObjectTrackingComponent> Component, 
         const FTimecode& TimeCode, 
         const FTransform& Transform) const;
 
     FDelegateHandle OnTrackerRegisteredDelegate;
-    TArray<FDelegateHandle> TrackerTransformUpdateDelegates;
+    TMap<TObjectPtr<UPhysicalObjectTrackingComponent>, FDelegateHandle> TrackerTransformUpdateDelegates;
 
     TSharedPtr<FTCPMessaging> Messaging;
 

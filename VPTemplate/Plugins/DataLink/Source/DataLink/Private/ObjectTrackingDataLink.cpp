@@ -20,24 +20,28 @@ FObjectTrackingDataLink::~FObjectTrackingDataLink()
     OnTrackerRegisteredDelegate.Reset();
 }
 
-void FObjectTrackingDataLink::OnTrackerRegistered(UPhysicalObjectTrackingComponent& Component)
+void FObjectTrackingDataLink::OnTrackerRegistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component)
 {
+    check(Component != nullptr)
+
     const FDelegateHandle trackerUpdateDelegate = Component->OnTrackerTransformUpdate.AddRaw(this, &FObjectTrackingDataLink::OnTrackerTransformUpdate);
-    TrackerTransformUpdateDelegates.Add(trackerUpdateDelegate);
+    TrackerTransformUpdateDelegates.Add(Component, trackerUpdateDelegate);
 }
 
 void FObjectTrackingDataLink::OnTrackerTransformUpdate(
-    const UPhysicalObjectTrackingComponent& Component,
+    TObjectPtr<UPhysicalObjectTrackingComponent> Component,
     const FTimecode& TimeCode,
     const FTransform& Transform) const
 {
+    check(Component != nullptr)
+
     FString trackerAssetName;
     FString trackerSerialId;
 
-    if (Component.TrackerSerialIdAsset != nullptr)
+    if (Component->TrackerSerialIdAsset != nullptr)
     {
-        Component.TrackerSerialIdAsset->GetName(trackerAssetName);
-        trackerSerialId = Component.TrackerSerialIdAsset->GetSerialId();
+        Component->TrackerSerialIdAsset->GetName(trackerAssetName);
+        trackerSerialId = Component->TrackerSerialIdAsset->GetSerialId();
     }
 
     const TSharedPtr<FObjectTrackingPacketData> packetData = 

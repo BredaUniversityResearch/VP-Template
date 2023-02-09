@@ -4,7 +4,7 @@
 
 #include "PhysicalObjectTrackingComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FTrackerTransformUpdate, const UPhysicalObjectTrackingComponent&, const FTimecode&, const FTransform&)
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FTrackerTransformUpdate, TObjectPtr<UPhysicalObjectTrackingComponent>, const FTimecode&, const FTransform&)
 
 class UPhysicalObjectTrackingFilterSettings;
 class UPhysicalObjectTrackingReferencePoint;
