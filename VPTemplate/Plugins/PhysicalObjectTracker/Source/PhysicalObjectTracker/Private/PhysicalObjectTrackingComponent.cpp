@@ -84,14 +84,13 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 	FQuat trackedOrientation;	
 	if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(CurrentTargetDeviceId, trackedPosition, trackedOrientation))
 	{
-		FTransform trackerFromReference = FPhysicalObjectTrackingUtility::FixTrackerTransform(FTransform(trackedOrientation, trackedPosition));
+		FTransform trackerFromReference(trackedOrientation, trackedPosition);
 		if (TrackingSpaceReference != nullptr)
 		{
-			trackerFromReference = TrackingSpaceReference->GetTrackerWorldTransform(trackerFromReference);
-
-			//GEngine->GetTimecodeProvider(); TODO: Seems like FApp::GetTimecode uses this under the hood but it might be necessary to use it directly?
+			trackerFromReference = TrackingSpaceReference->GetTrackerReferenceSpaceTransform(trackerFromReference);
 			FTimecode currentTimeCode = FApp::GetTimecode();
 			OnTrackerTransformUpdate.Broadcast(*this, currentTimeCode, trackerFromReference); //TODO: maybe change this from being a delegate to a buffer for better performance (async).
+			//GEngine->GetTimecodeProvider(); TODO: Seems like FApp::GetTimecode uses this under the hood but it might be necessary to use it directly?
 		}
 
 		if (WorldReferencePoint != nullptr)

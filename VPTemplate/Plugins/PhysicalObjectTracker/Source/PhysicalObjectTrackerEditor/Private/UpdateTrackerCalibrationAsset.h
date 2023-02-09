@@ -1,7 +1,7 @@
 #pragma once
 #include "DetectTrackerShakeTask.h"
 #include "GetTrackerStaticTransformTask.h"
-#include "GetBaseStationOffsetsTask.h"
+#include "GetBaseStationTransformsTask.h"
 #include "TickableEditorObject.h"
 #include "Widgets/Notifications/SNotificationList.h"
 
@@ -43,7 +43,7 @@ public:
 
 	TUniquePtr<FDetectTrackerShakeTask> SelectControllerTask;
 	TUniquePtr<FGetTrackerStaticTransformTask> GetTrackerStaticPositionTask;
-	TUniquePtr<FGetBaseStationOffsetsTask> GetBaseStationOffsetsTask;
+	TUniquePtr<FGetBaseStationTransformsTask> GetBaseStationOffsetsTask;
 
 	int32 TrackerId{ -1 };
 	FTransform TrackerCalibrationTransform;

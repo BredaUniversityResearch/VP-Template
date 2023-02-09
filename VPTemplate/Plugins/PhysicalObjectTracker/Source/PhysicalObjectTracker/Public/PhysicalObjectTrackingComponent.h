@@ -37,6 +37,9 @@ public:
 
 	FTrackerTransformUpdate OnTrackerTransformUpdate;
 
+	UPROPERTY(Transient, EditInstanceOnly, Category = "PhysicalObjectTrackingComponent")
+	bool DisableDebugDrawing = false;
+
 private:
 	void DebugCheckIfTrackingTargetExists() const;
 	void OnFilterSettingsChangedCallback();
@@ -64,8 +67,8 @@ private:
 
 	UPROPERTY(Transient)
 	float DeviceIdAcquireTimer;
-	FTrackerTransformHistory m_TransformHistory;
+	UPROPERTY(Transient)
+	float DeviceReacquireInterval{ 0.5f };
 
-	UPROPERTY()
-	float DeviceReacquireInterval {0.5f};
+	FTrackerTransformHistory m_TransformHistory;
 };

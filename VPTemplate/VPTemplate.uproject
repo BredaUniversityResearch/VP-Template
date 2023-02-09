@@ -187,6 +187,10 @@
 		{
 			"Name": "DMXFixtures",
 			"Enabled": true
+		},
+		{
+			"Name": "LevelSnapshots",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
