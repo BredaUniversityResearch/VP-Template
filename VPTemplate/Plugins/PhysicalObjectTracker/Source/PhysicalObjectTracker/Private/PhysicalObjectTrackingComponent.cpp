@@ -50,8 +50,10 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 			FString::Format(TEXT("PhysicalObjectTrackingComponent \"{0}\" does not have reference a tracking space on object \"{1}\""), 
 				FStringFormatOrderedArguments({GetName(),  GetOwner()->GetName() })));
 	}
-
-	TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+	else
+	{
+		TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+	}
 	
 }
 
