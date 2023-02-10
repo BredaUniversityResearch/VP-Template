@@ -37,8 +37,30 @@ public:
 
 	FTrackerTransformUpdate OnTrackerTransformUpdate;
 
-	UPROPERTY(Transient, EditInstanceOnly, Category = "PhysicalObjectTrackingComponent")
+#if WITH_EDITORONLY_DATA
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
 	bool DisableDebugDrawing = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	bool ShowBaseStationsCalibration = true;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	bool ShowBaseStationsCalibrationRaw = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	bool ShowBaseStationsCurrent = true;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	bool ShowBaseStationsCurrentRaw = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	bool ShowTrackerCurrent = true;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	bool ShowTrackerCurrentRaw = false;
+
+#endif
 
 private:
 	void DebugCheckIfTrackingTargetExists() const;

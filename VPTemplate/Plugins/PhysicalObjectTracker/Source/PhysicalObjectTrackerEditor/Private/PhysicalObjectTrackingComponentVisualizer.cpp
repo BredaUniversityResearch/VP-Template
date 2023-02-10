@@ -156,10 +156,11 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				FRotator rotation;
 				if (USteamVRFunctionLibrary::GetTrackedDevicePositionAndOrientation(deviceId, position, rotation))
 				{
-					FTransform transform = reference->ApplyTransformation(position, rotation.Quaternion());
+
+					FTransform currentTransform = reference->ApplyTransformation(position, rotation.Quaternion());
 					if (worldReference != nullptr)
 					{
-						FTransform::Multiply(&transform, &transform, worldReference);
+						FTransform::Multiply(&currentTransform, &currentTransform, worldReference);
 					}
 
 					FColor lightHouseColor = FColor::Black;
@@ -176,9 +177,12 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 							}
 						}
 
+						
+
 						//Visualize the base stations with the stored calibration data.
 						FTransform calibrationTransform;
-						if(reference->GetBaseStationReferenceSpaceTransform(lightHouseSerialId, calibrationTransform))
+						FTransform calibrationTransformRaw;
+						if (reference->GetBaseStationReferenceSpaceTransform(lightHouseSerialId, calibrationTransform, calibrationTransformRaw))
 						{
 							//Visualize the calibrated base station transforms that are stored in the reference point.
 							FTransform worldBaseStationTransform = calibrationTransform;
@@ -189,10 +193,19 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 
 							constexpr float currentColorRatio = 0.7;
 							const FColor currentColor(
-								lightHouseColor.R * currentColorRatio, 
-								lightHouseColor.G * currentColorRatio, 
+								lightHouseColor.R * currentColorRatio,
+								lightHouseColor.G * currentColorRatio,
 								lightHouseColor.B * currentColorRatio);
-							DrawBaseStationReference(PDI, currentColor, worldBaseStationTransform, 3.f);
+
+							if (targetComponent->ShowBaseStationsCalibration)
+							{
+								DrawBaseStationReference(PDI, currentColor, worldBaseStationTransform, 3.f);
+							}
+
+							if(targetComponent->ShowBaseStationsCalibrationRaw)
+							{
+								DrawBaseStationReference(PDI, currentColor, calibrationTransformRaw, 1.f);
+							}
 
 							//Can be used to verify offsetting the current base station transforms to the calibrated base station transforms.
 							/*const FTransform currentBaseStationTransform(rotation, position);
@@ -205,16 +218,25 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 
 							constexpr float fixedColorRatio = 0.4;
 							const FColor fixedColor(
-								lightHouseColor.R * fixedColorRatio, 
-								lightHouseColor.G * fixedColorRatio, 
+								lightHouseColor.R * fixedColorRatio,
+								lightHouseColor.G * fixedColorRatio,
 								lightHouseColor.B * fixedColorRatio);
 
 							DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransform, 4.f);*/
 						}
+
 					}
 
-					//Visualize the base stations with the current SteamVR transforms
-					DrawBaseStationReference(PDI, lightHouseColor, transform);
+					if (targetComponent->ShowBaseStationsCurrent)
+					{
+						//Visualize the base stations with the current SteamVR transforms
+						DrawBaseStationReference(PDI, lightHouseColor, currentTransform, 3.f);
+					}
+
+					if (targetComponent->ShowBaseStationsCurrentRaw)
+					{
+						DrawBaseStationReference(PDI, lightHouseColor, FTransform(rotation, position), 1.f);
+					}
 
 				}
 			}
@@ -224,12 +246,12 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 			TArray<int32> trackerIds;
 			USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::Other, trackerIds);
 
-			for(const int32 trackerId : trackerIds)
+			for (const int32 trackerId : trackerIds)
 			{
 				FVector trackerPosition;
 				FQuat trackerRotation;
 				FTransform trackerTransform = FTransform::Identity;
-				if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(trackerId, trackerPosition, trackerRotation))
+				if (FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(trackerId, trackerPosition, trackerRotation))
 				{
 					const FColor trackerColor = FColor::Orange;
 					trackerTransform = FTransform(trackerRotation, trackerPosition);
@@ -242,16 +264,37 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 					}
 					DrawAxisBox(PDI, trackerColor, trackerWorldTransform);*/
 
-					//Visualize the tracker transform when tracked relative to the base stations.
-					FTransform trackerWorldTransformRelative = reference->GetTrackerReferenceSpaceTransform(trackerTransform);
-					if (worldReference != nullptr)
+					if (targetComponent->ShowTrackerCurrentRaw)
 					{
-						FTransform::Multiply(&trackerWorldTransformRelative, &trackerWorldTransformRelative, worldReference);
+						DrawAxisBox(PDI, trackerColor, FTransform(trackerRotation, trackerPosition));
 					}
-					DrawAxisBox(PDI, trackerColor, trackerWorldTransformRelative);
+
+					if (targetComponent->ShowTrackerCurrent)
+					{
+
+						//Visualize the tracker transform when tracked relative to the base stations
+						FTransform trackerWorldTransformRelative = reference->GetTrackerReferenceSpaceTransform(trackerTransform);
+						if (worldReference != nullptr)
+						{
+							FTransform::Multiply(&trackerWorldTransformRelative, &trackerWorldTransformRelative, worldReference);
+						}
+						DrawAxisBox(PDI, trackerColor, trackerWorldTransformRelative);
+
+					}
 
 				}
 			}
+
+			//const FTransform testTransform(FQuat::MakeFromEuler(FVector(0.f, 30.f, 45.f)), FVector(500.f, 100.f, 1500.f));
+			////OffsetToCurrent = To - From = TransformTo * TransformFrom(-1)
+			////TransformTo = FTransform::Identity, TransformFrom = testTransform
+			//const FTransform testOffset = FTransform::Identity.GetRelativeTransform(testTransform); 
+			////const FTransform testOffset = testTransform.GetRelativeTransformReverse(FTransform::Identity);
+			//const FTransform testReversedTransform = testTransform * testOffset;
+
+			//DrawBaseStationReference(PDI, FColor::Orange, testTransform, 3.f);
+			//DrawBaseStationReference(PDI, FColor::Blue, testOffset, 4.f);
+			//DrawBaseStationReference(PDI, FColor::Magenta, testReversedTransform, 5.f);
 		}
 	}
 }
