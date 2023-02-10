@@ -70,6 +70,23 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(
 	return FTransform(TrackedRotation, TrackedPosition).GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
 }
 
+bool UPhysicalObjectTrackingReferencePoint::GetBaseStationReferenceSpaceTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const
+{
+	if (!BaseStationSerialId.IsEmpty())
+	{
+		if (const FTransform* baseStationTransform = BaseStationCalibrationTransforms.Find(BaseStationSerialId))
+		{
+			OutRawTransform = *baseStationTransform;
+			OutReferenceSpaceTransform = OutRawTransform.GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
+			return true;
+		}
+	}
+
+	OutRawTransform = FTransform::Identity;
+	OutReferenceSpaceTransform = FTransform::Identity;
+	return false;
+}
+
 FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransform(const FTransform& TrackerCurrentTransform) const
 {
 	//1. For every base station calculate the offset transformation between the current transformation and the transformation at calibration.
@@ -159,23 +176,6 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 	//3. Get the offset transformation for the tracker.
 	const FTransform trackerOffset = fixedTrackerTransform.GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));	
 	return trackerOffset * averageBaseStationOffset;
-}
-
-bool UPhysicalObjectTrackingReferencePoint::GetBaseStationReferenceSpaceTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const
-{
-	if(!BaseStationSerialId.IsEmpty())
-	{
-		if(const FTransform* baseStationTransform = BaseStationCalibrationTransforms.Find(BaseStationSerialId))
-		{
-			OutRawTransform = *baseStationTransform;
-			OutReferenceSpaceTransform = OutRawTransform.GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
-			return true;
-		}
-	}
-
-	OutRawTransform = FTransform::Identity;
-	OutReferenceSpaceTransform = FTransform::Identity;
-	return false;
 }
 
 void UPhysicalObjectTrackingReferencePoint::UpdateRuntimeDataIfNeeded()
