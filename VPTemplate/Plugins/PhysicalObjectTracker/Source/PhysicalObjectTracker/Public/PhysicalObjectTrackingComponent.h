@@ -1,10 +1,8 @@
 #pragma once
 #include "TrackerTransformHistory.h"
-
+#include "TrackerTransformUpdates.h"
 
 #include "PhysicalObjectTrackingComponent.generated.h"
-
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FTrackerTransformUpdate, TObjectPtr<UPhysicalObjectTrackingComponent>, const FTimecode&, const FTransform&)
 
 class UPhysicalObjectTrackingFilterSettings;
 class UPhysicalObjectTrackingReferencePoint;
@@ -16,6 +14,7 @@ class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent: public UActorC
 public:
 	explicit UPhysicalObjectTrackingComponent(const FObjectInitializer& ObjectInitializer);
 	virtual void OnRegister() override;
+	virtual void OnUnregister() override;
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -34,8 +33,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	TObjectPtr<UPhysicalObjectTrackerSerialId> TrackerSerialIdAsset;
-
-	FTrackerTransformUpdate OnTrackerTransformUpdate;
 
 #if WITH_EDITORONLY_DATA
 
@@ -61,6 +58,8 @@ public:
 	bool ShowTrackerCurrentRaw = false;
 
 #endif
+
+	FTrackerTransformUpdates TransformUpdates;
 
 private:
 	void DebugCheckIfTrackingTargetExists() const;

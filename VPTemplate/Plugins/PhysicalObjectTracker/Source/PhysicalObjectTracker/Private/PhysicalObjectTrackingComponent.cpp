@@ -25,8 +25,8 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 
 	//Should never fail as this is in the same module.
 	//TODO: check if there is a function that returns the current module instead of using string lookup for the module.
-	const FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
-	trackerModule.OnTrackingComponentRegistered.Broadcast(ToObjectPtr(this));
+	FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
+	trackerModule.AddObjectTrackingComponent(ToObjectPtr(this));
 
 	if (FilterSettings != nullptr)
 	{
@@ -46,6 +46,12 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 
 	ExtractTransformationTargetComponentReferenceIfValid();
 	OnFilterSettingsChangedCallback();
+}
+
+void UPhysicalObjectTrackingComponent::OnUnregister()
+{
+	FPhysicalObjectTracker& trackerModule = FModuleManager::GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
+	trackerModule.RemoveObjectTrackingComponent(ToObjectPtr(this));
 }
 
 void UPhysicalObjectTrackingComponent::BeginPlay()
@@ -89,8 +95,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		{
 			trackerFromReference = TrackingSpaceReference->GetTrackerReferenceSpaceTransform(trackerFromReference);
 			FTimecode currentTimeCode = FApp::GetTimecode();
-			OnTrackerTransformUpdate.Broadcast(ToObjectPtr(this), currentTimeCode, trackerFromReference); //TODO: maybe change this from being a delegate to a buffer for better performance (async).
-			//GEngine->GetTimecodeProvider(); TODO: Seems like FApp::GetTimecode uses this under the hood but it might be necessary to use it directly?
+			TransformUpdates.Update(ToObjectPtr(this), {currentTimeCode, trackerFromReference});
 		}
 
 		if (WorldReferencePoint != nullptr)
