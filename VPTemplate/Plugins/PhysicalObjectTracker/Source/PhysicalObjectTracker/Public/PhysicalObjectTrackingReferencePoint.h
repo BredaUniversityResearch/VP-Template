@@ -73,6 +73,9 @@ public:
 	//to a map which uses device ids to refer to base stations. (Removes slow string lookups)
 	void UpdateRuntimeDataIfNeeded();
 
+	int32 GetMinBaseStationsCalibrated() const;
+	int32 GetMinBaseStationsCalibratedStatically() const;
+
 private:
 
 	virtual void PostLoad() override;
@@ -96,14 +99,19 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	FTransform TrackerCalibrationTransform;
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	TMap<FString, FTransform> BaseStationCalibrationTransforms;
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint", meta=(ClampMin=1))
+
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
+	int32 MinNumBaseStationsCalibrated {6};
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
+	int32 MinNumBaseStationsCalibratedStatically {2};
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
 	int32 BaseStationOffsetHistorySize {};
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint", meta=(ClampMin=0.001))
-	float BaseStationOffsetUpdatesPerSecond {4.f};
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 0.001))
+	float BaseStationOffsetUpdatesPerSecond{ 4.f };
+	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
+	TMap<FString, FTransform> BaseStationCalibrationTransforms;
+	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
+	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
 
 	//Runtime data
 	

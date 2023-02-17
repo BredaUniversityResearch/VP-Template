@@ -8,6 +8,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogDataLink, Log, All);
 
 class FTCPMessaging;
+class FObjectTrackingDataLink;
 
 class FDataLinkModule : public IModuleInterface
 {
@@ -22,8 +23,8 @@ private:
 	void HandleConnectCommand(const TArray<FString>& Arguments) const;
 	void HandleSendCommand(const TArray<FString>& Arguments) const;
 
-	TUniquePtr<FTCPMessaging> MessagingService;
-	FConsoleManager ConsoleManager;
+	TSharedPtr<FTCPMessaging> MessagingService;
+	TUniquePtr<FObjectTrackingDataLink> ObjectTrackingDataLink;
 
 };
 

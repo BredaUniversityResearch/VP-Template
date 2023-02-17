@@ -266,6 +266,16 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 
 }
 
+int32 UPhysicalObjectTrackingReferencePoint::GetMinBaseStationsCalibrated() const
+{
+	return MinNumBaseStationsCalibrated;
+}
+
+int32 UPhysicalObjectTrackingReferencePoint::GetMinBaseStationsCalibratedStatically() const
+{
+	return FMath::Min(MinNumBaseStationsCalibratedStatically, MinNumBaseStationsCalibrated);
+}
+
 void UPhysicalObjectTrackingReferencePoint::PostLoad()
 {
 	Super::PostLoad();

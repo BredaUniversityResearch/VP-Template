@@ -2,15 +2,17 @@
 #include "Containers/RingBuffer.h"
 #include "Tasks/Task.h"
 
-class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent;
-
-struct FTransformUpdate
+struct FTrackerTransformUpdate
 {
-    FTransformUpdate(
+    FTrackerTransformUpdate(
         const FTimecode& InTimeCode,
+        const FString& InTrackerSerialId,
+        const FString& InTrackerSerialIdAssetName,
         const FTransform& InTransform);
 
     const FTimecode TimeCode;
+    const FString TrackerSerialId;
+    const FString TrackerSerialIdAssetName;
     const FTransform Transformation;
 };
 
@@ -20,9 +22,8 @@ class PHYSICALOBJECTTRACKER_API ITrackerTransformUpdateListener
 public:
 
     virtual ~ITrackerTransformUpdateListener() = 0;
-
-    //TODO: it maybe necessary to make the Component parameter thread-safe but not blocking in some way?
-    virtual void OnUpdate(TObjectPtr<UPhysicalObjectTrackingComponent> Component, const FTransformUpdate& Update) = 0;
+    
+    virtual void OnUpdate(const FTrackerTransformUpdate& Update) = 0;
 
 };
 
@@ -30,12 +31,12 @@ class PHYSICALOBJECTTRACKER_API FTrackerTransformUpdates
 {
 
 public:
+
+    FTrackerTransformUpdates();
     
     //Launches a new task to update the listener with an update.
     //Non-blocking, returns immediately
-    void Update(
-        TObjectPtr<UPhysicalObjectTrackingComponent> Component,
-        const FTransformUpdate& Update);
+    void Update(const FTrackerTransformUpdate& Update);
 
     void AddListener(const TSharedPtr<ITrackerTransformUpdateListener>& InListener);
     void RemoveListener(const TSharedPtr<ITrackerTransformUpdateListener>& InListener);
@@ -44,8 +45,9 @@ public:
 
 private:
 
-    //Can be updated to a vector if multiple listeners should be possible.
     TSharedPtr<ITrackerTransformUpdateListener> Listener;
+
+    UE::Tasks::FPipe ListenerPipe;
     UE::Tasks::FTask previousTask;
 
 };

@@ -34,6 +34,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	TObjectPtr<UPhysicalObjectTrackerSerialId> TrackerSerialIdAsset;
 
+	FTrackerTransformUpdates TransformUpdates;
+
 #if WITH_EDITORONLY_DATA
 
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
@@ -58,8 +60,6 @@ public:
 	bool ShowTrackerCurrentRaw = false;
 
 #endif
-
-	FTrackerTransformUpdates TransformUpdates;
 
 private:
 	void DebugCheckIfTrackingTargetExists() const;

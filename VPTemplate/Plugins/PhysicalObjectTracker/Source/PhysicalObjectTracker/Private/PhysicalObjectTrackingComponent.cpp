@@ -26,7 +26,7 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 	//Should never fail as this is in the same module.
 	//TODO: check if there is a function that returns the current module instead of using string lookup for the module.
 	FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
-	trackerModule.AddObjectTrackingComponent(ToObjectPtr(this));
+	trackerModule.ObjectTrackingComponents.AddComponent(ToObjectPtr(this));
 
 	if (FilterSettings != nullptr)
 	{
@@ -50,8 +50,10 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 
 void UPhysicalObjectTrackingComponent::OnUnregister()
 {
+	Super::OnUnregister();
+
 	FPhysicalObjectTracker& trackerModule = FModuleManager::GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
-	trackerModule.RemoveObjectTrackingComponent(ToObjectPtr(this));
+	trackerModule.ObjectTrackingComponents.RemoveComponent(ToObjectPtr(this));
 }
 
 void UPhysicalObjectTrackingComponent::BeginPlay()
@@ -232,14 +234,14 @@ void UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback()
 void UPhysicalObjectTrackingComponent::ExtractTransformationTargetComponentReferenceIfValid()
 {
     AActor* owningActor =  GetOwner();
+	TObjectPtr<USceneComponent> targetSceneComponent = nullptr;
 	if (HasTransformationTargetComponent && owningActor != nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Blue, FString(TEXT("ExtractingComponentReference")));
 		UActorComponent* transformationTargetActorComponent = TransformationTargetComponentReference.GetComponent(owningActor);
 		if (transformationTargetActorComponent != nullptr)
 		{
-			TransformationTargetComponent = Cast<USceneComponent>(transformationTargetActorComponent);
-			if (TransformationTargetComponent == nullptr)
+			targetSceneComponent = Cast<USceneComponent>(transformationTargetActorComponent);
+			if (targetSceneComponent == nullptr)
 			{
 				GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
 					FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a component that is or inherits from a scene component as movement target component. Component in actor: \"{0}\""),
@@ -253,4 +255,6 @@ void UPhysicalObjectTrackingComponent::ExtractTransformationTargetComponentRefer
 					FStringFormatOrderedArguments({ GetOwner()->GetName() })));
 		}
 	}
+
+	TransformationTargetComponent = targetSceneComponent;
 }

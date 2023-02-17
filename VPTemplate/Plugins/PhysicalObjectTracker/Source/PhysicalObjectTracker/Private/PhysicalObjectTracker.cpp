@@ -14,23 +14,6 @@ void FPhysicalObjectTracker::ShutdownModule()
 	// we call this function before unloading the module.
 }
 
-void FPhysicalObjectTracker::AddObjectTrackingComponent(TObjectPtr<UPhysicalObjectTrackingComponent> Component)
-{
-	CurrentObjectTrackers.Add(Component);
-	OnTrackingComponentRegistered.Broadcast(Component);
-}
-
-void FPhysicalObjectTracker::RemoveObjectTrackingComponent(TObjectPtr<UPhysicalObjectTrackingComponent> Component)
-{
-	CurrentObjectTrackers.Remove(Component);
-	OnTrackingComponentUnregistered.Broadcast(Component);
-}
-
-const TSet<TObjectPtr<UPhysicalObjectTrackingComponent>>& FPhysicalObjectTracker::GetCurrentObjectTrackers() const
-{
-	return CurrentObjectTrackers;
-}
-
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FPhysicalObjectTracker, PhysicalObjectTracker)

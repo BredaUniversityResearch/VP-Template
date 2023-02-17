@@ -12,15 +12,71 @@
 	{
 		"MajorVersion": 5,
 		"MinorVersion": 1,
-		"PatchVersion": 0,
-		"Changelist": 23058290,
-		"CompatibleChangelist": 0,
+		"PatchVersion": 1,
+		"Changelist": 23901901,
+		"CompatibleChangelist": 23058290,
 		"IsLicenseeVersion": 0,
 		"IsPromotedBuild": 0,
 		"BranchName": "++UE5+Release-5.1",
 		"BuildId": "23058290"
 	},
 	"BuildProducts": [
+		{
+			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor-VPTemplate.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor-VPTemplate.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/Binaries/Win64/UnrealEditor-BlackmagicCameraControl.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/Binaries/Win64/UnrealEditor-BlackmagicCameraControl.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/DataLink/Binaries/Win64/UnrealEditor-DataLink.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/DataLink/Binaries/Win64/UnrealEditor-DataLink.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/DataLink/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor-PhysicalObjectTracker.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor-PhysicalObjectTracker.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor-PhysicalObjectTrackerEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor-PhysicalObjectTrackerEditor.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
 		{
 			"Path": "$(EngineDir)/Binaries/Win64/AgentInterface.dll",
 			"Type": "RequiredResource"
@@ -30,7 +86,19 @@
 			"Type": "RequiredResource"
 		},
 		{
+			"Path": "$(EngineDir)/Binaries/Win64/Android/UnrealEditor-AndroidDeviceDetection.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/Android/UnrealEditor-AndroidPlatformEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
 			"Path": "$(EngineDir)/Binaries/Win64/Android/UnrealEditor-AndroidRuntimeSettings.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/Android/UnrealEditor-AndroidTargetPlatform.dll",
 			"Type": "DynamicLibrary"
 		},
 		{
@@ -38,7 +106,19 @@
 			"Type": "RequiredResource"
 		},
 		{
-			"Path": "$(EngineDir)/Binaries/Win64/Android/UnrealEditor.modules",
+			"Path": "$(EngineDir)/Binaries/Win64/LinuxArm64/UnrealEditor-LinuxArm64TargetPlatform.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/LinuxArm64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/Linux/UnrealEditor-LinuxTargetPlatform.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/Linux/UnrealEditor.modules",
 			"Type": "RequiredResource"
 		},
 		{
@@ -287,6 +367,10 @@
 		},
 		{
 			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-BuildSettings.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-CEF3Utils.dll",
 			"Type": "DynamicLibrary"
 		},
 		{
@@ -1446,16 +1530,16 @@
 			"Type": "DynamicLibrary"
 		},
 		{
-			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-TextureFormat.pdb",
-			"Type": "SymbolFile"
+			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-TextureFormatASTC.dll",
+			"Type": "DynamicLibrary"
 		},
 		{
 			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-TextureFormatDXT.dll",
 			"Type": "DynamicLibrary"
 		},
 		{
-			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-TextureFormatDXT.pdb",
-			"Type": "SymbolFile"
+			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-TextureFormatETC2.dll",
+			"Type": "DynamicLibrary"
 		},
 		{
 			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-TextureFormatIntelISPCTexComp.dll",
@@ -1607,6 +1691,10 @@
 		},
 		{
 			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-VulkanShaderFormat.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-WebBrowser.dll",
 			"Type": "DynamicLibrary"
 		},
 		{
@@ -1807,6 +1895,18 @@
 		},
 		{
 			"Path": "$(EngineDir)/Plugins/Animation/LiveLink/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/Bridge/Binaries/Win64/UnrealEditor-Bridge.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/Bridge/Binaries/Win64/UnrealEditor-MegascansPlugin.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/Bridge/Binaries/Win64/UnrealEditor.modules",
 			"Type": "RequiredResource"
 		},
 		{
@@ -3922,6 +4022,30 @@
 			"Type": "RequiredResource"
 		},
 		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/LevelSnapshots/Binaries/Win64/UnrealEditor-FoliageSupport.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/LevelSnapshots/Binaries/Win64/UnrealEditor-LevelSnapshotFilters.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/LevelSnapshots/Binaries/Win64/UnrealEditor-LevelSnapshots.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/LevelSnapshots/Binaries/Win64/UnrealEditor-LevelSnapshotsEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/LevelSnapshots/Binaries/Win64/UnrealEditor-nDisplaySupport.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/LevelSnapshots/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
 			"Path": "$(EngineDir)/Plugins/VirtualProduction/MultiUserTakes/Binaries/Win64/UnrealEditor-ConcertTakeRecorder.dll",
 			"Type": "DynamicLibrary"
 		},
@@ -4016,53 +4140,137 @@
 		{
 			"Path": "$(EngineDir)/Plugins/XGEController/Binaries/Win64/UnrealEditor.modules",
 			"Type": "RequiredResource"
-		},
-		{
-			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor-VPTemplate.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor-VPTemplate.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor.modules",
-			"Type": "RequiredResource"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/Binaries/Win64/UnrealEditor-BlackmagicCameraControl.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/Binaries/Win64/UnrealEditor-BlackmagicCameraControl.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/Binaries/Win64/UnrealEditor.modules",
-			"Type": "RequiredResource"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor-PhysicalObjectTracker.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor-PhysicalObjectTracker.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor-PhysicalObjectTrackerEditor.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor-PhysicalObjectTrackerEditor.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/Binaries/Win64/UnrealEditor.modules",
-			"Type": "RequiredResource"
 		}
 	],
 	"RuntimeDependencies": [
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/gamepad.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/holographic_controller.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/hpmotioncontroller.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/indexhmd.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/knuckles.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/oculus_touch.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/rift.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/steamvr_manifest.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_controller.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_cosmos_controller.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_pro.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_camera.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_chest.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_handed.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_keyboard.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_left_elbow.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_left_foot.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_left_knee.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_left_shoulder.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_right_elbow.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_right_foot.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_right_knee.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_right_shoulder.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_waist.json",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/BlackmagicCameraControl.uplugin",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/DataLink/DataLink.uplugin",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/PhysicalObjectTracker.uplugin",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/VPTemplate.uproject",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/ThirdParty/ARM/Win64/astcenc-sse2.exe",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/ThirdParty/ARM/Win64/astcenc-sse4.1.exe",
+			"Type": "NonUFS"
+		},
 		{
 			"Path": "$(EngineDir)/Binaries/ThirdParty/DbgHelp/dbghelp.dll",
 			"Type": "NonUFS"
@@ -6780,15 +6988,7 @@
 			"Type": "NonUFS"
 		},
 		{
-			"Path": "$(EngineDir)/Binaries/ThirdParty/Python3/Win64/Lib/lib2to3/Grammar3.9.7.final.0.pickle",
-			"Type": "NonUFS"
-		},
-		{
 			"Path": "$(EngineDir)/Binaries/ThirdParty/Python3/Win64/Lib/lib2to3/PatternGrammar.txt",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(EngineDir)/Binaries/ThirdParty/Python3/Win64/Lib/lib2to3/PatternGrammar3.9.7.final.0.pickle",
 			"Type": "NonUFS"
 		},
 		{
@@ -21964,6 +22164,10 @@
 			"Type": "DebugNonUFS"
 		},
 		{
+			"Path": "$(EngineDir)/Binaries/Win64/EpicWebHelper.exe",
+			"Type": "NonUFS"
+		},
+		{
 			"Path": "$(EngineDir)/Binaries/Win64/OpenImageDenoise.dll",
 			"Type": "NonUFS"
 		},
@@ -24616,6 +24820,10 @@
 			"Type": "UFS"
 		},
 		{
+			"Path": "$(EngineDir)/Plugins/Bridge/Bridge.uplugin",
+			"Type": "UFS"
+		},
+		{
 			"Path": "$(EngineDir)/Plugins/Cameras/CameraShakePreviewer/CameraShakePreviewer.uplugin",
 			"Type": "UFS"
 		},
@@ -24632,7 +24840,7 @@
 			"Type": "UFS"
 		},
 		{
-			"Path": "$(EngineDir)/Plugins/Compositing/OpenColorIO/Binaries/ThirdParty/Win64/OpenColorIO_2_1.dll",
+			"Path": "$(EngineDir)/Plugins/Compositing/OpenColorIO/Binaries/ThirdParty/Win64/OpenColorIO_2_2.dll",
 			"Type": "NonUFS"
 		},
 		{
@@ -25360,6 +25568,10 @@
 			"Type": "UFS"
 		},
 		{
+			"Path": "$(EngineDir)/Plugins/VirtualProduction/LevelSnapshots/LevelSnapshots.uplugin",
+			"Type": "UFS"
+		},
+		{
 			"Path": "$(EngineDir)/Plugins/VirtualProduction/MultiUserTakes/MultiUserTakes.uplugin",
 			"Type": "UFS"
 		},
@@ -25381,122 +25593,6 @@
 		},
 		{
 			"Path": "$(EngineDir)/Plugins/XGEController/XGEController.uplugin",
-			"Type": "UFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/gamepad.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/holographic_controller.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/hpmotioncontroller.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/indexhmd.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/knuckles.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/oculus_touch.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/rift.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/steamvr_manifest.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_controller.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_cosmos_controller.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_pro.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_camera.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_chest.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_handed.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_keyboard.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_left_elbow.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_left_foot.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_left_knee.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_left_shoulder.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_right_elbow.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_right_foot.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_right_knee.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_right_shoulder.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Config/SteamVRBindings/vive_tracker_waist.json",
-			"Type": "NonUFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/BlackmagicCameraControl.uplugin",
-			"Type": "UFS"
-		},
-		{
-			"Path": "$(ProjectDir)/Plugins/PhysicalObjectTracker/PhysicalObjectTracker.uplugin",
-			"Type": "UFS"
-		},
-		{
-			"Path": "$(ProjectDir)/VPTemplate.uproject",
 			"Type": "UFS"
 		}
 	],

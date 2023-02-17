@@ -3,9 +3,9 @@
 #include "DataLink.h"
 
 #include "Editor.h"
-#include "HAL/ConsoleManager.h"
 #include "TCPMessaging.h"
-#include "Engine/TimecodeProvider.h"
+#include "ObjectTrackingDataLink.h"
+
 
 DEFINE_LOG_CATEGORY(LogDataLink)
 
@@ -14,7 +14,7 @@ DEFINE_LOG_CATEGORY(LogDataLink)
 void FDataLinkModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	MessagingService = MakeUnique<FTCPMessaging>();
+	MessagingService = MakeShared<FTCPMessaging>();
 
 #if WITH_EDITOR
 	
@@ -31,7 +31,7 @@ void FDataLinkModule::StartupModule()
 		0);
 #endif
 
-	
+	ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService);
 
 }
 
@@ -52,7 +52,7 @@ void FDataLinkModule::HandleConnectCommand(const TArray<FString>& Arguments) con
 		FIPv4Endpoint::Parse(endpointStr, remoteEndpoint);
 	}
 
-	bool connected = MessagingService->ConnectToSocket(remoteEndpoint);
+	MessagingService->ConnectToSocket(remoteEndpoint, UINT32_MAX);
 
 }
 

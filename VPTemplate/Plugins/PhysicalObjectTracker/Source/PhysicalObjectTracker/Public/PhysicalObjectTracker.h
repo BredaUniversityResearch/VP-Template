@@ -1,10 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-class UPhysicalObjectTrackingComponent;
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnPhysicalObjectTrackingComponentRegistered, TObjectPtr<UPhysicalObjectTrackingComponent>)
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnPhysicalObjectTrackingComponentUnregistered, TObjectPtr<UPhysicalObjectTrackingComponent>)
+#include "PhysicalObjectTrackingComponentRegistry.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPhysicalObjectTracker, Log, All);
 
@@ -18,15 +15,6 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-	void AddObjectTrackingComponent(TObjectPtr<UPhysicalObjectTrackingComponent> Component);
-	void RemoveObjectTrackingComponent(TObjectPtr<UPhysicalObjectTrackingComponent> Component);
+	FPhysicalObjectTrackingComponentRegistry ObjectTrackingComponents;
 
-	const TSet<TObjectPtr<UPhysicalObjectTrackingComponent>>& GetCurrentObjectTrackers() const;
-
-	FOnPhysicalObjectTrackingComponentRegistered OnTrackingComponentRegistered;
-	FOnPhysicalObjectTrackingComponentUnregistered OnTrackingComponentUnregistered;
-
-private:
-
-	TSet<TObjectPtr<UPhysicalObjectTrackingComponent>> CurrentObjectTrackers;
 };

@@ -8,8 +8,12 @@
 #define LOCTEXT_NAMESPACE "FPhysicalObjectTrackerEditor"
 
 FUpdateTrackerCalibrationAsset::FUpdateTrackerCalibrationAsset(UPhysicalObjectTrackingReferencePoint* a_TargetAsset)
-	: TargetAsset(a_TargetAsset)
+	:
+TargetAsset(a_TargetAsset),
+MinBaseStationsCalibrated(a_TargetAsset ? a_TargetAsset->GetMinBaseStationsCalibrated() : 0),
+MinBaseStationsCalibratedStatic(a_TargetAsset ? a_TargetAsset->GetMinBaseStationsCalibratedStatically() : 0)
 {
+	check(a_TargetAsset != nullptr);
 }
 
 void FUpdateTrackerCalibrationAsset::Tick(float DeltaTime)
