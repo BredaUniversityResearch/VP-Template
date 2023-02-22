@@ -190,6 +190,10 @@
 		},
 		{
 			"Name": "LevelSnapshots",
+			"Enabled": false
+		},
+		{
+			"Name": "LiveLinkViconDataStream",
 			"Enabled": true
 		}
 	],
