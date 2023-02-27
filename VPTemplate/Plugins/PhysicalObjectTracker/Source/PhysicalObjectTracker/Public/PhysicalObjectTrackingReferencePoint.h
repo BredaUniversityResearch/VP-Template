@@ -38,7 +38,6 @@ public:
 	UPhysicalObjectTrackingReferencePoint(const FObjectInitializer& ObjectInitializer);
 
 	void Tick(float DeltaTime) override;
-	bool IsAllowedToTick() const override;
 	bool IsTickableInEditor() const override;
 	FORCEINLINE TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UPhysicalObjectTrackingReferencePoint, STATGROUP_Default); }
 
