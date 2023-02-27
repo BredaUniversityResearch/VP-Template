@@ -2,7 +2,6 @@
 
 #include "DataLink.h"
 
-#include "Editor.h"
 #include "TCPMessaging.h"
 #include "ObjectTrackingDataLink.h"
 
@@ -17,18 +16,20 @@ void FDataLinkModule::StartupModule()
 	MessagingService = MakeShared<FTCPMessaging>();
 
 #if WITH_EDITOR
-	
-	IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("DataLinkConnect"),
-		TEXT("Connect to a socket specified by -Endpoint:xxxx.xxxx.xxxx.xxxx:yyyy"),
-		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleConnectCommand),
-		0);
+	if (GIsEditor)
+	{
+		IConsoleManager::Get().RegisterConsoleCommand(
+			TEXT("DataLinkConnect"),
+			TEXT("Connect to a socket specified by -Endpoint:xxxx.xxxx.xxxx.xxxx:yyyy"),
+			FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleConnectCommand),
+			0);
 
-	IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("DataLinkSend"),
-		TEXT("Send a message to the connected socket. First connect to a socket using DataLinkConnect"),
-		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSendCommand),
-		0);
+		IConsoleManager::Get().RegisterConsoleCommand(
+			TEXT("DataLinkSend"),
+			TEXT("Send a message to the connected socket. First connect to a socket using DataLinkConnect"),
+			FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSendCommand),
+			0);
+	}
 #endif
 
 	ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService);

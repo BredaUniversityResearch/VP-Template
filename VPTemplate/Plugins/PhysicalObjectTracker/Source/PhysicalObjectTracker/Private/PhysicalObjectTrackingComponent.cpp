@@ -103,7 +103,9 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 			TransformUpdates.Update({currentTimeCode, trackerSerialId, trackerSerialIdAssetName, trackerFromReference});
 		}
 
-		if (WorldReferencePoint != nullptr)
+		AActor* owner = GetOwner();
+
+		if (WorldReferencePoint != nullptr && (!HasTransformationTargetComponent && WorldReferencePoint != owner))
 		{
 			trackerFromReference.SetLocation(WorldReferencePoint->GetActorTransform().TransformPosition(trackerFromReference.GetLocation()));
 			trackerFromReference.SetRotation(WorldReferencePoint->GetActorTransform().TransformRotation(trackerFromReference.GetRotation()));
@@ -118,7 +120,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		}
 		else if(!HasTransformationTargetComponent)
 		{
-			GetOwner()->SetActorTransform(filteredTransform);
+			owner->SetActorTransform(filteredTransform);
 		}
 	}
 	else

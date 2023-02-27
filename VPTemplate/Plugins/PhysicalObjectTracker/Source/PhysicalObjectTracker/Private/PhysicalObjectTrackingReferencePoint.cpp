@@ -41,14 +41,14 @@ void UPhysicalObjectTrackingReferencePoint::SetBaseStationCalibrationTransform(
 	if(!BaseStationSerialId.IsEmpty())
 	{
 		BaseStationCalibrationTransforms.Add(BaseStationSerialId, OffsetCalibrationTransform);
-		BaseStationCalibrationInfo.Add(BaseStationSerialId, { StaticCalibration, Color });
+		auto& info = BaseStationCalibrationInfo.FindOrAdd(BaseStationSerialId, { StaticCalibration, Color });
+		info.StaticallyCalibrated = StaticCalibration;
 	}
 }
 
-void UPhysicalObjectTrackingReferencePoint::ResetBaseStationOffsets()
+void UPhysicalObjectTrackingReferencePoint::ResetBaseStationCalibrationTransforms()
 {
 	BaseStationCalibrationTransforms.Empty();
-	BaseStationCalibrationInfo.Empty();
 }
 
 const FTransform& UPhysicalObjectTrackingReferencePoint::GetTrackerCalibrationTransform() const
@@ -70,7 +70,7 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(
 	return FTransform(TrackedRotation, TrackedPosition).GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
 }
 
-bool UPhysicalObjectTrackingReferencePoint::GetBaseStationReferenceSpaceTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const
+bool UPhysicalObjectTrackingReferencePoint::GetBaseStationCalibrationTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const
 {
 	if (!BaseStationSerialId.IsEmpty())
 	{
@@ -84,6 +84,21 @@ bool UPhysicalObjectTrackingReferencePoint::GetBaseStationReferenceSpaceTransfor
 
 	OutRawTransform = FTransform::Identity;
 	OutReferenceSpaceTransform = FTransform::Identity;
+	return false;
+}
+
+bool UPhysicalObjectTrackingReferencePoint::GetBaseStationColor(const FString& BaseStationSerialId, FColor& OutColor) const
+{
+	if(!BaseStationSerialId.IsEmpty())
+	{
+		if(const auto* calibrationInfo = BaseStationCalibrationInfo.Find(BaseStationSerialId))
+		{
+			OutColor = calibrationInfo->Color;
+			return true;
+		}
+	}
+
+	OutColor = FColor::Black;
 	return false;
 }
 
@@ -278,24 +293,26 @@ int32 UPhysicalObjectTrackingReferencePoint::GetMinBaseStationsCalibratedStatica
 
 void UPhysicalObjectTrackingReferencePoint::PostLoad()
 {
-	Super::PostLoad();
-	UpdateRuntimeDataIfNeeded();
-}
-
-void UPhysicalObjectTrackingReferencePoint::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	UDataAsset::PostLoad();
 	UpdateRuntimeDataIfNeeded();
 }
 
 void UPhysicalObjectTrackingReferencePoint::PostInitProperties()
 {
-	Super::PostInitProperties();
+	UDataAsset::PostInitProperties();
 	UpdateRuntimeDataIfNeeded();
 }
 
 void UPhysicalObjectTrackingReferencePoint::PostReinitProperties()
 {
-	Super::PostReinitProperties();
+	UDataAsset::PostReinitProperties();
 	UpdateRuntimeDataIfNeeded();
 }
+
+#if WITH_EDITOR
+void UPhysicalObjectTrackingReferencePoint::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	UObject::PostEditChangeProperty(PropertyChangedEvent);
+	UpdateRuntimeDataIfNeeded();
+}
+#endif

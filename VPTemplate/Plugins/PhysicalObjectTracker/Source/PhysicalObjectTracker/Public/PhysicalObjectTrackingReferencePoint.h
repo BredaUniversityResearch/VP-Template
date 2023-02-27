@@ -11,7 +11,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	bool StaticallyCalibrated;
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingReferencePoint")
 	FColor Color;
 };
 
@@ -49,24 +49,24 @@ public:
 		const FTransform& Transform, 
 		const FColor& Color, 
 		bool StaticCalibration);
-	void ResetBaseStationOffsets();
+	void ResetBaseStationCalibrationTransforms();
 
 	//Get the tracker transform in SteamVR space at calibration time that is stored in the reference point.
 	const FTransform& GetTrackerCalibrationTransform() const;
 	//Get the base station transforms in SteamVR space at calibration time,
 	//mapped to the serial ids of the base stations, that are stored in the the reference point
 	const TMap<FString, FTransform>& GetBaseStationCalibrationTransforms() const;
+	//Get the base station's reference-space transform if the serial id matches a stored serial id. Expects raw SteamVR space input.
+	//(Only used for drawing debug visualizations, uses string lookups which are slow.)
+	bool GetBaseStationCalibrationTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const;
+	bool GetBaseStationColor(const FString& BaseStationSerialId, FColor& OutColor) const;
 
 	//Used for getting base station transformations
 	//(legacy function for tracking trackers, currently only used for debug visualization and as fallback function).
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
 
 	//Get the tracker's reference-space transform. Expects raw SteamVR space input.
-	//(tracker rotation fix can be done using FPhysicalObjectTrackingUtility::FixTrackerTransform())
 	FTransform GetTrackerReferenceSpaceTransform(const FTransform& TrackerCurrentTransform) const;
-	//Get the base station's reference-space transform if the serial id matches a stored serial id. Expects raw SteamVR space input.
-	//(Only used for drawing debug visualizations, uses string lookups which are slow.)
-	bool GetBaseStationReferenceSpaceTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const;
 
 	//Update the run time data if needed, which includes:
 	//- Mapping the base station calibration transforms which are mapped to serial ids as strings
@@ -79,9 +79,12 @@ public:
 private:
 
 	virtual void PostLoad() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostInitProperties() override;
 	virtual void PostReinitProperties() override;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 	bool HasMappedAllBaseStations() const;
 	bool MapBaseStationIds();
@@ -105,12 +108,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
 	int32 MinNumBaseStationsCalibratedStatically {2};
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
-	int32 BaseStationOffsetHistorySize {};
+	int32 BaseStationOffsetHistorySize {50};
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 0.001))
-	float BaseStationOffsetUpdatesPerSecond{ 4.f };
+	float BaseStationOffsetUpdatesPerSecond{ 25.f };
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
 	TMap<FString, FTransform> BaseStationCalibrationTransforms;
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
 	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
 
 	//Runtime data

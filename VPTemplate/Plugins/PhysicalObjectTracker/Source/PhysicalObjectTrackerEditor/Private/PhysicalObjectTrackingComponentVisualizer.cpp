@@ -169,20 +169,12 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 					if(FPhysicalObjectTrackingUtility::FindSerialIdFromDeviceId(deviceId, lightHouseSerialId))
 					{
 						//Determine the debug color of the light house.
-						{
-							const FColor* color = BaseStationColors.Find(lightHouseSerialId);
-							if (color != nullptr)
-							{
-								lightHouseColor = *color;
-							}
-						}
-
-						
+						reference->GetBaseStationColor(lightHouseSerialId, lightHouseColor);
 
 						//Visualize the base stations with the stored calibration data.
 						FTransform calibrationTransform;
 						FTransform calibrationTransformRaw;
-						if (reference->GetBaseStationReferenceSpaceTransform(lightHouseSerialId, calibrationTransform, calibrationTransformRaw))
+						if (reference->GetBaseStationCalibrationTransform(lightHouseSerialId, calibrationTransform, calibrationTransformRaw))
 						{
 							//Visualize the calibrated base station transforms that are stored in the reference point.
 							FTransform worldBaseStationTransform = calibrationTransform;
