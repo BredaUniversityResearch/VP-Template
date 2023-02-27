@@ -6,20 +6,19 @@
 
 UPhysicalObjectTrackingReferencePoint::UPhysicalObjectTrackingReferencePoint(const FObjectInitializer& ObjectInitializer)
     :
-AveragedBaseStationOffsetHistory(BaseStationOffsetHistorySize),
+BaseStationOffsetHistory(BaseStationOffsetHistorySize),
 AveragedBaseStationOffsetCached(FTransform::Identity)
 {}
 
 void UPhysicalObjectTrackingReferencePoint::Tick(float DeltaTime)
 {
-	/*UpdateBaseStationOffsetsDeltaTimeAccumulator += DeltaTime;
+	UpdateBaseStationOffsetsDeltaTimeAccumulator += DeltaTime;
 	const float SecondsBetweenUpdate = 1.f / BaseStationOffsetUpdatesPerSecond;
 	if(UpdateBaseStationOffsetsDeltaTimeAccumulator > SecondsBetweenUpdate)
 	{
 		UpdateBaseStationOffsetsDeltaTimeAccumulator -= SecondsBetweenUpdate;
-
 		UpdateAveragedBaseStationOffset();
-	}*/
+	}
 }
 
 bool UPhysicalObjectTrackingReferencePoint::IsTickableInEditor() const
@@ -61,15 +60,6 @@ const TMap<FString, FTransform>& UPhysicalObjectTrackingReferencePoint::GetBaseS
 	return BaseStationCalibrationTransforms;
 }
 
-FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(
-	const FVector& TrackedPosition,
-	const FQuat& TrackedRotation) const
-{
-	//Should use GetRelativeTransform as this returns transformA * inverse(transformB) where as
-	//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations
-	return FTransform(TrackedRotation, TrackedPosition).GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
-}
-
 bool UPhysicalObjectTrackingReferencePoint::GetBaseStationCalibrationTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const
 {
 	if (!BaseStationSerialId.IsEmpty())
@@ -102,6 +92,16 @@ bool UPhysicalObjectTrackingReferencePoint::GetBaseStationColor(const FString& B
 	return false;
 }
 
+FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(
+	const FVector& TrackedPosition,
+	const FQuat& TrackedRotation) const
+{
+	//Should use GetRelativeTransform as this returns transformA * inverse(transformB) where as
+	//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations
+	return FTransform(TrackedRotation, TrackedPosition).GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
+}
+
+
 FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransform(const FTransform& TrackerCurrentTransform) const
 {
 	//1. For every base station calculate the offset transformation between the current transformation and the transformation at calibration.
@@ -130,63 +130,26 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 	 *
 	 */
 
+	//Done every tick
 	//1. For every base station calculate the offset transformation between the current transformation and the transformation at calibration.
 	//2. Average the offset transformations.
+
+	//Done in this function.
 	//3. Get the offset transformation between the current transformation of the tracker and the transformation at calibration.
 	//4. Calculate the Tracker transformation by adding the offset transformation of the tracker and the offset transformation of the base stations.
 
-	//If not all base stations have their calibration transform mapped to a device id instead of serial id string,
-	//try to map the base station ids that have not been found yet. //TODO: can not be done because of const.
-	/*if(!HasMappedAllBaseStations())
-	{
-		MapBaseStationIds();
-	}*/
-
-	TArray<int32> currentBaseStationIds{};
-	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(currentBaseStationIds);
-
-	FVector averagedBaseStationOffsetTranslation = FVector::ZeroVector;
-	FVector averagedBaseStationOffsetRotation = FVector::ZeroVector;
-	int32 numBaseStationSamples = 0;
-	for(const auto baseStation : BaseStationIdToCalibrationTransform)
-	{
-		if(currentBaseStationIds.Contains(baseStation.Key))	//Only sample the base station if it is currently connected (valid)
-		{
-			FVector currentBaseStationPosition;
-			FQuat currentBaseStationRotation;
-			if(FPhysicalObjectTrackingUtility::GetTrackedDevicePositionAndRotation(baseStation.Key, currentBaseStationPosition, currentBaseStationRotation))
-			{
-				//1. Calculate the offset transformation between the current transformation and the transformation at calibration.
-				//Should use GetRelativeTransform as this returns leftTransform * inverse(rightTransform) where as
-				//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations. (check function declaration)
-				const FTransform baseStationOffset = baseStation.Value.GetRelativeTransform(FTransform(currentBaseStationRotation, currentBaseStationPosition));
-				averagedBaseStationOffsetTranslation += baseStationOffset.GetTranslation();
-				averagedBaseStationOffsetRotation += baseStationOffset.GetRotation().Euler();
-				++numBaseStationSamples;
-			}
-		}
-	}
-
 	const FTransform fixedTrackerTransform = FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCurrentTransform);
 
-	//Should not happen as the base stations used should be the same as the ones at calibration 
-	//and at least 1 needs to be connected for tracking. So should be able to map at least one serial id to a device id
+	//AveragedBaseStationOffsetCached can be invalid if no BaseStationSerialIds could be mapped to DeviceIds to avoid string lookups.
 	//(Serial Id stay the same, while device ids can change in between sessions).
-	/*if(!AveragedBaseStationOffsetCachedValid)
-	{
-		return ApplyTransformation(fixedTrackerTransform.GetLocation(), fixedTrackerTransform.GetRotation());
-	}*/
-
-	if(numBaseStationSamples == 0)
+	//Should not happen as the base stations used should be the same as the ones at calibration and at least 1 needs to be connected for tracking.
+	//So should be able to map at least one serial id to a device id, but as backup simply use the old method of tracking (non-relative to base stations)
+	if(!AveragedBaseStationOffsetCachedValid)
 	{
 		return ApplyTransformation(fixedTrackerTransform.GetLocation(), fixedTrackerTransform.GetRotation());
 	}
 
-	averagedBaseStationOffsetTranslation /= numBaseStationSamples;
-	averagedBaseStationOffsetRotation /= numBaseStationSamples;
-	const FTransform averageBaseStationOffset(FQuat::MakeFromEuler(averagedBaseStationOffsetRotation), averagedBaseStationOffsetTranslation);
-
-	//const FTransform averageBaseStationOffset = AveragedBaseStationOffsetCached;
+	const FTransform averageBaseStationOffset = AveragedBaseStationOffsetCached;
 
 	//3. Get the offset transformation for the tracker.
 	const FTransform trackerOffset = fixedTrackerTransform.GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));	
@@ -227,7 +190,7 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 {
 	//If not all of the calibration transforms have been mapped to a device id,
 	//try to map the base stations calibration transforms to a device id.
-	if(HasMappedAllBaseStations())
+	if(!HasMappedAllBaseStations())
 	{
 		MapBaseStationIds();
 	}
@@ -237,10 +200,6 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(currentBaseStationIds);
 
 	//Sample the offsets between the calibration transform and the current transform
-	int32 numBaseStationSamples = 0;
-	FVector averagedBaseStationOffsetTranslation = FVector::ZeroVector;
-	FVector averagedBaseStationOffsetRotation = FVector::ZeroVector;
-
 	for (const auto baseStation : BaseStationIdToCalibrationTransform)
 	{
 		if (currentBaseStationIds.Contains(baseStation.Key))	//Only sample the base station if it is currently connected (valid)
@@ -253,30 +212,21 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 				//Should use GetRelativeTransform as this returns leftTransform * inverse(rightTransform) where as
 				//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations. (check function declaration)
 				const FTransform offset = FTransform(currentBaseStationRotation, currentBaseStationPosition).GetRelativeTransform(baseStation.Value);
-				averagedBaseStationOffsetTranslation += offset.GetTranslation();
-				averagedBaseStationOffsetRotation += offset.GetRotation().Euler();
-				++numBaseStationSamples;
+				BaseStationOffsetHistory.AddSample(offset);
 			}
 		}
 	}
 
-	if(numBaseStationSamples > 0)
+	if(!BaseStationOffsetHistory.IsEmpty())
 	{
 		//2. Average the offset transformations.
-		averagedBaseStationOffsetTranslation /= numBaseStationSamples;
-		averagedBaseStationOffsetRotation /= numBaseStationSamples;
-
-		//TODO: use this sample to check if there is too much difference between old samples, if that happens erase the history.
-		const FTransform averagedBaseStationOffset(FQuat::MakeFromEuler(averagedBaseStationOffsetRotation), averagedBaseStationOffsetTranslation);
-
-		//Add them in a sample buffer (transform history) to be able to average the transforms so there is less jumps between updates.
-		AveragedBaseStationOffsetHistory.AddSample(averagedBaseStationOffset);
-		AveragedBaseStationOffsetCached = AveragedBaseStationOffsetHistory.GetAveragedTransform(0.5f);
+		//TODO: maybe erase history if the average offset is too big?
+		AveragedBaseStationOffsetCached = BaseStationOffsetHistory.GetAveragedTransform(0.5f);
 		AveragedBaseStationOffsetCachedValid = true;
 	}
 	else
 	{
-		AveragedBaseStationOffsetCachedValid = !AveragedBaseStationOffsetHistory.IsEmpty();
+		AveragedBaseStationOffsetCachedValid = false;
 	}
 
 }

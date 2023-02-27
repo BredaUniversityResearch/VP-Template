@@ -38,9 +38,8 @@ public:
 	UPhysicalObjectTrackingReferencePoint(const FObjectInitializer& ObjectInitializer);
 
 	void Tick(float DeltaTime) override;
-
+	bool IsAllowedToTick() const override;
 	bool IsTickableInEditor() const override;
-
 	FORCEINLINE TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UPhysicalObjectTrackingReferencePoint, STATGROUP_Default); }
 
 	void SetTrackerCalibrationTransform(const FTransform& Transform);
@@ -108,7 +107,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
 	int32 MinNumBaseStationsCalibratedStatically {2};
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
-	int32 BaseStationOffsetHistorySize {50};
+	int32 BaseStationOffsetHistorySize {100};
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 0.001))
 	float BaseStationOffsetUpdatesPerSecond{ 25.f };
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
@@ -117,12 +116,15 @@ private:
 	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
 
 	//Runtime data
-	
+	//Maps the calibration transforms of the base stations to Device Ids instead of Serial Ids.
+	//(Serial Ids are consistent between sessions but Device Ids not necesarilly)
 	TMap<int32, FTransform> BaseStationIdToCalibrationTransform;
 
-	FTrackerTransformHistory AveragedBaseStationOffsetHistory;
-	FTransform AveragedBaseStationOffsetCached;
+	FTrackerTransformHistory BaseStationOffsetHistory;
 	bool AveragedBaseStationOffsetCachedValid{ false };
+
+	UPROPERTY(VisibleAnywhere, Transient, Category = "PhysicalObjectTrackingReferencePoint|RunTime")
+	FTransform AveragedBaseStationOffsetCached;
 
 	float UpdateBaseStationOffsetsDeltaTimeAccumulator{ 0.f };
 

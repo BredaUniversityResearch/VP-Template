@@ -137,9 +137,8 @@ FTransform FTrackerTransformHistory::GetAveragedTransform(const UPhysicalObjectT
 
 FTransform FTrackerTransformHistory::GetAveragedTransform(float SampleCountPercentage) const
 {
-	check(m_History.Num() > 0);
+	ensure(m_History.Num() > 0 && SampleCountPercentage > 0.f);
 	const int samplesToTake = FMath::CeilToInt(static_cast<float>(m_History.Num()) * SampleCountPercentage);
-	check(samplesToTake > 0);
 	return GetAveragedTransformOverSampleCount(samplesToTake);
 }
 
