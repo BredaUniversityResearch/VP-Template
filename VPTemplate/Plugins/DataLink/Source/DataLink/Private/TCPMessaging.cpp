@@ -5,7 +5,8 @@
 
 FTCPMessaging::FTCPMessaging()
     :
-Running(false)
+Running(false),
+WaitTime(FTimespan::FromMilliseconds(100.0))
 {
     Socket = TSharedPtr<FSocket>(
         FTcpSocketBuilder("DataLinkSocketBuilder")
@@ -19,7 +20,7 @@ FTCPMessaging::~FTCPMessaging()
 {
     if(Thread.IsValid())
     {
-        Thread->Kill();
+        Thread->Kill(true);
     }
 
     if(Socket.IsValid())
@@ -36,25 +37,44 @@ void FTCPMessaging::ConnectToSocket(
     uint32 InSendBufferSize,
     uint32 InReceiveBufferSize)
 {
-    if(Socket.IsValid() && Socket->GetConnectionState() == USOCK_Open)
+    const auto connectFunction = 
+        [this, 
+        RemoteEndpoint,
+        RetryAttempts,
+        RetryInterval,
+        InSendBufferSize, 
+        InReceiveBufferSize]()
     {
-        Socket->Close();
-    }
+        if (Socket.IsValid() && Socket->GetConnectionState() == USOCK_Open)
+        {
+            Socket->Close();
+        }
 
-    RemoteAddress->SetIp(RemoteEndpoint.Address.Value);
-    RemoteAddress->SetPort(RemoteEndpoint.Port);
+        RemoteAddress->SetIp(RemoteEndpoint.Address.Value);
+        RemoteAddress->SetPort(RemoteEndpoint.Port);
 
-    ConnectionTries = 0;
-    MaxConnectionTries = RetryAttempts;
-    ConnectionTryInterval = RetryInterval;
+        int32 bufferSize = 0;
+        Socket->SetSendBufferSize(InSendBufferSize, bufferSize);
+        Socket->SetReceiveBufferSize(InReceiveBufferSize, bufferSize);
+
+        ConnectionTries.Store(0);
+        MaxConnectionTries.Store(RetryAttempts);
+        ConnectionTryInterval.Store(RetryInterval);
+
+        UpdateEvent->Trigger();
+    };
+    
+    UE::Tasks::Launch(
+        TEXT("DataLinkConnectTCPSocket"),
+        connectFunction);
 
 }
 
-void FTCPMessaging::Send(const TSharedRef<TArray<uint8>, ESPMode::ThreadSafe>& Data) const
+void FTCPMessaging::Send(const TSharedRef<TArray<uint8>>& Data)
 {
-    const auto addMessageToQueueFunction = [this, Data]()
+    const auto sendFunction = [this, Data]()
     {
-        if (Running && MessageQueue.Enqueue(Data))
+        if (Running && MessageQueue.Enqueue(FTCPMessage{ Data }))
         {
             UpdateEvent->Trigger();
             return true;
@@ -64,10 +84,10 @@ void FTCPMessaging::Send(const TSharedRef<TArray<uint8>, ESPMode::ThreadSafe>& D
 
     UE::Tasks::Launch(
         TEXT("DataLinkSendTCPMessage"),
-        addMessageToQueueFunction);
+        sendFunction);
 }
 
-void FTCPMessaging::Send(const FDataPacket& Packet) const
+void FTCPMessaging::Send(const FDataPacket& Packet)
 {
     const TSharedRef<TArray<uint8_t>, ESPMode::ThreadSafe> packetDataRef =
         MakeShared<TArray<uint8_t>, ESPMode::ThreadSafe>();
@@ -79,7 +99,34 @@ void FTCPMessaging::Update()
 {
     if(Socket.IsValid() && Socket->GetConnectionState() != USOCK_Open)
     {
+        while(Socket->GetConnectionState() != USOCK_Open && (ConnectionTries+1) <= MaxConnectionTries)
+        {
+            ++ConnectionTries;
+            if(!Socket->Connect(*RemoteAddress))
+            {
+                FPlatformProcess::Sleep(ConnectionTryInterval.Load().GetTotalSeconds());
+            }
+        }
+        ConnectionTries.Store(0);
+        MaxConnectionTries.Store(UINT32_MAX);
+    }
+    else if(Socket.IsValid() && Socket->GetConnectionState() == USOCK_Open)
+    {
+        while(!MessageQueue.IsEmpty())
+        {
+            if(!Socket->Wait(ESocketWaitConditions::WaitForWrite, WaitTime))
+            {
+                break;
+            }
 
+            FTCPMessage message;
+            MessageQueue.Dequeue(message);
+
+            int32 sent = 0;
+            Socket->Send(message.Data->GetData(), message.Data->Num(), sent);
+
+            //TODO: handle case where not all data is sent.
+        }
     }
 }
 
@@ -94,7 +141,7 @@ uint32 FTCPMessaging::Run()
     while(Running)
     {
         Update();
-        UpdateEvent->Wait();
+        UpdateEvent->Wait(WaitTime);
     }
 
     return 0;

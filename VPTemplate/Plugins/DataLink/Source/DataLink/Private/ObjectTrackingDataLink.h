@@ -16,7 +16,7 @@ private:
     void OnTrackerRegistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component);
     void OnTrackerUnregistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component);
 
-    virtual void OnUpdate(TObjectPtr<UPhysicalObjectTrackingComponent> Component, const FTransformUpdate& Update) override;
+    virtual void OnUpdate(const FTrackerTransformUpdate& Update) override;;
 
     FDelegateHandle OnTrackerRegisteredDelegate;
     FDelegateHandle OnTrackerUnregisteredDelegate;

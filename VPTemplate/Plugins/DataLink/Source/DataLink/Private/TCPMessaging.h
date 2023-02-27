@@ -26,8 +26,8 @@ public:
 		uint32 ReceiveBufferSize = 0);
 
 	//Add a message to the message queue, non-blocking, spawns async task.
-	void Send(const TSharedRef<TArray<uint8>, ESPMode::ThreadSafe>& Data) const;
-	void Send(const FDataPacket& Packet) const;
+	void Send(const TSharedRef<TArray<uint8>>& Data);
+	void Send(const FDataPacket& Packet);
 
 	//Do not call yourself, will be called automatically
 	virtual bool Init() override;
@@ -36,18 +36,25 @@ public:
 
 private:
 
+	struct FTCPMessage
+	{
+		TSharedPtr<TArray<uint8>, ESPMode::ThreadSafe> Data;
+	};
+
 	void Update();
 
 	TSharedPtr<FSocket> Socket;
-	TSharedRef<FInternetAddr> RemoteAddress;
+	TSharedPtr<FInternetAddr> RemoteAddress;
 
-	uint32 ConnectionTries;
-	uint32 MaxConnectionTries;
-	FTimespan ConnectionTryInterval;
+	TAtomic<uint32> ConnectionTries;
+	TAtomic<uint32> MaxConnectionTries;
+	TAtomic<FTimespan> ConnectionTryInterval;
 
-	TQueue<TSharedRef<TArray<uint8>, ESPMode::ThreadSafe>, EQueueMode::Mpsc> MessageQueue;
+	TQueue<FTCPMessage, EQueueMode::Mpsc> MessageQueue;
 
 	bool Running;
+	FTimespan WaitTime;
+
 	TUniquePtr<FRunnableThread> Thread;
 	FEventRef UpdateEvent;
 

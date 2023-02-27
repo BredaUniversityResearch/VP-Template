@@ -96,8 +96,11 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		if (TrackingSpaceReference != nullptr)
 		{
 			trackerFromReference = TrackingSpaceReference->GetTrackerReferenceSpaceTransform(trackerFromReference);
+
 			FTimecode currentTimeCode = FApp::GetTimecode();
-			TransformUpdates.Update(ToObjectPtr(this), {currentTimeCode, trackerFromReference});
+			FString trackerSerialId = TrackerSerialIdAsset->GetSerialId();
+			FString trackerSerialIdAssetName = TrackerSerialIdAsset.GetName();
+			TransformUpdates.Update({currentTimeCode, trackerSerialId, trackerSerialIdAssetName, trackerFromReference});
 		}
 
 		if (WorldReferencePoint != nullptr)

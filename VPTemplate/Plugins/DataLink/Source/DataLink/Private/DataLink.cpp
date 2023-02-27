@@ -64,19 +64,19 @@ void FDataLinkModule::HandleSendCommand(const TArray<FString>& Arguments) const
 	}
 
 	//Create a byte array of all the arguments, inserting spaces between the arguments.
-	TArray<uint8> messageData;
+	const TSharedRef<TArray<uint8>> messageData = MakeShared<TArray<uint8>>();
 	for(const auto& argument : Arguments)
 	{
 		const ANSICHAR* messageUTF8 = TCHAR_TO_UTF8(*argument);
 		
 		for(auto currentPos = messageUTF8; *currentPos != '\0'; currentPos++)
 		{
-			messageData.Add(static_cast<uint8>(*currentPos));
+			messageData->Add(static_cast<uint8>(*currentPos));
 		}
-		messageData.Add(static_cast<uint8>(' '));
+		messageData->Add(static_cast<uint8>(' '));
 	}
 
-	[[maybe_unused]] auto unused = MessagingService->Send(messageData);
+    MessagingService->Send(messageData);
 }
 
 #undef LOCTEXT_NAMESPACE

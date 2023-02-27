@@ -64,24 +64,17 @@ void FObjectTrackingDataLink::OnTrackerUnregistered(TObjectPtr<UPhysicalObjectTr
     Component->TransformUpdates.RemoveListener(TSharedPtr<ITrackerTransformUpdateListener>(this));
 }
 
-void FObjectTrackingDataLink::OnUpdate(TObjectPtr<UPhysicalObjectTrackingComponent> Component, const FTransformUpdate& Update)
+void FObjectTrackingDataLink::OnUpdate(const FTrackerTransformUpdate& Update)
 {
-    check(Component != nullptr)
-    FString trackerAssetName;
-    FString trackerSerialId;
-
-    if (Component->TrackerSerialIdAsset != nullptr)
-    {
-        Component->TrackerSerialIdAsset->GetName(trackerAssetName);
-        trackerSerialId = Component->TrackerSerialIdAsset->GetSerialId();
-    }
-
     const TSharedPtr<FObjectTrackingPacketData> packetData =
-        MakeShared<FObjectTrackingPacketData>(trackerAssetName, trackerSerialId, Update.Transformation);
+        MakeShared<FObjectTrackingPacketData>(
+            Update.TrackerSerialIdAssetName,
+            Update.TrackerSerialId,
+            Update.Transformation);
     const FDataPacket packet(Update.TimeCode, packetData);
 
     if (Messaging.IsValid())
     {
-        [[maybe_unused]] const bool sent = Messaging->Send(packet);
+        Messaging->Send(packet);
     }
 }
