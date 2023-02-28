@@ -130,7 +130,6 @@ void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 {
 	TargetAsset->SetTrackerCalibrationTransform(TrackerCalibrationTransform);
 
-	TargetAsset->ResetBaseStationCalibrationTransforms();
 	for (const auto& baseStation : CalibratedBaseStationOffsets)
 	{
 		FString baseStationSerialId;
@@ -146,7 +145,7 @@ void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 				FColor::MakeRandomColor();
 			}
 			const bool staticallyCalibrated = StaticallyCalibratedBaseStations.Contains(baseStation.Key);
-			TargetAsset->SetBaseStationCalibrationTransform(baseStationSerialId, baseStation.Value, baseStationColor, staticallyCalibrated);
+			TargetAsset->SetBaseStationCalibrationInfo(baseStationSerialId, baseStation.Value, baseStationColor, staticallyCalibrated);
 		}
 		else
 		{

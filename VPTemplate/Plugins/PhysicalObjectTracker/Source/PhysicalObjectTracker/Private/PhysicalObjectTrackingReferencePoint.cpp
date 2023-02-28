@@ -6,7 +6,7 @@
 
 UPhysicalObjectTrackingReferencePoint::UPhysicalObjectTrackingReferencePoint(const FObjectInitializer& ObjectInitializer)
     :
-BaseStationOffsetHistory(BaseStationOffsetHistorySize),
+BaseStationOffsetSamples(MinNumBaseStationsCalibrated),
 AveragedBaseStationOffsetCached(FTransform::Identity)
 {}
 
@@ -31,23 +31,18 @@ void UPhysicalObjectTrackingReferencePoint::SetTrackerCalibrationTransform(const
 	TrackerCalibrationTransform = InTransform;
 }
 
-void UPhysicalObjectTrackingReferencePoint::SetBaseStationCalibrationTransform(
+void UPhysicalObjectTrackingReferencePoint::SetBaseStationCalibrationInfo(
 	const FString& BaseStationSerialId,
-	const FTransform& OffsetCalibrationTransform,
+	const FTransform& CalibrationTransform,
 	const FColor& Color,
 	bool StaticCalibration)
 {
 	if(!BaseStationSerialId.IsEmpty())
 	{
-		BaseStationCalibrationTransforms.Add(BaseStationSerialId, OffsetCalibrationTransform);
-		auto& info = BaseStationCalibrationInfo.FindOrAdd(BaseStationSerialId, { StaticCalibration, Color });
+		auto& info = BaseStationCalibrationInfo.FindOrAdd(BaseStationSerialId, { FTransform::Identity, false, Color });
+		info.Transformation = CalibrationTransform;
 		info.StaticallyCalibrated = StaticCalibration;
 	}
-}
-
-void UPhysicalObjectTrackingReferencePoint::ResetBaseStationCalibrationTransforms()
-{
-	BaseStationCalibrationTransforms.Empty();
 }
 
 const FTransform& UPhysicalObjectTrackingReferencePoint::GetTrackerCalibrationTransform() const
@@ -55,18 +50,13 @@ const FTransform& UPhysicalObjectTrackingReferencePoint::GetTrackerCalibrationTr
 	return TrackerCalibrationTransform;
 }
 
-const TMap<FString, FTransform>& UPhysicalObjectTrackingReferencePoint::GetBaseStationCalibrationTransforms() const
-{
-	return BaseStationCalibrationTransforms;
-}
-
 bool UPhysicalObjectTrackingReferencePoint::GetBaseStationCalibrationTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const
 {
 	if (!BaseStationSerialId.IsEmpty())
 	{
-		if (const FTransform* baseStationTransform = BaseStationCalibrationTransforms.Find(BaseStationSerialId))
+		if (const auto* baseStationTransform = BaseStationCalibrationInfo.Find(BaseStationSerialId))
 		{
-			OutRawTransform = *baseStationTransform;
+			OutRawTransform = baseStationTransform->Transformation;
 			OutReferenceSpaceTransform = OutRawTransform.GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
 			return true;
 		}
@@ -123,10 +113,10 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 	 * Soc = Steam Origin Current 		= 5, 0, 		90, 0, 0
 	 * D = BaseStation Current			= 15, 12		90, 90, 0
 	 * E = Tracker Current				= 10, 8 		90, 0, 0
-	 * F = A - D 						= -5, 0			-90, 0, 0
+	 * F(BaseStation Offset) = A(BaseStation Calibration) - D(BaseStation Current)				= -5, 0			-90, 0, 0
 	 *
-	 * G' = E - B						= 5, 5			90, 0, 0
-	 * T' = G' + F						= 0, 5, 		0, 0, 0
+	 * G(TrackerOffset) = E(Tracker Current) - B(Tracker Calibration)							= 5, 5			90, 0, 0
+	 * T'(TrackerRelativeTransform) = G(TrackerOffset) + F(BaseStation Offset)					= 0, 5, 		0, 0, 0
 	 *
 	 */
 
@@ -146,14 +136,18 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 	//So should be able to map at least one serial id to a device id, but as backup simply use the old method of tracking (non-relative to base stations)
 	if(!AveragedBaseStationOffsetCachedValid)
 	{
+		GEngine->AddOnScreenDebugMessage(12345678, 5.f, FColor::Red, FString("Used fallback tracking method as averaged base station offset had no valid cache!"));
 		return ApplyTransformation(fixedTrackerTransform.GetLocation(), fixedTrackerTransform.GetRotation());
 	}
 
-	const FTransform averageBaseStationOffset = AveragedBaseStationOffsetCached;
+	const FTransform fixedTrackerCalibrationTransform = FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform);
 
-	//3. Get the offset transformation for the tracker.
-	const FTransform trackerOffset = fixedTrackerTransform.GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));	
-	return trackerOffset * averageBaseStationOffset;
+	//3. Get the offset transformation for the tracker. 
+	const FTransform trackerOffset = fixedTrackerTransform.GetRelativeTransform(fixedTrackerCalibrationTransform);
+	/*const FTransform trackerOffset(
+		fixedCalibrationTrackerTransform.GetRotation().Inverse() * fixedTrackerTransform.GetRotation(),
+		fixedTrackerTransform.GetLocation() - fixedCalibrationTrackerTransform.GetLocation());	*/
+	return trackerOffset * AveragedBaseStationOffsetCached;
 }
 
 void UPhysicalObjectTrackingReferencePoint::UpdateRuntimeDataIfNeeded()
@@ -164,7 +158,7 @@ void UPhysicalObjectTrackingReferencePoint::UpdateRuntimeDataIfNeeded()
 bool UPhysicalObjectTrackingReferencePoint::HasMappedAllBaseStations() const
 {
 	//TODO: might not be entirely correct if for some reason the base station Id changes mid session?
-	return BaseStationIdToCalibrationTransform.Num() == BaseStationCalibrationTransforms.Num() && !BaseStationCalibrationTransforms.IsEmpty();
+	return BaseStationIdToCalibrationTransforms.Num() == BaseStationCalibrationInfo.Num() && !BaseStationCalibrationInfo.IsEmpty();
 }
 
 bool UPhysicalObjectTrackingReferencePoint::MapBaseStationIds()
@@ -174,12 +168,13 @@ bool UPhysicalObjectTrackingReferencePoint::MapBaseStationIds()
 		return true;
 	}
 
-	for (const auto& baseStation : BaseStationCalibrationTransforms)
+	for (const auto& baseStation : BaseStationCalibrationInfo)
 	{
 		int32 baseStationId = -1;
 		if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(baseStation.Key, baseStationId))
 		{
-			BaseStationIdToCalibrationTransform.Add(baseStationId, baseStation.Value);
+			BaseStationIdToCalibrationTransforms.Add(baseStationId, baseStation.Value.Transformation);
+			BaseStationIdToInfo.Add(baseStationId, { baseStation.Value });
 		}
 	}
 
@@ -199,8 +194,10 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 	TArray<int32> currentBaseStationIds{};
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(currentBaseStationIds);
 
+	BaseStationOffsetSamples.ClearSampleHistory();
+
 	//Sample the offsets between the calibration transform and the current transform
-	for (const auto baseStation : BaseStationIdToCalibrationTransform)
+	for (const auto baseStation : BaseStationIdToInfo)
 	{
 		if (currentBaseStationIds.Contains(baseStation.Key))	//Only sample the base station if it is currently connected (valid)
 		{
@@ -211,17 +208,27 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 				//1. Calculate the offset transformation between the current transformation and the transformation at calibration.
 				//Should use GetRelativeTransform as this returns leftTransform * inverse(rightTransform) where as
 				//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations. (check function declaration)
-				const FTransform offset = FTransform(currentBaseStationRotation, currentBaseStationPosition).GetRelativeTransform(baseStation.Value);
-				BaseStationOffsetHistory.AddSample(offset);
+				const FTransform offset = FTransform(currentBaseStationRotation, currentBaseStationPosition).GetRelativeTransform(baseStation.Value.Transformation);
+
+				/*FTransform offset(
+					currentBaseStationRotation.Inverse() * baseStation.Value.Transformation.GetRotation(), 
+					baseStation.Value.Transformation.GetLocation() - currentBaseStationPosition); */
+				BaseStationOffsetSamples.AddSample(offset);
+
+				GEngine->AddOnScreenDebugMessage(
+					4321234, 2.f, baseStation.Value.Color,
+					FString("BaseStationSample"));
+
+				break;
 			}
 		}
 	}
 
-	if(!BaseStationOffsetHistory.IsEmpty())
+	if(!BaseStationOffsetSamples.IsEmpty())
 	{
 		//2. Average the offset transformations.
 		//TODO: maybe erase history if the average offset is too big?
-		AveragedBaseStationOffsetCached = BaseStationOffsetHistory.GetAveragedTransform(0.5f);
+		AveragedBaseStationOffsetCached = BaseStationOffsetSamples.GetAveragedTransform(1.f);
 		AveragedBaseStationOffsetCachedValid = true;
 	}
 	else

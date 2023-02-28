@@ -32,7 +32,7 @@ void FDataLinkModule::StartupModule()
 	}
 #endif
 
-	ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService);
+	//ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService);
 
 }
 

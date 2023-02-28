@@ -48,10 +48,16 @@ public:
 	bool ShowBaseStationsCalibrationRaw = false;
 
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	bool ShowBaseStationsCalibrationFixed = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
 	bool ShowBaseStationsCurrent = true;
 
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
 	bool ShowBaseStationsCurrentRaw = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	bool ShowBaseStationsCurrentFixed = false;
 
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
 	bool ShowTrackerCurrent = true;

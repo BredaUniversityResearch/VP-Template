@@ -112,7 +112,8 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		}
 
 		m_TransformHistory.AddSample(trackerFromReference);
-		const FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
+		//const FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
+		const FTransform filteredTransform = trackerFromReference;
 
 		if(HasTransformationTargetComponent && TransformationTargetComponent != nullptr)
 		{
@@ -122,6 +123,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		{
 			owner->SetActorTransform(filteredTransform);
 		}
+		
 	}
 	else
 	{
@@ -212,7 +214,7 @@ void UPhysicalObjectTrackingComponent::DebugCheckIfTrackingTargetExists() const
 	USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::Controller, deviceIds);
 	if (!deviceIds.Contains(CurrentTargetDeviceId))
 	{
-		TWideStringBuilder<4096> builder{};
+		TWideStringBuilder<6144> builder{};
 		builder.Appendf(TEXT("Could not find SteamVR Controller with DeviceID: %i. Valid device IDs are: "), CurrentTargetDeviceId);
 		for (int32 deviceId : deviceIds)
 		{

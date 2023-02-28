@@ -199,22 +199,59 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 								DrawBaseStationReference(PDI, currentColor, calibrationTransformRaw, 1.f);
 							}
 
-							//Can be used to verify offsetting the current base station transforms to the calibrated base station transforms.
-							/*const FTransform currentBaseStationTransform(rotation, position);
-							const FTransform transformOffset = currentBaseStationTransform.GetRelativeTransformReverse(calibrationTransform);
-							FTransform fixedBaseStationTransform = currentBaseStationTransform * transformOffset;
-							if(worldReference != nullptr)
-							{
-								FTransform::Multiply(&fixedBaseStationTransform, &fixedBaseStationTransform, worldReference);
-							}
-
 							constexpr float fixedColorRatio = 0.4;
 							const FColor fixedColor(
 								lightHouseColor.R * fixedColorRatio,
 								lightHouseColor.G * fixedColorRatio,
 								lightHouseColor.B * fixedColorRatio);
 
-							DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransform, 4.f);*/
+							const FTransform currentBaseStationTransformRaw(rotation, position);
+							if (targetComponent->ShowBaseStationsCalibrationFixed)
+							{
+								const FTransform transformOffset = currentBaseStationTransformRaw.GetRelativeTransformReverse(calibrationTransformRaw);
+								FTransform fixedBaseStationTransformRaw = currentBaseStationTransformRaw * transformOffset;
+								if (worldReference != nullptr)
+								{
+									FTransform::Multiply(&fixedBaseStationTransformRaw, &fixedBaseStationTransformRaw, worldReference);
+								}
+
+								DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransformRaw, 4.f);
+							}
+
+							if (targetComponent->ShowBaseStationsCurrentFixed)
+							{
+								const FTransform currentBaseStationTransform = 
+									currentBaseStationTransformRaw.GetRelativeTransform(
+										FPhysicalObjectTrackingUtility::FixTrackerTransform(reference->GetTrackerCalibrationTransform()));
+								const FTransform transformOffset = currentBaseStationTransform.GetRelativeTransformReverse(calibrationTransform);
+								FTransform fixedBaseStationTransform = currentBaseStationTransform * transformOffset;
+								if (worldReference != nullptr)
+								{
+									FTransform::Multiply(&fixedBaseStationTransform, &fixedBaseStationTransform, worldReference);
+								}
+
+								DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransform, 4.f);
+							}
+
+							//if (targetComponent->ShowBaseStationCurrentFixed)
+							//{
+							//	//Can be used to verify offsetting the current base station transforms to the calibrated base station transforms.
+							//	const FTransform currentBaseStationTransformRaw(rotation, position);
+							//	const FTransform transformOffset = currentBaseStationTransform.GetRelativeTransformReverse(calibrationTransform);
+							//	FTransform fixedBaseStationTransform = currentBaseStationTransform * transformOffset;
+							//	if (worldReference != nullptr)
+							//	{
+							//		FTransform::Multiply(&fixedBaseStationTransform, &fixedBaseStationTransform, worldReference);
+							//	}
+
+							//	constexpr float fixedColorRatio = 0.4;
+							//	const FColor fixedColor(
+							//		lightHouseColor.R * fixedColorRatio,
+							//		lightHouseColor.G * fixedColorRatio,
+							//		lightHouseColor.B * fixedColorRatio);
+
+							//	DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransform, 4.f);
+							//}
 						}
 
 					}

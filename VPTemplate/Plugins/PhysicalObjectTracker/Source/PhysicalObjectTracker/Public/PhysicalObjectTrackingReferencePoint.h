@@ -10,22 +10,11 @@ struct FBaseStationCalibrationInfo
 public:
 
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
+	FTransform Transformation;
+	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	bool StaticallyCalibrated;
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingReferencePoint")
 	FColor Color;
-};
-
-USTRUCT(Category = "PhysicalObjectTrackingReferencePoint")
-struct FBaseStationOffset
-{
-    GENERATED_BODY()
-public:
-
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	FVector Position;
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
-	FQuat Rotation;
-
 };
 
 UCLASS(BlueprintType)
@@ -42,18 +31,14 @@ public:
 	FORCEINLINE TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UPhysicalObjectTrackingReferencePoint, STATGROUP_Default); }
 
 	void SetTrackerCalibrationTransform(const FTransform& Transform);
-	void SetBaseStationCalibrationTransform(
+	void SetBaseStationCalibrationInfo(
 		const FString& BaseStationSerialId, 
 		const FTransform& Transform, 
 		const FColor& Color, 
 		bool StaticCalibration);
-	void ResetBaseStationCalibrationTransforms();
 
 	//Get the tracker transform in SteamVR space at calibration time that is stored in the reference point.
 	const FTransform& GetTrackerCalibrationTransform() const;
-	//Get the base station transforms in SteamVR space at calibration time,
-	//mapped to the serial ids of the base stations, that are stored in the the reference point
-	const TMap<FString, FTransform>& GetBaseStationCalibrationTransforms() const;
 	//Get the base station's reference-space transform if the serial id matches a stored serial id. Expects raw SteamVR space input.
 	//(Only used for drawing debug visualizations, uses string lookups which are slow.)
 	bool GetBaseStationCalibrationTransform(const FString& BaseStationSerialId, FTransform& OutReferenceSpaceTransform, FTransform& OutRawTransform) const;
@@ -105,21 +90,22 @@ private:
 	int32 MinNumBaseStationsCalibrated {6};
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
 	int32 MinNumBaseStationsCalibratedStatically {2};
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
-	int32 BaseStationOffsetHistorySize {100};
+	/*UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
+	int32 BaseStationOffsetHistorySize {100};*/
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 0.001))
 	float BaseStationOffsetUpdatesPerSecond{ 25.f };
-	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
-	TMap<FString, FTransform> BaseStationCalibrationTransforms;
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
 	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
 
 	//Runtime data
 	//Maps the calibration transforms of the base stations to Device Ids instead of Serial Ids.
 	//(Serial Ids are consistent between sessions but Device Ids not necesarilly)
-	TMap<int32, FTransform> BaseStationIdToCalibrationTransform;
+	TMap<int32, FTransform> BaseStationIdToCalibrationTransforms;
 
-	FTrackerTransformHistory BaseStationOffsetHistory;
+	TMap<int32, FBaseStationCalibrationInfo> BaseStationIdToInfo;
+
+	//TODO: handle resizing of samples if MinNumBaseStationsCalibrated changes.
+	FTrackerTransformHistory BaseStationOffsetSamples;
 	bool AveragedBaseStationOffsetCachedValid{ false };
 
 	UPROPERTY(VisibleAnywhere, Transient, Category = "PhysicalObjectTrackingReferencePoint|RunTime")
