@@ -1,26 +1,24 @@
 #pragma once
-#include "TrackerTransformUpdates.h"
 
+class FObjectTrackingUpdateListener;
 class UPhysicalObjectTrackingComponent;
 class FTCPMessaging;
 
-class FObjectTrackingDataLink : public ITrackerTransformUpdateListener
+class FObjectTrackingDataLink
 {
 public:
-
-    FObjectTrackingDataLink(const TSharedPtr<FTCPMessaging>& Messaging);
-    virtual ~FObjectTrackingDataLink() override;
+    
+    FObjectTrackingDataLink(const TSharedRef<FTCPMessaging>& Messaging);
+    ~FObjectTrackingDataLink();
 
 private:
 
-    void OnTrackerRegistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component);
-    void OnTrackerUnregistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component);
-
-    virtual void OnUpdate(const FTrackerTransformUpdate& Update) override;;
+    void OnTrackerRegistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component) const;
+    void OnTrackerUnregistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component) const;
 
     FDelegateHandle OnTrackerRegisteredDelegate;
     FDelegateHandle OnTrackerUnregisteredDelegate;
 
-    TSharedPtr<FTCPMessaging> Messaging;
+    TSharedRef<FObjectTrackingUpdateListener> UpdateListener;
 
 };

@@ -1,8 +1,6 @@
 #include "TrackerTransformUpdates.h"
 
 FTrackerTransformUpdates::FTrackerTransformUpdates()
-    :
-ListenerPipe(TEXT("TrackerTransformUpdatesListenerPipe"))
 {}
 
 void FTrackerTransformUpdates::Update(const FTrackerTransformUpdate& Update)
@@ -15,20 +13,16 @@ void FTrackerTransformUpdates::Update(const FTrackerTransformUpdate& Update)
 
     if(previousTask.IsValid() && !previousTask.IsCompleted())
     {
-        previousTask = ListenerPipe.Launch(
-            taskName,
-            updateListenerFunction,
-            UE::Tasks::Prerequisites(previousTask));
+        previousTask = UE::Tasks::Launch(taskName, updateListenerFunction, UE::Tasks::Prerequisites(previousTask));
+
     }
     else
     {
-        previousTask = ListenerPipe.Launch(
-            taskName,
-            updateListenerFunction);
+        previousTask = UE::Tasks::Launch(taskName, updateListenerFunction);
     }
 }
 
-void FTrackerTransformUpdates::AddListener(const TSharedPtr<ITrackerTransformUpdateListener>& InListener)
+void FTrackerTransformUpdates::AddListener(const TSharedRef<ITrackerTransformUpdateListener>& InListener)
 {
     const auto taskName = TEXT("PhysicalObjectTrackerTransformUpdatesAddListener");
     const auto addListenerFunction = [this, InListener]
@@ -38,20 +32,15 @@ void FTrackerTransformUpdates::AddListener(const TSharedPtr<ITrackerTransformUpd
 
     if(previousTask.IsValid() && !previousTask.IsCompleted())
     {
-        previousTask = ListenerPipe.Launch(
-            taskName,
-            addListenerFunction,
-            UE::Tasks::Prerequisites(previousTask));
+        previousTask = UE::Tasks::Launch(taskName, addListenerFunction, UE::Tasks::Prerequisites(previousTask));
     }
     else
     {
-        previousTask = ListenerPipe.Launch(
-            taskName,
-            addListenerFunction);
+        previousTask = UE::Tasks::Launch(taskName, addListenerFunction);
     }
 }
 
-void FTrackerTransformUpdates::RemoveListener(const TSharedPtr<ITrackerTransformUpdateListener>& InListener)
+void FTrackerTransformUpdates::RemoveListener(const TSharedRef<ITrackerTransformUpdateListener>& InListener)
 {
     const auto taskName = TEXT("PhysicalObjectTrackerTransformUpdatesRemoveListener");
     const auto removeListenerFunction = [this, InListener]
@@ -64,16 +53,11 @@ void FTrackerTransformUpdates::RemoveListener(const TSharedPtr<ITrackerTransform
 
     if(previousTask.IsValid() && !previousTask.IsCompleted())
     {
-        previousTask = ListenerPipe.Launch(
-            taskName,
-            removeListenerFunction,
-            UE::Tasks::Prerequisites(previousTask));
+        previousTask = UE::Tasks::Launch(taskName, removeListenerFunction, UE::Tasks::Prerequisites(previousTask));
     }
     else
     {
-        previousTask = ListenerPipe.Launch(
-            taskName,
-            removeListenerFunction);
+        previousTask = UE::Tasks::Launch(taskName, removeListenerFunction);
     }
 }
 

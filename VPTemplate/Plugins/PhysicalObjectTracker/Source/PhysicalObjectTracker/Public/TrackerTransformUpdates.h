@@ -38,16 +38,14 @@ public:
     //Non-blocking, returns immediately
     void Update(const FTrackerTransformUpdate& Update);
 
-    void AddListener(const TSharedPtr<ITrackerTransformUpdateListener>& InListener);
-    void RemoveListener(const TSharedPtr<ITrackerTransformUpdateListener>& InListener);
+    void AddListener(const TSharedRef<ITrackerTransformUpdateListener>& InListener);
+    void RemoveListener(const TSharedRef<ITrackerTransformUpdateListener>& InListener);
 
     bool HasListener() const;
 
 private:
 
     TSharedPtr<ITrackerTransformUpdateListener> Listener;
-
-    UE::Tasks::FPipe ListenerPipe;
     UE::Tasks::FTask previousTask;
 
 };

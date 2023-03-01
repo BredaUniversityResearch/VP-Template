@@ -14,25 +14,24 @@ void FDataLinkModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	MessagingService = MakeShared<FTCPMessaging>();
+	ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService.ToSharedRef());
 
 #if WITH_EDITOR
 	if (GIsEditor)
 	{
 		IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("DataLinkConnect"),
+			TEXT("DataLink.Connect"),
 			TEXT("Connect to a socket specified by -Endpoint:xxxx.xxxx.xxxx.xxxx:yyyy"),
 			FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleConnectCommand),
 			0);
 
 		IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("DataLinkSend"),
+			TEXT("DataLink.Send"),
 			TEXT("Send a message to the connected socket. First connect to a socket using DataLinkConnect"),
 			FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSendCommand),
 			0);
 	}
 #endif
-
-	//ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService);
 
 }
 
@@ -53,7 +52,7 @@ void FDataLinkModule::HandleConnectCommand(const TArray<FString>& Arguments) con
 		FIPv4Endpoint::Parse(endpointStr, remoteEndpoint);
 	}
 
-	MessagingService->ConnectToSocket(remoteEndpoint, UINT32_MAX);
+	MessagingService->ConnectSocket(remoteEndpoint, FTimespan::FromMilliseconds(100), UINT32_MAX);
 
 }
 

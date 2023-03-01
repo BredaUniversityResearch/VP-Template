@@ -2,18 +2,15 @@
 
 #include "DataPacket.h"
 #include "MessageEndpoint.h"
+#include "TCPConnection.h"
 
 FTCPMessaging::FTCPMessaging()
     :
+Connection(MakeShared<FTCPConnection>()),
 Running(false),
 WaitTime(FTimespan::FromMilliseconds(100.0))
 {
-    Socket = TSharedPtr<FSocket>(
-        FTcpSocketBuilder("DataLinkSocketBuilder")
-        .AsBlocking()
-        .Build());
-    RemoteAddress = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
-    Thread = TUniquePtr<FRunnableThread>(FRunnableThread::Create(this, TEXT("DataLinkFTCPMessaging")));
+    Thread = TUniquePtr<FRunnableThread>(FRunnableThread::Create(this, TEXT("DataLink.FTCPMessaging")));
 }
 
 FTCPMessaging::~FTCPMessaging()
@@ -22,118 +19,96 @@ FTCPMessaging::~FTCPMessaging()
     {
         Thread->Kill(true);
     }
-
-    if(Socket.IsValid())
-    {
-        ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket.Get());
-        Socket.Reset();
-    }
 }
 
-void FTCPMessaging::ConnectToSocket(
+void FTCPMessaging::ConnectSocket(
     const FIPv4Endpoint& RemoteEndpoint,
-    uint32 RetryAttempts,
     const FTimespan& RetryInterval,
-    uint32 InSendBufferSize,
-    uint32 InReceiveBufferSize)
+    uint32 MaxRetryAttempts,
+    uint32 SendBufferSize,
+    uint32 ReceiveBufferSize) const
 {
+    //Uses Tasks System to avoid blocking calls as accessing Connection can block.
+    //TODO: check if Connection can actually block when accessing and if it even provides thread-safe access.
+    const auto taskName = TEXT("DataLinkConnectTCPSocket");
     const auto connectFunction = 
         [this, 
         RemoteEndpoint,
-        RetryAttempts,
         RetryInterval,
-        InSendBufferSize, 
-        InReceiveBufferSize]()
+        MaxRetryAttempts,
+        SendBufferSize, 
+        ReceiveBufferSize]()
     {
-        if (Socket.IsValid() && Socket->GetConnectionState() == USOCK_Open)
-        {
-            Socket->Close();
-        }
-
-        RemoteAddress->SetIp(RemoteEndpoint.Address.Value);
-        RemoteAddress->SetPort(RemoteEndpoint.Port);
-
-        int32 bufferSize = 0;
-        Socket->SetSendBufferSize(InSendBufferSize, bufferSize);
-        Socket->SetReceiveBufferSize(InReceiveBufferSize, bufferSize);
-
-        ConnectionTries.Store(0);
-        MaxConnectionTries.Store(RetryAttempts);
-        ConnectionTryInterval.Store(RetryInterval);
-
+        Connection->Connect(
+            RemoteEndpoint,
+            RetryInterval,
+            MaxRetryAttempts,
+            SendBufferSize,
+            ReceiveBufferSize);
         UpdateEvent->Trigger();
     };
     
-    UE::Tasks::Launch(
-        TEXT("DataLinkConnectTCPSocket"),
-        connectFunction);
-
+    UE::Tasks::Launch(taskName, connectFunction);
 }
 
-void FTCPMessaging::Send(const TSharedRef<TArray<uint8>>& Data)
+bool FTCPMessaging::Send(const TSharedRef<TArray<uint8>>& Data)
 {
-    const auto sendFunction = [this, Data]()
+    if (Running && MessageQueue.Enqueue(Data))
     {
-        if (Running && MessageQueue.Enqueue(FTCPMessage{ Data }))
-        {
-            UpdateEvent->Trigger();
-            return true;
-        }
-        return false;
-    };
-
-    UE::Tasks::Launch(
-        TEXT("DataLinkSendTCPMessage"),
-        sendFunction);
+        UpdateEvent->Trigger();
+        return true;
+    }
+    return false;
 }
 
-void FTCPMessaging::Send(const FDataPacket& Packet)
+bool FTCPMessaging::Send(const FDataPacket& Packet)
 {
-    const TSharedRef<TArray<uint8_t>, ESPMode::ThreadSafe> packetDataRef =
-        MakeShared<TArray<uint8_t>, ESPMode::ThreadSafe>();
+    const auto packetDataRef = MakeShared<TArray<uint8_t>, ESPMode::ThreadSafe>();
     Packet.Serialize(packetDataRef.Get());
     return Send(packetDataRef);
 }
 
 void FTCPMessaging::Update()
 {
-    if(Socket.IsValid() && Socket->GetConnectionState() != USOCK_Open)
+    check(Connection.IsValid());
+
+    Connection->Update(WaitTime);
+    while(!MessageQueue.IsEmpty() && Connection->GetState() == FTCPConnection::EState::CONNECTED)
     {
-        while(Socket->GetConnectionState() != USOCK_Open && (ConnectionTries+1) <= MaxConnectionTries)
+        if(!Connection->WaitToSend(WaitTime))
         {
-            ++ConnectionTries;
-            if(!Socket->Connect(*RemoteAddress))
-            {
-                FPlatformProcess::Sleep(ConnectionTryInterval.Load().GetTotalSeconds());
-            }
+            break;
         }
-        ConnectionTries.Store(0);
-        MaxConnectionTries.Store(UINT32_MAX);
-    }
-    else if(Socket.IsValid() && Socket->GetConnectionState() == USOCK_Open)
-    {
-        while(!MessageQueue.IsEmpty())
+
+        //Notice: only remove message from queue if it could actually be sent.
+        //It might happen that the Connection->Update doesn't detect disconnection
+        //from the remote, due to an known issue with FSocket->GetConnectionState(),
+        //and then fails to set the right state. The work around is to detect if data
+        //can not be sent, but instead of trying to send an dummy this solution simply
+        //tries to send the message from the queue and only pops it from the queue if
+        //it could actually be sent.
+        FTCPMessage message;
+        if(MessageQueue.Peek(message))
         {
-            if(!Socket->Wait(ESocketWaitConditions::WaitForWrite, WaitTime))
+            if(Connection->Send(message.ToSharedRef()))
+            {
+                MessageQueue.Pop();
+            }
+            else
             {
                 break;
+                //Get out of the while loop if message could not be sent as it
+                //most likely means that the connection with the remote disconnected.
             }
-
-            FTCPMessage message;
-            MessageQueue.Dequeue(message);
-
-            int32 sent = 0;
-            Socket->Send(message.Data->GetData(), message.Data->Num(), sent);
-
-            //TODO: handle case where not all data is sent.
         }
+        
     }
 }
 
 bool FTCPMessaging::Init()
 {
     Running = true;
-    return Running && Socket.IsValid();
+    return Running;
 }
 
 uint32 FTCPMessaging::Run()
@@ -150,4 +125,5 @@ uint32 FTCPMessaging::Run()
 void FTCPMessaging::Stop()
 {
     Running = false;
+    UpdateEvent->Trigger();
 }

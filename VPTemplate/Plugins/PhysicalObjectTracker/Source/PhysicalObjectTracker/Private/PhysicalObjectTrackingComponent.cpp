@@ -5,6 +5,7 @@
 #include "PhysicalObjectTrackingFilterSettings.h"
 #include "PhysicalObjectTrackingReferencePoint.h"
 #include "PhysicalObjectTrackingUtility.h"
+#include "PhysicalObjectTrackingComponentRegistry.h"
 #include "SteamVRFunctionLibrary.h"
 #include "SteamVRInputDeviceFunctionLibrary.h"
 
@@ -25,8 +26,8 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 
 	//Should never fail as this is in the same module.
 	//TODO: check if there is a function that returns the current module instead of using string lookup for the module.
-	FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
-	trackerModule.ObjectTrackingComponents.AddComponent(ToObjectPtr(this));
+	const FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
+	trackerModule.ObjectTrackingComponents->AddComponent(ToObjectPtr(this));
 
 	if (FilterSettings != nullptr)
 	{
@@ -52,8 +53,8 @@ void UPhysicalObjectTrackingComponent::OnUnregister()
 {
 	Super::OnUnregister();
 
-	FPhysicalObjectTracker& trackerModule = FModuleManager::GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
-	trackerModule.ObjectTrackingComponents.RemoveComponent(ToObjectPtr(this));
+	const FPhysicalObjectTracker& trackerModule = FModuleManager::GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
+	trackerModule.ObjectTrackingComponents->RemoveComponent(ToObjectPtr(this));
 }
 
 void UPhysicalObjectTrackingComponent::BeginPlay()
