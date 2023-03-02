@@ -158,10 +158,6 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 				{
 
 					FTransform currentTransform = reference->ApplyTransformation(position, rotation.Quaternion());
-					if (worldReference != nullptr)
-					{
-						FTransform::Multiply(&currentTransform, &currentTransform, worldReference);
-					}
 
 					FColor lightHouseColor = FColor::Black;
 
@@ -206,10 +202,11 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 								lightHouseColor.B * fixedColorRatio);
 
 							const FTransform currentBaseStationTransformRaw(rotation, position);
-							if (targetComponent->ShowBaseStationsCalibrationFixed)
+							const FTransform transformOffsetRaw = currentBaseStationTransformRaw.GetRelativeTransformReverse(calibrationTransformRaw);
+
+							if (targetComponent->ShowBaseStationsFixedRaw)
 							{
-								const FTransform transformOffset = currentBaseStationTransformRaw.GetRelativeTransformReverse(calibrationTransformRaw);
-								FTransform fixedBaseStationTransformRaw = currentBaseStationTransformRaw * transformOffset;
+								FTransform fixedBaseStationTransformRaw = currentBaseStationTransformRaw * transformOffsetRaw;
 								if (worldReference != nullptr)
 								{
 									FTransform::Multiply(&fixedBaseStationTransformRaw, &fixedBaseStationTransformRaw, worldReference);
@@ -218,13 +215,10 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 								DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransformRaw, 4.f);
 							}
 
-							if (targetComponent->ShowBaseStationsCurrentFixed)
+							if (targetComponent->ShowBaseStationsFixed)
 							{
-								const FTransform currentBaseStationTransform = 
-									currentBaseStationTransformRaw.GetRelativeTransform(
-										FPhysicalObjectTrackingUtility::FixTrackerTransform(reference->GetTrackerCalibrationTransform()));
-								const FTransform transformOffset = currentBaseStationTransform.GetRelativeTransformReverse(calibrationTransform);
-								FTransform fixedBaseStationTransform = currentBaseStationTransform * transformOffset;
+								FTransform fixedBaseStationTransform = reference->ApplyTransformation((currentBaseStationTransformRaw * transformOffsetRaw));
+								
 								if (worldReference != nullptr)
 								{
 									FTransform::Multiply(&fixedBaseStationTransform, &fixedBaseStationTransform, worldReference);
@@ -232,33 +226,18 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 
 								DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransform, 4.f);
 							}
-
-							//if (targetComponent->ShowBaseStationCurrentFixed)
-							//{
-							//	//Can be used to verify offsetting the current base station transforms to the calibrated base station transforms.
-							//	const FTransform currentBaseStationTransformRaw(rotation, position);
-							//	const FTransform transformOffset = currentBaseStationTransform.GetRelativeTransformReverse(calibrationTransform);
-							//	FTransform fixedBaseStationTransform = currentBaseStationTransform * transformOffset;
-							//	if (worldReference != nullptr)
-							//	{
-							//		FTransform::Multiply(&fixedBaseStationTransform, &fixedBaseStationTransform, worldReference);
-							//	}
-
-							//	constexpr float fixedColorRatio = 0.4;
-							//	const FColor fixedColor(
-							//		lightHouseColor.R * fixedColorRatio,
-							//		lightHouseColor.G * fixedColorRatio,
-							//		lightHouseColor.B * fixedColorRatio);
-
-							//	DrawBaseStationReference(PDI, fixedColor, fixedBaseStationTransform, 4.f);
-							//}
 						}
 
 					}
 
+					
+
 					if (targetComponent->ShowBaseStationsCurrent)
 					{
-						//Visualize the base stations with the current SteamVR transforms
+						if (worldReference != nullptr)
+						{
+							FTransform::Multiply(&currentTransform, &currentTransform, worldReference);
+						}
 						DrawBaseStationReference(PDI, lightHouseColor, currentTransform, 3.f);
 					}
 

@@ -41,29 +41,41 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
 	bool DisableDebugDrawing = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
 	bool ShowBaseStationsCalibration = true;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
 	bool ShowBaseStationsCalibrationRaw = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
-	bool ShowBaseStationsCalibrationFixed = false;
-
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
 	bool ShowBaseStationsCurrent = true;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
 	bool ShowBaseStationsCurrentRaw = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
-	bool ShowBaseStationsCurrentFixed = false;
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
+	bool ShowBaseStationsFixed = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
+	bool ShowBaseStationsFixedRaw = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	bool ShowTrackerCalibration = true;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	bool ShowTrackerCalibrationRaw = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
 	bool ShowTrackerCurrent = true;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
 	bool ShowTrackerCurrentRaw = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	bool ShowTrackerFixed = true;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	bool ShowTrackerFixedRaw = false;
 
 #endif
 

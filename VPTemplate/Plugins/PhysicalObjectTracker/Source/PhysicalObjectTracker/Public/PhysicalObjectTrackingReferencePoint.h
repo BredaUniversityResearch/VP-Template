@@ -46,6 +46,7 @@ public:
 
 	//Used for getting base station transformations
 	//(legacy function for tracking trackers, currently only used for debug visualization and as fallback function).
+	FTransform ApplyTransformation(const FTransform& TrackedTransform) const;
 	FTransform ApplyTransformation(const FVector& TrackedPosition, const FQuat& TrackedRotation) const;
 
 	//Get the tracker's reference-space transform. Expects raw SteamVR space input.

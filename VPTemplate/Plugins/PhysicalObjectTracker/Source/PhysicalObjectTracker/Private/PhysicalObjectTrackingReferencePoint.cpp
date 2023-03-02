@@ -82,13 +82,18 @@ bool UPhysicalObjectTrackingReferencePoint::GetBaseStationColor(const FString& B
 	return false;
 }
 
+FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(const FTransform& TrackedTransform) const
+{
+	//Should use GetRelativeTransform as this returns transformA * inverse(transformB) where as
+	//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations
+	return TrackedTransform.GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
+}
+
 FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(
 	const FVector& TrackedPosition,
 	const FQuat& TrackedRotation) const
 {
-	//Should use GetRelativeTransform as this returns transformA * inverse(transformB) where as
-	//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations
-	return FTransform(TrackedRotation, TrackedPosition).GetRelativeTransform(FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform));
+	return ApplyTransformation(FTransform(TrackedRotation, TrackedPosition));
 }
 
 
