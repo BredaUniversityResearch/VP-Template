@@ -17,8 +17,6 @@ FTCPConnection::~FTCPConnection()
     if (Socket.IsValid())
     {
         Socket->Close();
-        ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket.Get());
-        Socket.Reset();
     }
 }
 
