@@ -72,10 +72,13 @@ public:
 	bool ShowTrackerCurrentRaw = false;
 
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
-	bool ShowTrackerFixed = true;
+	bool ShowTrackerRelative = true;
 
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
-	bool ShowTrackerFixedRaw = false;
+	bool ShowTrackerRelativeRaw = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	bool ShowTrackerFixed = true;
 
 #endif
 

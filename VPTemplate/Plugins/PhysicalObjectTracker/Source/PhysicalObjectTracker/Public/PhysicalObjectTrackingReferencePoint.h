@@ -91,9 +91,10 @@ private:
 	int32 MinNumBaseStationsCalibrated {6};
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
 	int32 MinNumBaseStationsCalibratedStatically {2};
-	/*UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 1))
-	int32 BaseStationOffsetHistorySize {100};*/
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", meta = (ClampMin = 0.001))
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
+	bool UpdateBaseStationOffsetsEachTick = true;
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", 
+		meta = (ClampMin = 0.001, EditCondition=UpdateBaseStationOffsetsEachTick))
 	float BaseStationOffsetUpdatesPerSecond{ 25.f };
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
 	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
@@ -105,12 +106,8 @@ private:
 
 	TMap<int32, FBaseStationCalibrationInfo> BaseStationIdToInfo;
 
-	//TODO: handle resizing of samples if MinNumBaseStationsCalibrated changes.
-	FTrackerTransformHistory BaseStationOffsetSamples;
-	bool AveragedBaseStationOffsetCachedValid{ false };
-
 	UPROPERTY(VisibleAnywhere, Transient, Category = "PhysicalObjectTrackingReferencePoint|RunTime")
-	FTransform AveragedBaseStationOffsetCached;
+	TMap<int32, FTransform> BaseStationOffsets;
 
 	float UpdateBaseStationOffsetsDeltaTimeAccumulator{ 0.f };
 

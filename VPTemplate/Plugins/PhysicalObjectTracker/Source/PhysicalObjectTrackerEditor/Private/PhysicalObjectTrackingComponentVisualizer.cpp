@@ -145,13 +145,15 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 		if (reference != nullptr)
 		{
 			const FTransform* worldReference = targetComponent->GetWorldReferencePoint();
-			FPhysicalObjectTrackerEditor::DebugDrawTrackingReferenceLocations(reference, worldReference);
+			//FPhysicalObjectTrackerEditor::DebugDrawTrackingReferenceLocations(reference, worldReference);
 
 			TArray<int32> deviceIds;
 			USteamVRFunctionLibrary::GetValidTrackedDeviceIds(ESteamVRTrackedDeviceType::TrackingReference, deviceIds);
 
 			TMap<int32, FTransform> baseStationOffsets{};
-			
+
+			//Base Station visualization.
+
 			for (const int32 deviceId : deviceIds)
 			{
 				FVector position;
@@ -296,38 +298,32 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 						DrawAxisBox(PDI, trackerColor, trackerTransformCurrentRawFixed);
 					}
 
-					const FTransform transformOffsetRaw = 
-						trackerTransformCurrentRawFixed.GetRelativeTransform(trackerCalibrationTransformRawFixed);
-
-					FVector averagedTrackerLocation = FVector::Zero();
+					FVector averagedTrackerTranslation = FVector::Zero();
 					FVector averagedTrackerRotation = FVector::Zero();
 					uint32 averagedTrackerSampleCount = 0;
 
 					for (const auto& baseStation : baseStationOffsets)
 					{
-						FTransform fixedRelativeTransform = transformOffsetRaw * baseStation.Value;
-						averagedTrackerLocation += fixedRelativeTransform.GetLocation();
+						const FTransform fixedRelativeTransform = trackerTransformCurrentRawFixed * baseStation.Value;
+						averagedTrackerTranslation += fixedRelativeTransform.GetTranslation();
 						averagedTrackerRotation += fixedRelativeTransform.GetRotation().Euler();
 						averagedTrackerSampleCount++;
 					}
 
-					averagedTrackerLocation /= averagedTrackerSampleCount;
+					averagedTrackerTranslation /= averagedTrackerSampleCount;
 					averagedTrackerRotation /= averagedTrackerSampleCount;
-					const FTransform averagedTrackerTransformRaw(FQuat::MakeFromEuler(averagedTrackerRotation), averagedTrackerLocation);
+					const FTransform averagedTrackerTransformRelativeRaw(
+						FQuat::MakeFromEuler(averagedTrackerRotation), 
+						averagedTrackerTranslation);
 
 					if (targetComponent->ShowTrackerFixed)
 					{
-						FTransform trackerFixed = reference->ApplyTransformation(averagedTrackerTransformRaw);
+						FTransform trackerFixed = reference->ApplyTransformation(averagedTrackerTransformRelativeRaw);
 						if(worldReference != nullptr)
 						{
 							FTransform::Multiply(&trackerFixed, &trackerFixed, worldReference);
 						}
 						DrawAxisBox(PDI, trackerColor, trackerFixed);
-					}
-
-					if (targetComponent->ShowTrackerFixedRaw)
-					{
-						DrawAxisBox(PDI, trackerColor, averagedTrackerTransformRaw);
 					}
 
 				}

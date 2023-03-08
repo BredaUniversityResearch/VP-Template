@@ -5,19 +5,23 @@
 #include "Misc/CoreDelegates.h"
 
 UPhysicalObjectTrackingReferencePoint::UPhysicalObjectTrackingReferencePoint(const FObjectInitializer& ObjectInitializer)
-    :
-BaseStationOffsetSamples(MinNumBaseStationsCalibrated),
-AveragedBaseStationOffsetCached(FTransform::Identity)
 {}
 
 void UPhysicalObjectTrackingReferencePoint::Tick(float DeltaTime)
 {
-	UpdateBaseStationOffsetsDeltaTimeAccumulator += DeltaTime;
-	const float SecondsBetweenUpdate = 1.f / BaseStationOffsetUpdatesPerSecond;
-	if(UpdateBaseStationOffsetsDeltaTimeAccumulator > SecondsBetweenUpdate)
+	if(UpdateBaseStationOffsetsEachTick)
 	{
-		UpdateBaseStationOffsetsDeltaTimeAccumulator -= SecondsBetweenUpdate;
 		UpdateAveragedBaseStationOffset();
+	}
+	else
+	{
+		UpdateBaseStationOffsetsDeltaTimeAccumulator += DeltaTime;
+		const float SecondsBetweenUpdate = 1.f / BaseStationOffsetUpdatesPerSecond;
+		if (UpdateBaseStationOffsetsDeltaTimeAccumulator > SecondsBetweenUpdate)
+		{
+			UpdateBaseStationOffsetsDeltaTimeAccumulator -= SecondsBetweenUpdate;
+			UpdateAveragedBaseStationOffset();
+		}
 	}
 }
 
@@ -100,9 +104,10 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(
 FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransform(const FTransform& TrackerCurrentTransform) const
 {
 	//1. For every base station calculate the offset transformation between the current transformation and the transformation at calibration.
-	//2. Average the offset transformations.
-	//3. Get the offset transformation between the current transformation of the tracker and the transformation at calibration.
-	//4. Calculate the Tracker transformation by adding the offset transformation of the tracker and the offset transformation of the base stations.
+	//2. Get the offset transformation between the current transformation of the tracker and the transformation at calibration.
+	//(Is this to get the relative position of the tracker, the position of the tracker in reference-space)
+	//3. Calculate the Tracker transformation by adding the offset transformation of the tracker and the offset transformation of the base stations.
+	//4. Average the Tracker transformations, calculated for 
 
     /* Math formulas to calculate tracker transformation relative to the reference space
 	 * using the offsets between the transformations of the base station at calibration and current time in SteamVR space.
@@ -120,6 +125,7 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 	 * E = Tracker Current				= 10, 8 		90, 0, 0
 	 * F(BaseStation Offset) = A(BaseStation Calibration) - D(BaseStation Current)				= -5, 0			-90, 0, 0
 	 *
+	 *											B Might need to be mapped to the current SteamVR space somehow.
 	 * G(TrackerOffset) = E(Tracker Current) - B(Tracker Calibration)							= 5, 5			90, 0, 0
 	 * T'(TrackerRelativeTransform) = G(TrackerOffset) + F(BaseStation Offset)					= 0, 5, 		0, 0, 0
 	 *
@@ -127,7 +133,7 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 
 	//Done every tick
 	//1. For every base station calculate the offset transformation between the current transformation and the transformation at calibration.
-	//2. Average the offset transformations.
+	//2. store the offset transformation.
 
 	//Done in this function.
 	//3. Get the offset transformation between the current transformation of the tracker and the transformation at calibration.
@@ -135,24 +141,36 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 
 	const FTransform fixedTrackerTransform = FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCurrentTransform);
 
-	//AveragedBaseStationOffsetCached can be invalid if no BaseStationSerialIds could be mapped to DeviceIds to avoid string lookups.
+	//BaseStationOffsets can be empty if no BaseStationSerialIds could be mapped to DeviceIds to avoid string lookups.
 	//(Serial Id stay the same, while device ids can change in between sessions).
 	//Should not happen as the base stations used should be the same as the ones at calibration and at least 1 needs to be connected for tracking.
 	//So should be able to map at least one serial id to a device id, but as backup simply use the old method of tracking (non-relative to base stations)
-	if(!AveragedBaseStationOffsetCachedValid)
+	if(BaseStationOffsets.IsEmpty())
 	{
-		GEngine->AddOnScreenDebugMessage(12345678, 5.f, FColor::Red, FString("Used fallback tracking method as averaged base station offset had no valid cache!"));
-		return ApplyTransformation(fixedTrackerTransform.GetLocation(), fixedTrackerTransform.GetRotation());
+		GEngine->AddOnScreenDebugMessage(12345678, 5.f, FColor::Red, FString("Used fallback tracking method as no base station offsets have been calculated!"));
+		return ApplyTransformation(fixedTrackerTransform);
 	}
 
-	const FTransform fixedTrackerCalibrationTransform = FPhysicalObjectTrackingUtility::FixTrackerTransform(TrackerCalibrationTransform);
+	//3. Get the offset transformation for the tracker.
+	FVector averagedTrackerTranslation = FVector::Zero();
+	FVector averagedTrackerRotation = FVector::Zero();
+	uint32 averagedTrackerSampleCount = 0;
 
-	//3. Get the offset transformation for the tracker. 
-	const FTransform trackerOffset = fixedTrackerTransform.GetRelativeTransform(fixedTrackerCalibrationTransform);
-	/*const FTransform trackerOffset(
-		fixedCalibrationTrackerTransform.GetRotation().Inverse() * fixedTrackerTransform.GetRotation(),
-		fixedTrackerTransform.GetLocation() - fixedCalibrationTrackerTransform.GetLocation());	*/
-	return trackerOffset * AveragedBaseStationOffsetCached;
+	for (const auto& baseStation : BaseStationOffsets)
+	{
+		const FTransform fixedRelativeTransform = fixedTrackerTransform * baseStation.Value;
+		averagedTrackerTranslation += fixedRelativeTransform.GetTranslation();
+		averagedTrackerRotation += fixedRelativeTransform.GetRotation().Euler();
+		averagedTrackerSampleCount++;
+	}
+
+	averagedTrackerTranslation /= averagedTrackerSampleCount;
+	averagedTrackerRotation /= averagedTrackerSampleCount;
+	const FTransform averagedTrackerTransformRelativeRaw(
+		FQuat::MakeFromEuler(averagedTrackerRotation),
+		averagedTrackerTranslation);
+
+	return ApplyTransformation(averagedTrackerTransformRelativeRaw);
 }
 
 void UPhysicalObjectTrackingReferencePoint::UpdateRuntimeDataIfNeeded()
@@ -199,8 +217,6 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 	TArray<int32> currentBaseStationIds{};
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(currentBaseStationIds);
 
-	BaseStationOffsetSamples.ClearSampleHistory();
-
 	//Sample the offsets between the calibration transform and the current transform
 	for (const auto baseStation : BaseStationIdToInfo)
 	{
@@ -213,12 +229,9 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 				//1. Calculate the offset transformation between the current transformation and the transformation at calibration.
 				//Should use GetRelativeTransform as this returns leftTransform * inverse(rightTransform) where as
 				//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations. (check function declaration)
-				const FTransform offset = FTransform(currentBaseStationRotation, currentBaseStationPosition).GetRelativeTransform(baseStation.Value.Transformation);
-
-				/*FTransform offset(
-					currentBaseStationRotation.Inverse() * baseStation.Value.Transformation.GetRotation(), 
-					baseStation.Value.Transformation.GetLocation() - currentBaseStationPosition); */
-				BaseStationOffsetSamples.AddSample(offset);
+				const FTransform currentBaseStationTransform(currentBaseStationRotation, currentBaseStationPosition);
+				const FTransform offset = currentBaseStationTransform.GetRelativeTransformReverse(baseStation.Value.Transformation);
+				BaseStationOffsets.FindOrAdd(baseStation.Key) = offset;
 
 				GEngine->AddOnScreenDebugMessage(
 					4321234, 2.f, baseStation.Value.Color,
@@ -227,18 +240,6 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 				break;
 			}
 		}
-	}
-
-	if(!BaseStationOffsetSamples.IsEmpty())
-	{
-		//2. Average the offset transformations.
-		//TODO: maybe erase history if the average offset is too big?
-		AveragedBaseStationOffsetCached = BaseStationOffsetSamples.GetAveragedTransform(1.f);
-		AveragedBaseStationOffsetCachedValid = true;
-	}
-	else
-	{
-		AveragedBaseStationOffsetCachedValid = false;
 	}
 
 }

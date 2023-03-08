@@ -142,7 +142,7 @@ void FUpdateTrackerCalibrationAsset::UpdateAsset() const
 			}
 			else
 			{
-				FColor::MakeRandomColor();
+				baseStationColor = FColor::MakeRandomColor();
 			}
 			const bool staticallyCalibrated = StaticallyCalibratedBaseStations.Contains(baseStation.Key);
 			TargetAsset->SetBaseStationCalibrationInfo(baseStationSerialId, baseStation.Value, baseStationColor, staticallyCalibrated);
