@@ -26,7 +26,7 @@ void FDataLinkModule::StartupModule()
 			0);
 
 		IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("DataLink.Connect"),
+			TEXT("DataLink.Disconnect"),
 			TEXT("Disconnect the socket which is currently connected to"),
 			FConsoleCommandDelegate::CreateRaw(this, &FDataLinkModule::HandleDisconnectCommand),
 			0);
