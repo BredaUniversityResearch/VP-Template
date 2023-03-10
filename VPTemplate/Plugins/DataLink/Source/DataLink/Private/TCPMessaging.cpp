@@ -4,9 +4,12 @@
 #include "MessageEndpoint.h"
 #include "TCPConnection.h"
 
-FTCPMessaging::FTCPMessaging()
+FTCPMessaging::FTCPMessaging(uint32 InMaxMessageQueueSize)
     :
 Connection(MakeShared<FTCPConnection>()),
+MessageQueueSize(0),
+MaxMessageQueueSize(InMaxMessageQueueSize),
+DiscardedMessageCount(0),
 Running(false),
 WaitTime(FTimespan::FromMilliseconds(100.0))
 {
@@ -25,17 +28,18 @@ void FTCPMessaging::ConnectSocket(
     const FIPv4Endpoint& RemoteEndpoint,
     const FTimespan& RetryInterval,
     uint32 MaxRetryAttempts,
+    bool ResetQueue,
     uint32 SendBufferSize,
-    uint32 ReceiveBufferSize) const
+    uint32 ReceiveBufferSize)
 {
-    //Uses Tasks System to avoid blocking calls as accessing Connection can block.
-    //TODO: check if Connection can actually block when accessing and if it even provides thread-safe access.
+    //Uses Tasks System to avoid blocking calls as accessing Connection->Connect can block.
     const auto taskName = TEXT("DataLinkConnectTCPSocket");
     const auto connectFunction = 
         [this, 
         RemoteEndpoint,
         RetryInterval,
         MaxRetryAttempts,
+        ResetQueue,
         SendBufferSize, 
         ReceiveBufferSize]()
     {
@@ -45,16 +49,44 @@ void FTCPMessaging::ConnectSocket(
             MaxRetryAttempts,
             SendBufferSize,
             ReceiveBufferSize);
+        if(ResetQueue)
+        {
+            MessageQueue.Empty();
+            MessageQueueSize = 0;
+        }
         UpdateEvent->Trigger();
     };
     
     UE::Tasks::Launch(taskName, connectFunction);
 }
 
+void FTCPMessaging::DisconnectSocket()
+{
+    const auto taskName = TEXT("DataLinkDisconnectTCPSocket");
+    const auto disconnectFunction =
+        [this]()
+    {
+        Connection->Disconnect();
+        UpdateEvent->Trigger();
+    };
+
+    UE::Tasks::Launch(taskName, disconnectFunction);
+}
+
+void FTCPMessaging::SetMaxMessageQueueSize(uint32 InMaxMessageQueueSize)
+{
+    MaxMessageQueueSize = InMaxMessageQueueSize;
+}
+
 bool FTCPMessaging::Send(const TSharedRef<TArray<uint8>>& Data)
 {
     if (Running && MessageQueue.Enqueue(Data))
     {
+        ++MessageQueueSize;
+        while (MaxMessageQueueSize > 0 && MessageQueueSize > MaxMessageQueueSize)
+        {
+            PopMessageFromQueue();
+        }
         UpdateEvent->Trigger();
         return true;
     }
@@ -73,7 +105,10 @@ void FTCPMessaging::Update()
     check(Connection.IsValid());
 
     Connection->Update(WaitTime);
-    while(!MessageQueue.IsEmpty() && Connection->GetState() == FTCPConnection::EState::CONNECTED)
+    while(
+        Running &&
+        Connection->GetState() == FTCPConnection::EState::CONNECTED &&
+        !MessageQueue.IsEmpty())
     {
         if(!Connection->WaitToSend(WaitTime))
         {
@@ -92,7 +127,7 @@ void FTCPMessaging::Update()
         {
             if(Connection->Send(message.ToSharedRef()))
             {
-                MessageQueue.Pop();
+                PopMessageFromQueue();
             }
             else
             {
@@ -102,6 +137,15 @@ void FTCPMessaging::Update()
             }
         }
         
+    }
+}
+
+void FTCPMessaging::PopMessageFromQueue(bool IsDiscard)
+{
+    if (MessageQueue.Pop())
+    {
+        --MessageQueueSize;
+        ++DiscardedMessageCount;
     }
 }
 

@@ -94,7 +94,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
 	bool UpdateBaseStationOffsetsEachTick = true;
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", 
-		meta = (ClampMin = 0.001, EditCondition=UpdateBaseStationOffsetsEachTick))
+			  meta = (ClampMin = 0.001, EditCondition=UpdateBaseStationOffsetsEachTick, EditConditionHides=true))
 	float BaseStationOffsetUpdatesPerSecond{ 25.f };
 	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
 	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;

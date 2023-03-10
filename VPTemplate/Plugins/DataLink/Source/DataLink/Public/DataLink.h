@@ -21,6 +21,7 @@ public:
 private:
 
 	void HandleConnectCommand(const TArray<FString>& Arguments) const;
+	void HandleDisconnectCommand() const;
 	void HandleSendCommand(const TArray<FString>& Arguments) const;
 
 	TSharedPtr<FTCPMessaging> MessagingService;

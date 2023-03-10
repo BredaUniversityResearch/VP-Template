@@ -16,9 +16,9 @@ void FDataLinkModule::StartupModule()
 	MessagingService = MakeShared<FTCPMessaging>();
 	ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService.ToSharedRef());
 
-#if WITH_EDITOR
-	if (GIsEditor)
-	{
+//#if WITH_EDITOR
+//	if (GIsEditor)
+//	{
 		IConsoleManager::Get().RegisterConsoleCommand(
 			TEXT("DataLink.Connect"),
 			TEXT("Connect to a socket specified by -Endpoint:xxxx.xxxx.xxxx.xxxx:yyyy"),
@@ -26,12 +26,18 @@ void FDataLinkModule::StartupModule()
 			0);
 
 		IConsoleManager::Get().RegisterConsoleCommand(
+			TEXT("DataLink.Connect"),
+			TEXT("Disconnect the socket which is currently connected to"),
+			FConsoleCommandDelegate::CreateRaw(this, &FDataLinkModule::HandleDisconnectCommand),
+			0);
+
+		IConsoleManager::Get().RegisterConsoleCommand(
 			TEXT("DataLink.Send"),
 			TEXT("Send a message to the connected socket. First connect to a socket using DataLinkConnect"),
 			FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSendCommand),
 			0);
-	}
-#endif
+	//}
+//#endif
 
 }
 
@@ -54,6 +60,11 @@ void FDataLinkModule::HandleConnectCommand(const TArray<FString>& Arguments) con
 
 	MessagingService->ConnectSocket(remoteEndpoint, FTimespan::FromMilliseconds(100), UINT32_MAX);
 
+}
+
+void FDataLinkModule::HandleDisconnectCommand() const
+{
+	MessagingService->DisconnectSocket();
 }
 
 void FDataLinkModule::HandleSendCommand(const TArray<FString>& Arguments) const

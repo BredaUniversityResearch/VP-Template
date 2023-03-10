@@ -100,7 +100,6 @@ FTransform UPhysicalObjectTrackingReferencePoint::ApplyTransformation(
 	return ApplyTransformation(FTransform(TrackedRotation, TrackedPosition));
 }
 
-
 FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransform(const FTransform& TrackerCurrentTransform) const
 {
 	//1. For every base station calculate the offset transformation between the current transformation and the transformation at calibration.
@@ -232,12 +231,6 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 				const FTransform currentBaseStationTransform(currentBaseStationRotation, currentBaseStationPosition);
 				const FTransform offset = currentBaseStationTransform.GetRelativeTransformReverse(baseStation.Value.Transformation);
 				BaseStationOffsets.FindOrAdd(baseStation.Key) = offset;
-
-				GEngine->AddOnScreenDebugMessage(
-					4321234, 2.f, baseStation.Value.Color,
-					FString("BaseStationSample"));
-
-				break;
 			}
 		}
 	}

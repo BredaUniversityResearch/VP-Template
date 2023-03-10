@@ -10,26 +10,37 @@ FObjectTrackingDataLink::FObjectTrackingDataLink(const TSharedRef<FTCPMessaging>
     :
 UpdateListener(MakeShared<FObjectTrackingUpdateListener>(InMessaging))
 {
-    if(const FPhysicalObjectTracker* objectTrackingModule = FModuleManager::GetModulePtr<FPhysicalObjectTracker>("PhysicalObjectTracker"))
-    {
-        const FOnPhysicalObjectTrackingComponentRegistered::FDelegate onRegisteredDelegate =
-            FOnPhysicalObjectTrackingComponentRegistered::FDelegate::CreateRaw(this, &FObjectTrackingDataLink::OnTrackerRegistered);
-        const FOnPhysicalObjectTrackingComponentUnregistered::FDelegate onUnregisteredDelegate =
-            FOnPhysicalObjectTrackingComponentUnregistered::FDelegate::CreateRaw(this, &FObjectTrackingDataLink::OnTrackerUnregistered);
 
-        OnTrackerRegisteredDelegate = objectTrackingModule->ObjectTrackingComponents->AddOnComponentRegisteredDelegate(onRegisteredDelegate);
-        OnTrackerUnregisteredDelegate = objectTrackingModule->ObjectTrackingComponents->AddOnComponentUnregisteredDelegate(onUnregisteredDelegate);
-
-        //Register listener for all the trackers that have already registered.
-        const auto& currentTrackers = objectTrackingModule->ObjectTrackingComponents->GetCurrentObjectTrackingComponents();
-        for(auto& tracker : currentTrackers)
+    OnAllModulePhasesCompleteDelegate = FCoreDelegates::OnAllModuleLoadingPhasesComplete.AddLambda(
+        [this]()
         {
-            if(tracker != nullptr)
+            if (const FPhysicalObjectTracker* objectTrackingModule = FModuleManager::GetModulePtr<FPhysicalObjectTracker>("PhysicalObjectTracker"))
             {
-                OnTrackerRegistered(tracker);
+                const FOnPhysicalObjectTrackingComponentRegistered::FDelegate onRegisteredDelegate =
+                    FOnPhysicalObjectTrackingComponentRegistered::FDelegate::CreateRaw(this, &FObjectTrackingDataLink::OnTrackerRegistered);
+                const FOnPhysicalObjectTrackingComponentUnregistered::FDelegate onUnregisteredDelegate =
+                    FOnPhysicalObjectTrackingComponentUnregistered::FDelegate::CreateRaw(this, &FObjectTrackingDataLink::OnTrackerUnregistered);
+
+                OnTrackerRegisteredDelegate = objectTrackingModule->ObjectTrackingComponents->AddOnComponentRegisteredDelegate(onRegisteredDelegate);
+                OnTrackerUnregisteredDelegate = objectTrackingModule->ObjectTrackingComponents->AddOnComponentUnregisteredDelegate(onUnregisteredDelegate);
+
+                //Register listener for all the trackers that have already registered.
+                const auto& currentTrackers = objectTrackingModule->ObjectTrackingComponents->GetCurrentObjectTrackingComponents();
+                for (auto& tracker : currentTrackers)
+                {
+                    if (tracker != nullptr)
+                    {
+                        OnTrackerRegistered(tracker);
+                    }
+                }
             }
-        }
-    }
+            else
+            {
+                GEngine->AddOnScreenDebugMessage(23344556, 10.f, FColor::Red, "Couldn't set up ObjectTrackingDataLink as the PhysicalObjectTracker module wasn't found.");
+            }
+
+        	OnAllModulePhasesCompleteDelegate.Reset();
+        });
 }
 
 FObjectTrackingDataLink::~FObjectTrackingDataLink()

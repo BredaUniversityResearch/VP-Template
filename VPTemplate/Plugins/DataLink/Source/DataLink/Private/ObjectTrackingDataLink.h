@@ -16,6 +16,7 @@ private:
     void OnTrackerRegistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component) const;
     void OnTrackerUnregistered(TObjectPtr<UPhysicalObjectTrackingComponent> Component) const;
 
+    FDelegateHandle OnAllModulePhasesCompleteDelegate;
     FDelegateHandle OnTrackerRegisteredDelegate;
     FDelegateHandle OnTrackerUnregisteredDelegate;
 

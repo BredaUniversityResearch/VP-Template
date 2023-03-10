@@ -298,33 +298,35 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 						DrawAxisBox(PDI, trackerColor, trackerTransformCurrentRawFixed);
 					}
 
-					FVector averagedTrackerTranslation = FVector::Zero();
-					FVector averagedTrackerRotation = FVector::Zero();
-					uint32 averagedTrackerSampleCount = 0;
-
-					for (const auto& baseStation : baseStationOffsets)
-					{
-						const FTransform fixedRelativeTransform = trackerTransformCurrentRawFixed * baseStation.Value;
-						averagedTrackerTranslation += fixedRelativeTransform.GetTranslation();
-						averagedTrackerRotation += fixedRelativeTransform.GetRotation().Euler();
-						averagedTrackerSampleCount++;
-					}
-
-					averagedTrackerTranslation /= averagedTrackerSampleCount;
-					averagedTrackerRotation /= averagedTrackerSampleCount;
-					const FTransform averagedTrackerTransformRelativeRaw(
-						FQuat::MakeFromEuler(averagedTrackerRotation), 
-						averagedTrackerTranslation);
-
 					if (targetComponent->ShowTrackerFixed)
 					{
+						FVector averagedTrackerTranslation = FVector::Zero();
+						FVector averagedTrackerRotation = FVector::Zero();
+						uint32 averagedTrackerSampleCount = 0;
+
+						for (const auto& baseStation : baseStationOffsets)
+						{
+							const FTransform fixedRelativeTransform = trackerTransformCurrentRawFixed * baseStation.Value;
+							averagedTrackerTranslation += fixedRelativeTransform.GetTranslation();
+							averagedTrackerRotation += fixedRelativeTransform.GetRotation().Euler();
+							averagedTrackerSampleCount++;
+
+							//DrawAxisBox(PDI, trackerColor, fixedRelativeTransform);
+						}
+
+						averagedTrackerTranslation /= averagedTrackerSampleCount;
+						averagedTrackerRotation /= averagedTrackerSampleCount;
+						const FTransform averagedTrackerTransformRelativeRaw(
+							FQuat::MakeFromEuler(averagedTrackerRotation),
+							averagedTrackerTranslation);
+
 						FTransform trackerFixed = reference->ApplyTransformation(averagedTrackerTransformRelativeRaw);
 						if(worldReference != nullptr)
 						{
 							FTransform::Multiply(&trackerFixed, &trackerFixed, worldReference);
 						}
 						DrawAxisBox(PDI, trackerColor, trackerFixed);
-					}
+					} 
 
 				}
 			}

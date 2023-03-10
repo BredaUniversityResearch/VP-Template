@@ -113,8 +113,7 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 		}
 
 		m_TransformHistory.AddSample(trackerFromReference);
-		//const FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
-		const FTransform filteredTransform = trackerFromReference;
+		const FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
 
 		if(HasTransformationTargetComponent && TransformationTargetComponent != nullptr)
 		{

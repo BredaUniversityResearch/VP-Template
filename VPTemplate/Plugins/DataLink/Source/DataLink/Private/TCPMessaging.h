@@ -11,7 +11,7 @@ class FTCPMessaging :
 {
 public:
 
-	FTCPMessaging();
+	FTCPMessaging(uint32 MaxMessageQueueSize = 0);
 	~FTCPMessaging();
 
 	
@@ -22,8 +22,12 @@ public:
 		const FIPv4Endpoint& RemoteEndpoint,
 		const FTimespan& RetryInterval = { 0, 0, 1 },
 		uint32 MaxRetryAttempts = 0,
+		bool ResetQueue = false,
 		uint32 SendBufferSize = 1024, 
-		uint32 ReceiveBufferSize = 0) const;
+		uint32 ReceiveBufferSize = 0);
+
+	void DisconnectSocket();
+	void SetMaxMessageQueueSize(uint32 MaxMessageQueueSize);
 
 	//Add a message to the message queue, non-blocking, spawns async task.
 	bool Send(const TSharedRef<TArray<uint8>>& Data);
@@ -40,9 +44,13 @@ private:
 	using FTCPMessage = TSharedPtr<TArray<uint8>, ESPMode::ThreadSafe>; //Has to be SharedPtr instead of SharedRef due to use in TQueue
 
 	void Update();
+	void PopMessageFromQueue(bool IsDiscard = false);
 
 	TSharedPtr<FTCPConnection> Connection;	//Uses SharedPtr to get the thread-safe access
 	TQueue<FTCPMessage, EQueueMode::Mpsc> MessageQueue;
+	TAtomic<uint32> MessageQueueSize;
+	TAtomic<uint32> MaxMessageQueueSize;
+	uint64 DiscardedMessageCount;
 
 	bool Running;
 	FTimespan WaitTime;

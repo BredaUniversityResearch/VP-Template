@@ -38,46 +38,52 @@ public:
 
 #if WITH_EDITORONLY_DATA
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing",
+		meta=(ToolTip = "Completely disable the debug drawing of Base Stations and Trackers"))
 	bool DisableDebugDrawing = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations",
+		meta = (ToolTip = "Show the Base Stations at calibration time in \"ReferencePoint-Space\""))
 	bool ShowBaseStationsCalibration = true;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations",
+		meta = (ToolTip = "Show the Base Stations at calibration time in \"SteamVR-Space\""))
 	bool ShowBaseStationsCalibrationRaw = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations",
+		meta = (ToolTip = "Show the Base Stations at current time in \"ReferencePoint-Space\""))
 	bool ShowBaseStationsCurrent = true;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations",
+		meta = (ToolTip = "Show the Base Stations at current time in \"SteamVR-Space\""))
 	bool ShowBaseStationsCurrentRaw = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations",
+		meta = (ToolTip = "Show the Base Stations in \"ReferencePoint-Space\", adjusted to resolve the possible offset between current and calibration time"))
 	bool ShowBaseStationsFixed = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|BaseStations",
+		meta = (ToolTip = "Show the Base Stations in \"SteamVR-Space\", adjusted to resolve the possible offset between current and calibration time"))
 	bool ShowBaseStationsFixedRaw = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker",
+		meta = (ToolTip = "Show the Tracker at calbiration time in \"ReferencePoint-Space\""))
 	bool ShowTrackerCalibration = true;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker",
+		meta = (ToolTip = "Show the Tracker at calbiration time in \"SteamVR-Space\""))
 	bool ShowTrackerCalibrationRaw = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
-	bool ShowTrackerCurrent = true;
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker",
+		meta = (ToolTip = "Show the Tracker at current time in \"ReferencePoint-Space\""))
+	bool ShowTrackerCurrent = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker",
+		meta = (ToolTip = "Show the Tracker at current time in \"SteamVR-Space\""))
 	bool ShowTrackerCurrentRaw = false;
 
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
-	bool ShowTrackerRelative = true;
-
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
-	bool ShowTrackerRelativeRaw = false;
-
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker")
+	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingComponent|DebugDrawing|Tracker",
+		meta = (ToolTip = "Show the Tracker at current time in \"ReferencePoint-Space\" with transformation calculated as an average off the offsets of the Base Station"))
 	bool ShowTrackerFixed = true;
 
 #endif
