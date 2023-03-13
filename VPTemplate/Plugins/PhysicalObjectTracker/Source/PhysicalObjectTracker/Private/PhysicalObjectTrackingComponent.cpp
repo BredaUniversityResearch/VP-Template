@@ -33,7 +33,7 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 
 	//Should never fail as this is in the same module.
 	//TODO: check if there is a function that returns the current module instead of using string lookup for the module.
-	const FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>("PhysicalObjectTracker");
+	const FPhysicalObjectTracker& trackerModule = FModuleManager::Get().GetModuleChecked<FPhysicalObjectTracker>(TEXT("PhysicalObjectTracker"));
 	trackerModule.ObjectTrackingComponents->AddComponent(ToObjectPtr(this));
 
 	if (FilterSettings != nullptr)

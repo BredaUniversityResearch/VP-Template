@@ -10,10 +10,12 @@ FObjectTrackingDataLink::FObjectTrackingDataLink(const TSharedRef<FTCPMessaging>
     :
 UpdateListener(MakeShared<FObjectTrackingUpdateListener>(InMessaging))
 {
+    const FPhysicalObjectTracker* objectTrackingModule = FModuleManager::LoadModulePtr<FPhysicalObjectTracker>(TEXT("PhysicalObjectTracker"));
+
     OnAllModulePhasesCompleteDelegate = FCoreDelegates::OnAllModuleLoadingPhasesComplete.AddLambda(
-        [this]()
+        [this, objectTrackingModule]()
         {
-            if (const FPhysicalObjectTracker* objectTrackingModule = FModuleManager::GetModulePtr<FPhysicalObjectTracker>("PhysicalObjectTracker"))
+            if (objectTrackingModule)
             {
                 const FOnPhysicalObjectTrackingComponentRegistered::FDelegate onRegisteredDelegate =
                     FOnPhysicalObjectTrackingComponentRegistered::FDelegate::CreateRaw(this, &FObjectTrackingDataLink::OnTrackerRegistered);
