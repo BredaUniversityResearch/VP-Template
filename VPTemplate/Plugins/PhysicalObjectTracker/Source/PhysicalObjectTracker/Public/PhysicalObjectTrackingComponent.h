@@ -13,6 +13,7 @@ class PHYSICALOBJECTTRACKER_API UPhysicalObjectTrackingComponent: public UActorC
 	GENERATED_BODY()
 public:
 	explicit UPhysicalObjectTrackingComponent(const FObjectInitializer& ObjectInitializer);
+	virtual void PostLoad() override;
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
 	virtual void BeginPlay() override;
@@ -25,7 +26,7 @@ public:
 	UFUNCTION(CallInEditor, Category = "PhysicalObjectTrackingComponent")
 	void RefreshDeviceId();
 
-	const FTransform* GetWorldReferencePoint() const;
+	const FTransform* GetWorldReferencePointTransform() const;
 	const UPhysicalObjectTrackingReferencePoint* GetTrackingReferencePoint() const;
 
 	UPROPERTY(Transient, VisibleAnywhere, Category = "PhysicalObjectTrackingComponent")
@@ -92,7 +93,7 @@ private:
 	void DebugCheckIfTrackingTargetExists() const;
 	void OnFilterSettingsChangedCallback();
 	void OnTrackerSerialIdChangedCallback();
-	void ExtractTransformationTargetComponentReferenceIfValid();
+	USceneComponent* GetComponentToTransform() const;
 
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent")
 	UPhysicalObjectTrackingReferencePoint* TrackingSpaceReference{nullptr};
@@ -103,15 +104,12 @@ private:
 
 	FDelegateHandle FilterSettingsChangedHandle;
 	FDelegateHandle SerialIdChangedHandle;
-	
-	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
-		meta = (ToolTip = "Configure a component to move according to the tracker, otherwise moves this component's actor."))
-	bool HasTransformationTargetComponent;
-	UPROPERTY(EditAnyWhere, Category = "PhysicalObjectTrackingComponent",
-		meta = (ToolTip="Leave the Actor field empty to specify a component on this actor.", EditCondition = "HasTransformationTargetComponent", EditConditionHides))
-	FComponentReference TransformationTargetComponentReference;
+		
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingComponent", 
+		meta = (UseComponentPicker, AllowedClasses = "/Script/Engine.SceneComponent"))
+	FComponentReference ComponentToTransform;
 	UPROPERTY(Transient, Category = "PhysicalObjectTrackingComponent", VisibleInstanceOnly)
-	TObjectPtr<USceneComponent> TransformationTargetComponent {nullptr};
+	TWeakObjectPtr<USceneComponent> TransformationTargetComponent {nullptr};
 
 	UPROPERTY(Transient)
 	float DeviceIdAcquireTimer;

@@ -20,6 +20,13 @@ UPhysicalObjectTrackingComponent::UPhysicalObjectTrackingComponent(const FObject
 	bAutoActivate = true;
 }
 
+void UPhysicalObjectTrackingComponent::PostLoad()
+{
+	Super::PostLoad();
+
+	TransformationTargetComponent = GetComponentToTransform();
+}
+
 void UPhysicalObjectTrackingComponent::OnRegister()
 {
 	Super::OnRegister();
@@ -42,10 +49,10 @@ void UPhysicalObjectTrackingComponent::OnRegister()
 	}
 	if(TrackingSpaceReference != nullptr)
 	{
-		TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+		TrackingSpaceReference->MapBaseStationIds();
 	}
 
-	ExtractTransformationTargetComponentReferenceIfValid();
+	TransformationTargetComponent = GetComponentToTransform();
 	OnFilterSettingsChangedCallback();
 }
 
@@ -68,7 +75,7 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 	}
 	else
 	{
-		TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
+		TrackingSpaceReference->MapBaseStationIds();
 	}
 }
 
@@ -103,25 +110,18 @@ void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick
 			FString trackerSerialIdAssetName = TrackerSerialIdAsset.GetName();
 			TransformUpdates.Update({currentTimeCode, trackerSerialId, trackerSerialIdAssetName, trackerFromReference});
 		}
-
-		AActor* owner = GetOwner();
-
-		if (WorldReferencePoint != nullptr && (!HasTransformationTargetComponent && WorldReferencePoint != owner))
+		
+		if (WorldReferencePoint)
 		{
-			trackerFromReference.SetLocation(WorldReferencePoint->GetActorTransform().TransformPosition(trackerFromReference.GetLocation()));
-			trackerFromReference.SetRotation(WorldReferencePoint->GetActorTransform().TransformRotation(trackerFromReference.GetRotation()));
+			FTransform::Multiply(&trackerFromReference, &trackerFromReference, GetWorldReferencePointTransform());
 		}
 
 		m_TransformHistory.AddSample(trackerFromReference);
 		const FTransform filteredTransform = m_TransformHistory.GetAveragedTransform(FilterSettings);
 
-		if(HasTransformationTargetComponent && TransformationTargetComponent != nullptr)
+		if(TransformationTargetComponent != nullptr)
 		{
 			TransformationTargetComponent.Get()->SetWorldTransform(filteredTransform);
-		}
-		else if(!HasTransformationTargetComponent)
-		{
-			owner->SetActorTransform(filteredTransform);
 		}
 		
 	}
@@ -159,16 +159,9 @@ void UPhysicalObjectTrackingComponent::PostEditChangeProperty(FPropertyChangedEv
 				FilterSettingsChangedHandle = FilterSettings->OnFilterSettingsChanged.AddUObject(this, &UPhysicalObjectTrackingComponent::OnFilterSettingsChangedCallback);
 			}
 		}
-		else if(PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TrackingSpaceReference")))
+		else if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("ComponentToTransform")))
 		{
-			if(TrackingSpaceReference != nullptr)
-			{
-				TrackingSpaceReference->UpdateRuntimeDataIfNeeded();
-			}
-		}
-		else if (PropertyChangedEvent.MemberProperty->GetFName() == FName(TEXT("TransformationTargetComponentReference")))
-		{
-			ExtractTransformationTargetComponentReferenceIfValid();
+			TransformationTargetComponent = GetComponentToTransform();
 		}
 	}
 }
@@ -198,7 +191,7 @@ void UPhysicalObjectTrackingComponent::RefreshDeviceId()
 	}
 }
 
-const FTransform* UPhysicalObjectTrackingComponent::GetWorldReferencePoint() const
+const FTransform* UPhysicalObjectTrackingComponent::GetWorldReferencePointTransform() const
 {
 	return WorldReferencePoint != nullptr ? &WorldReferencePoint->GetActorTransform() : nullptr;
 }
@@ -238,30 +231,31 @@ void UPhysicalObjectTrackingComponent::OnTrackerSerialIdChangedCallback()
 	}
 }
 
-void UPhysicalObjectTrackingComponent::ExtractTransformationTargetComponentReferenceIfValid()
+USceneComponent* UPhysicalObjectTrackingComponent::GetComponentToTransform() const
 {
-    AActor* owningActor =  GetOwner();
-	TObjectPtr<USceneComponent> targetSceneComponent = nullptr;
-	if (HasTransformationTargetComponent && owningActor != nullptr)
-	{
-		UActorComponent* transformationTargetActorComponent = TransformationTargetComponentReference.GetComponent(owningActor);
-		if (transformationTargetActorComponent != nullptr)
+		AActor* owner = GetOwner();
+		if (!owner)
 		{
-			targetSceneComponent = Cast<USceneComponent>(transformationTargetActorComponent);
-			if (targetSceneComponent == nullptr)
+			return nullptr;
+		}
+
+		UActorComponent* componentToTransform = ComponentToTransform.GetComponent(owner);
+		if (!componentToTransform)
+		{
+			GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
+				FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a valid component as movement target component. Component in actor: \"{0}\""),
+					FStringFormatOrderedArguments({ GetOwner()->GetName() })));
+			return nullptr;
+		}
+		else
+		{
+			USceneComponent* sceneComponentToTransform = Cast<USceneComponent>(componentToTransform);
+			if (sceneComponentToTransform == nullptr)
 			{
 				GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
 					FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a component that is or inherits from a scene component as movement target component. Component in actor: \"{0}\""),
 						FStringFormatOrderedArguments({ GetOwner()->GetName() })));
 			}
+			return sceneComponentToTransform;	
 		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red,
-				FString::Format(TEXT("PhysicalObjectTrackingComponent does not reference a valid component as movement target component. Component in actor: \"{0}\""),
-					FStringFormatOrderedArguments({ GetOwner()->GetName() })));
-		}
-	}
-
-	TransformationTargetComponent = targetSceneComponent;
 }

@@ -52,13 +52,10 @@ public:
 	//Get the tracker's reference-space transform. Expects raw SteamVR space input.
 	FTransform GetTrackerReferenceSpaceTransform(const FTransform& TrackerCurrentTransform) const;
 
-	//Update the run time data if needed, which includes:
-	//- Mapping the base station calibration transforms which are mapped to serial ids as strings
-	//to a map which uses device ids to refer to base stations. (Removes slow string lookups)
-	void UpdateRuntimeDataIfNeeded();
-
 	int32 GetMinBaseStationsCalibrated() const;
 	int32 GetMinBaseStationsCalibratedStatically() const;
+
+	bool MapBaseStationIds();
 
 private:
 
@@ -71,9 +68,8 @@ private:
 #endif
 
 	bool HasMappedAllBaseStations() const;
-	bool MapBaseStationIds();
 
-	void UpdateAveragedBaseStationOffset();
+	void UpdateBaseStationOffsets();
 	
 	/* Flips up/down rotation */
 	UPROPERTY(EditAnywhere, Category= "PhysicalObjectTrackingReferencePoint|Rotation")
@@ -94,19 +90,15 @@ private:
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
 	bool UpdateBaseStationOffsetsEachTick = true;
 	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations", 
-			  meta = (ClampMin = 0.001, EditCondition=UpdateBaseStationOffsetsEachTick, EditConditionHides=true))
+			  meta = (ClampMin = 0.001, EditCondition="!UpdateBaseStationOffsetsEachTick", EditConditionHides=true))
 	float BaseStationOffsetUpdatesPerSecond{ 25.f };
-	UPROPERTY(EditInstanceOnly, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
+	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|BaseStations")
 	TMap<FString, FBaseStationCalibrationInfo> BaseStationCalibrationInfo;
 
 	//Runtime data
 	//Maps the calibration transforms of the base stations to Device Ids instead of Serial Ids.
 	//(Serial Ids are consistent between sessions but Device Ids not necesarilly)
 	TMap<int32, FTransform> BaseStationIdToCalibrationTransforms;
-
-	TMap<int32, FBaseStationCalibrationInfo> BaseStationIdToInfo;
-
-	UPROPERTY(VisibleAnywhere, Transient, Category = "PhysicalObjectTrackingReferencePoint|RunTime")
 	TMap<int32, FTransform> BaseStationOffsets;
 
 	float UpdateBaseStationOffsetsDeltaTimeAccumulator{ 0.f };

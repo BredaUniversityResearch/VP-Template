@@ -11,7 +11,7 @@ void UPhysicalObjectTrackingReferencePoint::Tick(float DeltaTime)
 {
 	if(UpdateBaseStationOffsetsEachTick)
 	{
-		UpdateAveragedBaseStationOffset();
+		UpdateBaseStationOffsets();
 	}
 	else
 	{
@@ -20,7 +20,7 @@ void UPhysicalObjectTrackingReferencePoint::Tick(float DeltaTime)
 		if (UpdateBaseStationOffsetsDeltaTimeAccumulator > SecondsBetweenUpdate)
 		{
 			UpdateBaseStationOffsetsDeltaTimeAccumulator -= SecondsBetweenUpdate;
-			UpdateAveragedBaseStationOffset();
+			UpdateBaseStationOffsets();
 		}
 	}
 }
@@ -172,11 +172,6 @@ FTransform UPhysicalObjectTrackingReferencePoint::GetTrackerReferenceSpaceTransf
 	return ApplyTransformation(averagedTrackerTransformRelativeRaw);
 }
 
-void UPhysicalObjectTrackingReferencePoint::UpdateRuntimeDataIfNeeded()
-{
-	MapBaseStationIds();
-}
-
 bool UPhysicalObjectTrackingReferencePoint::HasMappedAllBaseStations() const
 {
 	//TODO: might not be entirely correct if for some reason the base station Id changes mid session?
@@ -196,14 +191,13 @@ bool UPhysicalObjectTrackingReferencePoint::MapBaseStationIds()
 		if (FPhysicalObjectTrackingUtility::FindDeviceIdFromSerialId(baseStation.Key, baseStationId))
 		{
 			BaseStationIdToCalibrationTransforms.Add(baseStationId, baseStation.Value.Transformation);
-			BaseStationIdToInfo.Add(baseStationId, { baseStation.Value });
 		}
 	}
 
 	return HasMappedAllBaseStations();
 }
 
-void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
+void UPhysicalObjectTrackingReferencePoint::UpdateBaseStationOffsets()
 {
 	//If not all of the calibration transforms have been mapped to a device id,
 	//try to map the base stations calibration transforms to a device id.
@@ -217,7 +211,7 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 	FPhysicalObjectTrackingUtility::GetAllTrackingReferenceDeviceIds(currentBaseStationIds);
 
 	//Sample the offsets between the calibration transform and the current transform
-	for (const auto baseStation : BaseStationIdToInfo)
+	for (const auto baseStation : BaseStationIdToCalibrationTransforms)
 	{
 		if (currentBaseStationIds.Contains(baseStation.Key))	//Only sample the base station if it is currently connected (valid)
 		{
@@ -229,7 +223,7 @@ void UPhysicalObjectTrackingReferencePoint::UpdateAveragedBaseStationOffset()
 				//Should use GetRelativeTransform as this returns leftTransform * inverse(rightTransform) where as
 				//Transform.Inverse() simply inverts components separately and thus can not be used to undo transformations. (check function declaration)
 				const FTransform currentBaseStationTransform(currentBaseStationRotation, currentBaseStationPosition);
-				const FTransform offset = currentBaseStationTransform.GetRelativeTransformReverse(baseStation.Value.Transformation);
+				const FTransform offset = currentBaseStationTransform.GetRelativeTransformReverse(baseStation.Value);
 				BaseStationOffsets.FindOrAdd(baseStation.Key) = offset;
 			}
 		}
@@ -250,25 +244,25 @@ int32 UPhysicalObjectTrackingReferencePoint::GetMinBaseStationsCalibratedStatica
 void UPhysicalObjectTrackingReferencePoint::PostLoad()
 {
 	UDataAsset::PostLoad();
-	UpdateRuntimeDataIfNeeded();
+	MapBaseStationIds();
 }
 
 void UPhysicalObjectTrackingReferencePoint::PostInitProperties()
 {
 	UDataAsset::PostInitProperties();
-	UpdateRuntimeDataIfNeeded();
+	MapBaseStationIds();
 }
 
 void UPhysicalObjectTrackingReferencePoint::PostReinitProperties()
 {
 	UDataAsset::PostReinitProperties();
-	UpdateRuntimeDataIfNeeded();
+	MapBaseStationIds();
 }
 
 #if WITH_EDITOR
 void UPhysicalObjectTrackingReferencePoint::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	UObject::PostEditChangeProperty(PropertyChangedEvent);
-	UpdateRuntimeDataIfNeeded();
+	MapBaseStationIds();
 }
 #endif

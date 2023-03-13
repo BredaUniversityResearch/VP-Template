@@ -144,7 +144,7 @@ void FPhysicalObjectTrackingComponentVisualizer::DrawVisualization(const UActorC
 		const UPhysicalObjectTrackingReferencePoint* reference = targetComponent->GetTrackingReferencePoint();
 		if (reference != nullptr)
 		{
-			const FTransform* worldReference = targetComponent->GetWorldReferencePoint();
+			const FTransform* worldReference = targetComponent->GetWorldReferencePointTransform();
 			//FPhysicalObjectTrackerEditor::DebugDrawTrackingReferenceLocations(reference, worldReference);
 
 			TArray<int32> deviceIds;

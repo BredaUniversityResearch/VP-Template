@@ -10,7 +10,6 @@ FObjectTrackingDataLink::FObjectTrackingDataLink(const TSharedRef<FTCPMessaging>
     :
 UpdateListener(MakeShared<FObjectTrackingUpdateListener>(InMessaging))
 {
-
     OnAllModulePhasesCompleteDelegate = FCoreDelegates::OnAllModuleLoadingPhasesComplete.AddLambda(
         [this]()
         {
@@ -41,6 +40,7 @@ UpdateListener(MakeShared<FObjectTrackingUpdateListener>(InMessaging))
 
         	OnAllModulePhasesCompleteDelegate.Reset();
         });
+
 }
 
 FObjectTrackingDataLink::~FObjectTrackingDataLink()

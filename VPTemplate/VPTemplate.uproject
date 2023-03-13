@@ -191,6 +191,10 @@
 		{
 			"Name": "LevelSnapshots",
 			"Enabled": true
+		},
+		{
+			"Name": "LiveLinkViconDataStream",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
