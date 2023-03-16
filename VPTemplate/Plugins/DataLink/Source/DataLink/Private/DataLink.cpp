@@ -3,6 +3,7 @@
 #include "DataLink.h"
 
 #include "TCPMessaging.h"
+#include "DataLinkSettings.h"
 #include "ObjectTrackingDataLink.h"
 
 
@@ -16,28 +17,25 @@ void FDataLinkModule::StartupModule()
 	MessagingService = MakeShared<FTCPMessaging>();
 	ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService.ToSharedRef());
 
-//#if WITH_EDITOR
-//	if (GIsEditor)
-//	{
-		IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("DataLink.Connect"),
-			TEXT("Connect to a socket specified by -Endpoint:xxxx.xxxx.xxxx.xxxx:yyyy"),
-			FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleConnectCommand),
-			0);
+	FCoreDelegates::ConfigReadyForUse.
 
-		IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("DataLink.Disconnect"),
-			TEXT("Disconnect the socket which is currently connected to"),
-			FConsoleCommandDelegate::CreateRaw(this, &FDataLinkModule::HandleDisconnectCommand),
-			0);
+	IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("DataLink.Connect"),
+		TEXT("Connect to a socket specified by -Endpoint:xxxx.xxxx.xxxx.xxxx:yyyy"),
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleConnectCommand),
+		0);
 
-		IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("DataLink.Send"),
-			TEXT("Send a message to the connected socket. First connect to a socket using DataLinkConnect"),
-			FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSendCommand),
-			0);
-	//}
-//#endif
+	IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("DataLink.Disconnect"),
+		TEXT("Disconnect the socket which is currently connected to"),
+		FConsoleCommandDelegate::CreateRaw(this, &FDataLinkModule::HandleDisconnectCommand),
+		0);
+
+	IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("DataLink.Send"),
+		TEXT("Send a message to the connected socket. First connect to a socket using DataLinkConnect"),
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSendCommand),
+		0);
 
 }
 
@@ -88,6 +86,45 @@ void FDataLinkModule::HandleSendCommand(const TArray<FString>& Arguments) const
 	}
 
     MessagingService->Send(messageData);
+}
+
+void FDataLinkModule::OnStartup()
+{
+	check(GConfig->IsReadyForUse());
+
+	const UDataLinkSettings* settings = GetDefault<UDataLinkSettings>();
+	check(settings);
+
+	const FEndpointSettings& remoteEndpointSettings = settings->RemoteEndpointSettings;
+
+	if(remoteEndpointSettings.ConnectOnStartup &&
+	  !remoteEndpointSettings.Hostname.IsEmpty())
+	{
+
+		
+		FIPv4Endpoint connectionEndpoint{};
+
+		FIPv4Address connectionIp = FIPv4Address::InternalLoopback;
+		if(FIPv4Address::Parse(remoteEndpointSettings.Hostname, connectionIp))
+		{
+			connectionEndpoint.Address = connectionIp.Value;
+		}
+		else
+		{
+			const FString portString = FString::FromInt(remoteEndpointSettings.Port);
+			ISocketSubsystem* socketSubSystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
+
+			FAddressInfoResult addressInfo = socketSubSystem->GetAddressInfo(
+				*remoteEndpointSettings.Hostname,
+				*portString,
+				EAddressInfoFlags::Default,
+				NAME_None,
+				SOCKTYPE_Streaming);
+
+		}
+
+	}
+
 }
 
 #undef LOCTEXT_NAMESPACE

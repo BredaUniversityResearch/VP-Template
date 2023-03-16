@@ -2,10 +2,10 @@
 	"source": "UE",
 	"applications": [
 		{
-			"app_key": "application.generated.ue.vptemplate-23901901.unrealeditor.exe",
+			"app_key": "application.generated.ue.vptemplate-23901901.unrealeditor-win64-debuggame.exe",
 			"launch_type": "url",
 			"url": "steam://launch/",
-			"action_manifest_path": "C:/Projects/VP-Template/VPTemplate/Config/SteamVRBindings/steamvr_manifest.json",
+			"action_manifest_path": "C:/Workspace - Bas/VP Template/VP-Template/VPTemplate/Config/SteamVRBindings/steamvr_manifest.json",
 			"strings":
 			{
 				"en_us":
