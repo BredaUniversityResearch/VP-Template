@@ -17,7 +17,7 @@ void FDataLinkModule::StartupModule()
 	MessagingService = MakeShared<FTCPMessaging>();
 	ObjectTrackingDataLink = MakeUnique<FObjectTrackingDataLink>(MessagingService.ToSharedRef());
 
-	FCoreDelegates::ConfigReadyForUse.
+	//FCoreDelegates::ConfigReadyForUse
 
 	IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("DataLink.Connect"),
@@ -97,7 +97,7 @@ void FDataLinkModule::OnStartup()
 
 	const FEndpointSettings& remoteEndpointSettings = settings->RemoteEndpointSettings;
 
-	if(remoteEndpointSettings.ConnectOnStartup &&
+	/*if(remoteEndpointSettings.ConnectOnStartup &&
 	  !remoteEndpointSettings.Hostname.IsEmpty())
 	{
 
@@ -123,7 +123,7 @@ void FDataLinkModule::OnStartup()
 
 		}
 
-	}
+	}*/
 
 }
 

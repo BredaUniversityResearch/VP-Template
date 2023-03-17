@@ -36,15 +36,13 @@ void FDataPacket::StringToByteArrayAsUTF8(const FString& String, TArray<uint8>& 
 		return;
 	}
 
-	//Why not UTF8CHAR instead of ANSICHAR?   idea but this is what Unreal provides :(
-	const ANSICHAR* stringAsUtf8 = TCHAR_TO_UTF8(*String);
 	const int32 stringLengthWithNull = String.Len() + 1;
 
-	for(auto currentPos = stringAsUtf8; 
-		(currentPos - stringAsUtf8) < stringLengthWithNull;
-		currentPos++)
+	//Why not UTF8CHAR instead of ANSICHAR?   idea but this is what Unreal provides :(
+	const TArray<ANSICHAR> stringAsUtf8 (TCHAR_TO_UTF8(*String), stringLengthWithNull);
+	for(const auto& character : stringAsUtf8)
 	{
-		ByteArray.Add(static_cast<uint8>(*currentPos));
+		ByteArray.Add(static_cast<uint8>(character));
 	}
 }
 

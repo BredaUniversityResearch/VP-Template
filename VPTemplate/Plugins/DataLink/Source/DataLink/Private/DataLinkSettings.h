@@ -1,6 +1,5 @@
 #pragma once
 #include "Engine/DeveloperSettings.h"
-#include "DataLinkSettings.generated.h"
 
 #include "DataLinkSettings.generated.h"
 
@@ -31,4 +30,9 @@ public:
 
     UPROPERTY(Config, EditAnywhere)
         FEndpointSettings RemoteEndpointSettings;
+
+    //The max amount of messages that can be buffered to be sent on (re-)connection.
+    //Set to 0 to define infinite scaling queue.
+    UPROPERTY(Config, EditAnywhere)
+    int32 MaxMessageQueueSize {1024};
 };
