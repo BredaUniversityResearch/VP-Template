@@ -78,6 +78,17 @@ void FTCPMessaging::SetMaxMessageQueueSize(uint32 InMaxMessageQueueSize)
     MaxMessageQueueSize = InMaxMessageQueueSize;
 }
 
+bool FTCPMessaging::GetConnectionState(FIPv4Endpoint& ConnectionEndpoint) const
+{
+    ConnectionEndpoint = Connection->GetConnectionAddress();
+    return Connection->GetState() == FTCPConnection::EState::CONNECTED;
+}
+
+uint32 FTCPMessaging::GetMaxMessageQueueSize() const
+{
+    return MaxMessageQueueSize;
+}
+
 bool FTCPMessaging::Send(const TSharedRef<TArray<uint8>>& Data)
 {
     if (Running && MessageQueue.Enqueue(Data))

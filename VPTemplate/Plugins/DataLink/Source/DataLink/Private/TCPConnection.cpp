@@ -169,6 +169,17 @@ FTCPConnection::EState FTCPConnection::GetState() const
     return State;
 }
 
+FIPv4Endpoint FTCPConnection::GetConnectionAddress() const
+{
+    FIPv4Endpoint endpoint {};
+    if(State == EState::CONNECTED)
+    {
+        RemoteAddress->GetIp(endpoint.Address.Value);
+        endpoint.Port = static_cast<uint16>(RemoteAddress->GetPort());
+    }
+    return endpoint;
+}
+
 void FTCPConnection::CreateSocket()
 {
     if(Socket.IsValid())

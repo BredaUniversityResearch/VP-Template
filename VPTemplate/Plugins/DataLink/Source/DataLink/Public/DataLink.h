@@ -23,6 +23,9 @@ private:
 	void HandleConnectCommand(const TArray<FString>& Arguments) const;
 	void HandleDisconnectCommand() const;
 	void HandleSendCommand(const TArray<FString>& Arguments) const;
+	void HandleSetMaxMessageBufferSize(const TArray<FString>& Arguments) const;
+	void HandleGetMaxMessageBufferSize() const;
+	void HandleGetConnection() const;
 	void OnStartup();
 
 	TSharedPtr<FTCPMessaging> MessagingService;

@@ -34,6 +34,7 @@ public:
     bool WaitToSend(const FTimespan& WaitTime) const;
     bool Send(const TSharedRef<TArray<uint8>>& Data);
     EState GetState() const;
+    FIPv4Endpoint GetConnectionAddress() const;
 
 private:
 

@@ -7142,46 +7142,6 @@
 			"Type": "RequiredResource"
 		},
 		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkCamera/Binaries/Win64/UnrealEditor-LiveLinkCamera.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkCamera/Binaries/Win64/UnrealEditor-LiveLinkCamera.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkCamera/Binaries/Win64/UnrealEditor-LiveLinkCameraEditor.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkCamera/Binaries/Win64/UnrealEditor-LiveLinkCameraEditor.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkCamera/Binaries/Win64/UnrealEditor-LiveLinkCameraRecording.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkCamera/Binaries/Win64/UnrealEditor-LiveLinkCameraRecording.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkCamera/Binaries/Win64/UnrealEditor.modules",
-			"Type": "RequiredResource"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkLens/Binaries/Win64/UnrealEditor-LiveLinkLens.dll",
-			"Type": "DynamicLibrary"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkLens/Binaries/Win64/UnrealEditor-LiveLinkLens.pdb",
-			"Type": "SymbolFile"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkLens/Binaries/Win64/UnrealEditor.modules",
-			"Type": "RequiredResource"
-		},
-		{
 			"Path": "$(EngineDir)/Plugins/VirtualProduction/MultiUserTakes/Binaries/Win64/UnrealEditor-ConcertTakeRecorder.dll",
 			"Type": "DynamicLibrary"
 		},
@@ -28757,14 +28717,6 @@
 		},
 		{
 			"Path": "$(EngineDir)/Plugins/VirtualProduction/LevelSnapshots/LevelSnapshots.uplugin",
-			"Type": "UFS"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkCamera/LiveLinkCamera.uplugin",
-			"Type": "UFS"
-		},
-		{
-			"Path": "$(EngineDir)/Plugins/VirtualProduction/LiveLinkLens/LiveLinkLens.uplugin",
 			"Type": "UFS"
 		},
 		{

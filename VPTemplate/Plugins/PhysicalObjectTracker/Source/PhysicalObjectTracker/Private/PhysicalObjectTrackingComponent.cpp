@@ -77,6 +77,7 @@ void UPhysicalObjectTrackingComponent::BeginPlay()
 	{
 		TrackingSpaceReference->MapBaseStationIds();
 	}
+	
 }
 
 void UPhysicalObjectTrackingComponent::TickComponent(float DeltaTime, ELevelTick Tick,

@@ -29,6 +29,9 @@ public:
 	void DisconnectSocket();
 	void SetMaxMessageQueueSize(uint32 MaxMessageQueueSize);
 
+	bool GetConnectionState(FIPv4Endpoint& ConnectionEndpoint) const;
+	uint32 GetMaxMessageQueueSize() const;
+
 	//Add a message to the message queue, non-blocking, spawns async task.
 	bool Send(const TSharedRef<TArray<uint8>>& Data);
 	bool Send(const FDataPacket& Packet);

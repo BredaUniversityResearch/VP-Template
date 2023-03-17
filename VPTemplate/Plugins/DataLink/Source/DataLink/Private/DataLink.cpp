@@ -37,6 +37,24 @@ void FDataLinkModule::StartupModule()
 		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSendCommand),
 		0);
 
+	IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("DataLink.SetMaxMessageQueueSize"),
+		TEXT("Set the maximum amount of messages to store in the queue when not connected to a socket. 0 or any non-numeric value will set it to grow infinitely."),
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FDataLinkModule::HandleSetMaxMessageBufferSize),
+		0);
+
+	IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("DataLink.GetMaxMessageQueueSize"),
+		TEXT("Get the maximum amount of messages to store in the queue when not connected to a socket. 0 or any non-numeric value will means it grows infinitely."),
+		FConsoleCommandDelegate::CreateRaw(this, &FDataLinkModule::HandleGetMaxMessageBufferSize),
+		0);
+
+	IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("DataLink.GetConnection"),
+		TEXT("Get the current connection state."),
+		FConsoleCommandDelegate::CreateRaw(this, &FDataLinkModule::HandleGetConnection),
+		0);
+
 }
 
 void FDataLinkModule::ShutdownModule()
@@ -86,6 +104,31 @@ void FDataLinkModule::HandleSendCommand(const TArray<FString>& Arguments) const
 	}
 
     MessagingService->Send(messageData);
+}
+
+void FDataLinkModule::HandleSetMaxMessageBufferSize(const TArray<FString>& Arguments) const
+{
+	if(Arguments.IsEmpty())
+	{
+		return;
+	}
+
+	const uint32 maxSize = FCString::Atoi(*Arguments[0]);
+	MessagingService->SetMaxMessageQueueSize(maxSize);
+	UE_LOG(LogDataLink, Log, TEXT("Set MaxMessageQueueSize: %u"), maxSize);
+}
+
+void FDataLinkModule::HandleGetMaxMessageBufferSize() const
+{
+	const uint32 currentMaxSize = MessagingService->GetMaxMessageQueueSize();
+	UE_LOG(LogDataLink, Log, TEXT("Current MaxMessageQueueSize: %u"), currentMaxSize);
+}
+
+void FDataLinkModule::HandleGetConnection() const
+{
+	FIPv4Endpoint connectedEndpoint;
+	const bool isConnected = MessagingService->GetConnectionState(connectedEndpoint);
+	UE_LOG(LogDataLink, Log, TEXT("Current Connection State - Connected: %s, Endpoint: %s"), isConnected ? TEXT("true") : TEXT("false"), *connectedEndpoint.ToString());
 }
 
 void FDataLinkModule::OnStartup()

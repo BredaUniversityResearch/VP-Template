@@ -70,15 +70,6 @@ private:
 	bool HasMappedAllBaseStations() const;
 
 	void UpdateBaseStationOffsets();
-	
-	/* Flips up/down rotation */
-	UPROPERTY(EditAnywhere, Category= "PhysicalObjectTrackingReferencePoint|Rotation")
-	bool InvertPitchRotation{ false };
-	/* Flips left/right rotation */
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|Rotation")
-	bool InvertYawRotation{false};
-	UPROPERTY(EditAnywhere, Category = "PhysicalObjectTrackingReferencePoint|Rotation")
-	bool InvertRollRotation{ false };
 
 	UPROPERTY(VisibleAnywhere, Category = "PhysicalObjectTrackingReferencePoint")
 	FTransform TrackerCalibrationTransform;
