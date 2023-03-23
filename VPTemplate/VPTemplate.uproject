@@ -195,6 +195,10 @@
 		{
 			"Name": "LiveLinkViconDataStream",
 			"Enabled": true
+		},
+		{
+			"Name": "LiveLinkViconDataStream",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

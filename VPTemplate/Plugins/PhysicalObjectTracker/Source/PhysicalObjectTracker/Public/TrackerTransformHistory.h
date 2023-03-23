@@ -13,6 +13,7 @@ public:
 	void ClearSampleHistory();
 	bool TakeSample(int32 a_TargetTrackerId);
 
+	bool IsEmpty() const;
 	bool HasCompleteHistory() const;
 	float GetMaxDistanceFromFirstSample() const;
 	float GetTotalDistanceTraveled() const;

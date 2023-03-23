@@ -5214,6 +5214,18 @@
 			"Type": "RequiredResource"
 		},
 		{
+			"Path": "$(EngineDir)/Plugins/Marketplace/LiveLinkViconDataStream/Binaries/Win64/UnrealEditor-LiveLinkDataStream.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/Marketplace/LiveLinkViconDataStream/Binaries/Win64/UnrealEditor-LiveLinkDataStreamEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(EngineDir)/Plugins/Marketplace/LiveLinkViconDataStream/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
 			"Path": "$(EngineDir)/Plugins/Media/AjaMedia/Binaries/Win64/UnrealEditor-AjaMedia.dll",
 			"Type": "DynamicLibrary"
 		},
@@ -7319,6 +7331,18 @@
 		},
 		{
 			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/DataLink/Binaries/Win64/UnrealEditor-DataLink.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/DataLink/Binaries/Win64/UnrealEditor-DataLink.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/DataLink/Binaries/Win64/UnrealEditor.modules",
 			"Type": "RequiredResource"
 		},
 		{
@@ -25260,6 +25284,38 @@
 			"Type": "NonUFS"
 		},
 		{
+			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-LiveLinkDataStream.dll",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/UnrealEditor-LiveLinkDataStreamEditor.dll",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/ViconDataStreamSDK_CPP.dll",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/boost_chrono-vc141-mt-x64-1_75.dll",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/boost_filesystem-vc141-mt-x64-1_75.dll",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/boost_python27-vc141-mt-x64-1_75.dll",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/boost_system-vc141-mt-x64-1_75.dll",
+			"Type": "NonUFS"
+		},
+		{
+			"Path": "$(EngineDir)/Binaries/Win64/boost_thread-vc141-mt-x64-1_75.dll",
+			"Type": "NonUFS"
+		},
+		{
 			"Path": "$(EngineDir)/Binaries/Win64/oo2tex_win64_2.9.5.dll",
 			"Type": "NonUFS"
 		},
@@ -28276,6 +28332,10 @@
 			"Type": "UFS"
 		},
 		{
+			"Path": "$(EngineDir)/Plugins/Marketplace/LiveLinkViconDataStream/LiveLinkViconDataStream.uplugin",
+			"Type": "UFS"
+		},
+		{
 			"Path": "$(EngineDir)/Plugins/Media/AjaMedia/AjaMedia.uplugin",
 			"Type": "UFS"
 		},
@@ -28789,6 +28849,10 @@
 		},
 		{
 			"Path": "$(ProjectDir)/Plugins/BlackmagicCameraControl/BlackmagicCameraControl.uplugin",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/DataLink/DataLink.uplugin",
 			"Type": "UFS"
 		},
 		{
