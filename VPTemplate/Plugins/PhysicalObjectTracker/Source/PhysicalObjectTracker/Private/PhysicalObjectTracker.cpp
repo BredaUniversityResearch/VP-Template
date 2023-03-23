@@ -1,4 +1,5 @@
 #include "PhysicalObjectTracker.h"
+#include "PhysicalObjectTrackingComponentRegistry.h"
 
 #define LOCTEXT_NAMESPACE "FPhysicalObjectTracker"
 
@@ -6,6 +7,7 @@ DEFINE_LOG_CATEGORY(LogPhysicalObjectTracker);
 
 void FPhysicalObjectTracker::StartupModule()
 {
+	ObjectTrackingComponents = MakeShared<FPhysicalObjectTrackingComponentRegistry>();
 }
 
 void FPhysicalObjectTracker::ShutdownModule()
