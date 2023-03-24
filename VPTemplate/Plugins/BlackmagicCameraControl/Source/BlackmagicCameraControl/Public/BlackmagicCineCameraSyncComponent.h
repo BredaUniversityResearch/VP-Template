@@ -20,6 +20,7 @@ public:
 	virtual void Deactivate() override;
 
 	virtual void OnLensFocus(BMCCDeviceHandle SourceDevice, const FBMCCLens_Focus& Data) override;
+	virtual void OnLensAbsoluteZoomMm(BMCCDeviceHandle Source, const FBMCCLens_SetAbsoluteZoomMm& Zoom) override;
 	virtual void OnVideoVideoMode(BMCCDeviceHandle SourceDevice, const FBMCCVideo_VideoMode& VideoMode) override;
 	virtual void OnVideoRecordingFormat(BMCCDeviceHandle Source, const FBMCCVideo_RecordingFormat& RecordingFormat) override;
 	virtual void OnVendorSpecificCanonLens(BMCCDeviceHandle Source, const FBMCCVendorSpecific_CanonLens& Data) override;

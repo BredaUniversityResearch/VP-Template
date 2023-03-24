@@ -41,6 +41,7 @@ public:
 
 private:
 	TUniquePtr<Pimpl> m_Data;
+	bool m_FirstTick{ true };
 
 	UBMCCDispatcher* DefaultDispatcher;
 };

@@ -1,17 +1,18 @@
 #include "BMCCService.h"
 
-#include "BlackmagicCameraControl.h"
-#include "BluetoothService.h"
+#include "Bluetooth/BluetoothService.h"
 #include "BMCCCallbackHandler.h"
 #include "BMCCDispatcher.h"
 #include "BMCCBattery_Info.h"
 #include "BMCCCommandHeader.h"
 #include "BMCCCommandMeta.h"
+#include "EthernetRelay/CameraControlNetworkReceiver.h"
 
 class FBMCCService::Pimpl
 {
 public:
 	TUniquePtr<FBluetoothService> m_BluetoothService;
+	TUniquePtr<FCameraControlNetworkReceiver> m_NetworkService;
 
 	TArray<IBMCCCallbackHandler*> CallbackHandlers;
 };
@@ -21,7 +22,8 @@ FBMCCService::FBMCCService()
 	, DefaultDispatcher(NewObject<UBMCCDispatcher>())
 {
 	DefaultDispatcher->AddToRoot();
-	m_Data->m_BluetoothService = MakeUnique<FBluetoothService>(this);
+	//m_Data->m_BluetoothService = MakeUnique<FBluetoothService>(this);
+
 	SubscribeMessageReceivedHandler(DefaultDispatcher);
 }
 
@@ -32,10 +34,23 @@ FBMCCService::~FBMCCService()
 	{
 		DefaultDispatcher->RemoveFromRoot();
 	}
+
+	if (m_Data->m_NetworkService != nullptr)
+	{
+		m_Data->m_NetworkService->Stop();
+	}
 }
 
 void FBMCCService::Tick(float DeltaTime)
 {
+	if (m_FirstTick)
+	{
+		m_Data->m_NetworkService = MakeUnique<FCameraControlNetworkReceiver>(this);
+		m_Data->m_NetworkService->Start();
+		m_FirstTick = false;
+	}
+
+	m_Data->m_NetworkService->Update();
 }
 
 void FBMCCService::OnDataReceived(BMCCDeviceHandle Source, const BMCCCommandHeader& Header, const FBMCCCommandMeta& CommandMetaData, const TArrayView<uint8_t>& SerializedData)

@@ -43,6 +43,10 @@ void UBlackmagicCineCameraSyncComponent::OnLensFocus(int32 SourceDevice, const F
 
 }
 
+void UBlackmagicCineCameraSyncComponent::OnLensAbsoluteZoomMm(BMCCDeviceHandle Source, const FBMCCLens_SetAbsoluteZoomMm& Zoom)
+{
+}
+
 void UBlackmagicCineCameraSyncComponent::OnVideoVideoMode(int32 SourceDevice, const FBMCCVideo_VideoMode& VideoMode)
 {
 	int a = 6;

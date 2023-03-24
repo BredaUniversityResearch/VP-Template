@@ -5,6 +5,7 @@
 #include "BMCCCommandHeader.h"
 #include "BMCCCommandMeta.h"
 #include "BMCCPacketHeader.h"
+#include "BMCCTransportProtocol.h"
 
 using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Storage::Streams;
@@ -90,44 +91,7 @@ void FBluetoothDeviceConnection::OnQueryCameraManufacturerCompleted(const GattRe
 
 void FBluetoothDeviceConnection::OnReceivedIncomingCameraControl(const IBuffer& InputData) const
 {
-	int bytesProcessed = 0;
-	const FBMCCPacketHeader* packet = reinterpret_cast<const FBMCCPacketHeader*>(InputData.data());
-	bytesProcessed += sizeof(FBMCCPacketHeader);
-	while (InputData.Length() - bytesProcessed >= packet->PacketSize)
-	{
-		const BMCCCommandHeader* command = reinterpret_cast<const BMCCCommandHeader*>(InputData.data() + bytesProcessed);
-		const uint8* data = InputData.data();
-		int bytesRemaining = static_cast<int>(InputData.Length()) - bytesProcessed;
-		if (bytesRemaining > 0 && bytesRemaining < TNumericLimits<short>::Max())
-		{
-			UE_LOG(LogBlackmagicCameraControl, Error, TEXT("Received Message %i.%i. With invalid data size %i"), command->Identifier.Category, command->Identifier.Parameter, bytesRemaining);
-			break;
-		}
-		UE_LOG(LogBlackmagicCameraControl, Display, TEXT("Received Message %i.%i. With data %s"), command->Identifier.Category, command->Identifier.Parameter, *BytesToHex(data + bytesProcessed, bytesRemaining));
-		bytesProcessed += sizeof(BMCCCommandHeader);
-
-		const FBMCCCommandMeta* meta = FBMCCCommandMeta::FindMetaForIdentifier(command->Identifier);
-		if (meta != nullptr)
-		{
-			int messageLength = meta->PayloadSize;
-			if (messageLength < 0)
-			{
-				messageLength = FMath::Max(0, bytesRemaining);
-			}
-
-			if (m_DataReceivedHandler != nullptr)
-			{
-				ensureMsgf(meta->PayloadSize <= packet->PacketSize, TEXT("Metadata mentions payload that is bigger than the actual packet size..."));
-				m_DataReceivedHandler->OnDataReceived(m_DeviceHandle, *command, *meta, TArrayView<uint8_t>(InputData.data() + bytesProcessed, messageLength));
-			}
-			bytesProcessed += meta->PayloadSize;
-		}
-		else
-		{
-			UE_LOG(LogBlackmagicCameraControl, Error, TEXT("Failed to find packet meta for ID %i.%i"), command->Identifier.Category, command->Identifier.Parameter);
-			break;
-		}
-	}
+	BMCCTransportProtocol::DecodeStream(TArrayView<uint8>(InputData.data(), InputData.Length()), m_DeviceHandle, m_DataReceivedHandler);
 }
 
 void FBluetoothDeviceConnection::SetupBlackMagicServiceCharacteristics()

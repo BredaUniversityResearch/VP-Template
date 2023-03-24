@@ -51,7 +51,9 @@ public class BlackmagicCameraControl : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"CinematicCamera"
+				"CinematicCamera",
+				"Networking",
+				"Sockets"
 			}
 			);
 
