@@ -41,6 +41,11 @@ namespace
 				.WithMulticastLoopback()
 				.WithMulticastTtl(1)
 				.Build();
+			if (m_discoveryBroadcaster == nullptr)
+			{
+				UE_LOG(LogBlackmagicCameraControl, Error, TEXT("Failed to setup broadcasting socket"));
+			}
+
 			return m_discoveryBroadcaster != nullptr;
 		}
 
@@ -59,7 +64,7 @@ namespace
 				bool result = m_discoveryBroadcaster->SendTo(buffer.GetData(), writer.Tell(), bytesSent, *multicastEndpoint);
 				if (bytesSent != writer.Tell() || !result)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Failed to send discovery broadcast. Expected to send %i, actually sent %i, result: %i, ErrorCode %s"), 
+					UE_LOG(LogBlackmagicCameraControl, Warning, TEXT("Failed to send discovery broadcast. Expected to send %i, actually sent %i, result: %i, ErrorCode %s"), 
 						static_cast<int32>(writer.Tell()), bytesSent, result, ISocketSubsystem::Get()->GetSocketError());
 				}
 				FPlatformProcess::Sleep(DiscoveryMulticastIntervalSeconds);
