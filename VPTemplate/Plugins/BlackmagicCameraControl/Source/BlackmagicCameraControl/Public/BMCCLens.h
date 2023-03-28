@@ -86,9 +86,18 @@ struct FBMCCLens_SetAbsoluteZoomMm : public FBMCCCommandPayloadBase
 
 	static constexpr FBMCCCommandIdentifier Identifier = FBMCCCommandIdentifier(0, 7);
 
-	UPROPERTY(VisibleAnywhere)
-	int16 ZoomInMm;
+	FBMCCLens_SetAbsoluteZoomMm() = default;
+	explicit FBMCCLens_SetAbsoluteZoomMm(const TArrayView<uint8>& SerializedArrayView);
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 ZoomInMm;
 };
+
+inline FBMCCLens_SetAbsoluteZoomMm::FBMCCLens_SetAbsoluteZoomMm(const TArrayView<uint8>& SerializedArrayView)
+{
+	int16* serializedZoomInMm = reinterpret_cast<int16*>(SerializedArrayView.GetData());
+	ZoomInMm = *serializedZoomInMm;
+}
 
 USTRUCT(BlueprintType)
 struct FBMCCLens_SetAbsoluteZoomNormalized : public FBMCCCommandPayloadBase

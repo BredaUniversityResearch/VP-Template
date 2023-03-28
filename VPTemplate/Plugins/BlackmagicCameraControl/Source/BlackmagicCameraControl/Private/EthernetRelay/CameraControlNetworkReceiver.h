@@ -11,6 +11,8 @@ public:
 		FSocket* ClientSocket{ nullptr };
 		FDateTime LastConnectionTime;
 		TUniquePtr<FRunnable> ReceiveThread;
+
+		void Close();
 	};
 
 	explicit FCameraControlNetworkReceiver(IBMCCDataReceivedHandler* DataReceivedHandler);

@@ -12,21 +12,6 @@
 struct BMCCCommandHeader;
 class FBMCCCommandMeta;
 
-#define BMCC_CREATE_DISPATCHER(HandlerName, InterfaceFunctionName, PacketDataType) \
-UPROPERTY(BlueprintAssignable) F##HandlerName HandlerName; \
-virtual void InterfaceFunctionName(BMCCDeviceHandle Source, const PacketDataType& Payload) override { HandlerName.Broadcast(Source, Payload); }
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_Focus, int32, SourceDevice, const FBMCCLens_Focus&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_ApertureFStop, int32, SourceDevice, const FBMCCLens_ApertureFStop&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_ApertureNormalized, int32, SourceDevice, const FBMCCLens_ApertureNormalized&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_ApertureOrdinal, int32, SourceDevice, const FBMCCLens_ApertureOrdinal&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_OpticalImageStabilization, int32, SourceDevice, const FBMCCLens_OpticalImageStabilization&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_SetAbsoluteZoomMm, int32, SourceDevice, const FBMCCLens_SetAbsoluteZoomMm&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_SetAbsoluteZoomNormalized, int32, SourceDevice, const FBMCCLens_SetAbsoluteZoomNormalized&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_SetContinuousZoom, int32, SourceDevice, const FBMCCLens_SetContinuousZoom&, Payload);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMediaTransportModeReceived, int32, SourceDevice, const FBMCCMedia_TransportMode&, Payload);
-
 UCLASS(BlueprintType)
 class BLACKMAGICCAMERACONTROL_API UBMCCDispatcher
 	: public UObject
@@ -42,35 +27,51 @@ public:
 	virtual bool IsTickableInEditor() const override { return true; }
 	virtual bool IsTickableWhenPaused() const override { return true; }
 
-	virtual void OnLensFocus(BMCCDeviceHandle Source, const FBMCCLens_Focus& Focus) override;
-	virtual void OnLensApertureFStop(BMCCDeviceHandle Source, const FBMCCLens_ApertureFStop& Aperture) override;
-	virtual void OnLensApertureOrdinal(BMCCDeviceHandle Source, const FBMCCLens_ApertureOrdinal& Aperture) override;
-	virtual void OnLensApertureNormalized(BMCCDeviceHandle Source, const FBMCCLens_ApertureNormalized& Aperture) override;
-	virtual void OnLensOpticalImageStabilization(BMCCDeviceHandle Source, const FBMCCLens_OpticalImageStabilization& ImageStabilization) override;
-	virtual void OnLensAbsoluteZoomMm(BMCCDeviceHandle Source, const FBMCCLens_SetAbsoluteZoomMm& Zoom) override;
-	virtual void OnLensAbsoluteZoomNormalized(BMCCDeviceHandle Source, const FBMCCLens_SetAbsoluteZoomNormalized& Zoom) override;
-	virtual void OnLensContinuousZoom(BMCCDeviceHandle Source, const FBMCCLens_SetContinuousZoom& Zoom) override;
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_Focus, int32, SourceDevice, const FBMCCLens_Focus&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnLens_Focus OnLens_Focus;
+	virtual void OnLensFocus(BMCCDeviceHandle Source, const FBMCCLens_Focus& Payload) override { OnLens_Focus.Broadcast(Source, Payload); }
 
-	virtual void OnMediaTransportMode(BMCCDeviceHandle Source, const FBMCCMedia_TransportMode& TransportMode) override;
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_ApertureFStop, int32, SourceDevice, const FBMCCLens_ApertureFStop&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnLens_ApertureFStop OnLens_ApertureFStop;
+	virtual void OnLensApertureFStop(BMCCDeviceHandle Source, const FBMCCLens_ApertureFStop& Payload) override { OnLens_ApertureFStop.Broadcast(Source, Payload); }
 
-	UPROPERTY(BlueprintAssignable) FOnLens_Focus LensFocusReceived;
-	UPROPERTY(BlueprintAssignable) FOnLens_ApertureFStop LensApertureFStopReceived;
-	UPROPERTY(BlueprintAssignable) FOnLens_ApertureNormalized LensApertureNormalizedReceived;
-	UPROPERTY(BlueprintAssignable) FOnLens_ApertureOrdinal LensApertureOrdinalReceived;
-	UPROPERTY(BlueprintAssignable) FOnLens_OpticalImageStabilization LensOpticalImageStabilizationReceived;
-	UPROPERTY(BlueprintAssignable) FOnLens_SetAbsoluteZoomMm LensAbsoluteZoomMmReceived;
-	UPROPERTY(BlueprintAssignable) FOnLens_SetAbsoluteZoomNormalized LensAbsoluteZoomNormalizedReceived;
-	UPROPERTY(BlueprintAssignable) FOnLens_SetContinuousZoom LensSetContinuousZoomReceived;
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_ApertureNormalized, int32, SourceDevice, const FBMCCLens_ApertureNormalized&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnLens_ApertureNormalized OnLens_ApertureNormalized;
+	virtual void OnLensApertureNormalized(BMCCDeviceHandle Source, const FBMCCLens_ApertureNormalized& Payload) override { OnLens_ApertureNormalized.Broadcast(Source, Payload); }
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_ApertureOrdinal, int32, SourceDevice, const FBMCCLens_ApertureOrdinal&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnLens_ApertureOrdinal OnLens_ApertureOrdinal;
+	virtual void OnLensApertureOrdinal(BMCCDeviceHandle Source, const FBMCCLens_ApertureOrdinal& Payload) override { OnLens_ApertureOrdinal.Broadcast(Source, Payload); }
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_OpticalImageStabilization, int32, SourceDevice, const FBMCCLens_OpticalImageStabilization&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnLens_OpticalImageStabilization OnLens_OpticalImageStabilization;
+	virtual void OnLensOpticalImageStabilization(BMCCDeviceHandle Source, const FBMCCLens_OpticalImageStabilization& Payload) override { OnLens_OpticalImageStabilization.Broadcast(Source, Payload); }
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_SetAbsoluteZoomMm, int32, SourceDevice, const FBMCCLens_SetAbsoluteZoomMm&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnLens_SetAbsoluteZoomMm OnLens_SetAbsoluteZoomMm;
+	virtual void OnLensAbsoluteZoomMm(BMCCDeviceHandle Source, const FBMCCLens_SetAbsoluteZoomMm& Payload) override { OnLens_SetAbsoluteZoomMm.Broadcast(Source, Payload); }
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_SetAbsoluteZoomNormalized, int32, SourceDevice, const FBMCCLens_SetAbsoluteZoomNormalized&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnLens_SetAbsoluteZoomNormalized OnLens_SetAbsoluteZoomNormalized; virtual void OnLensAbsoluteZoomNormalized(BMCCDeviceHandle Source, const FBMCCLens_SetAbsoluteZoomNormalized& Payload) override { OnLens_SetAbsoluteZoomNormalized.Broadcast(Source, Payload); }
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLens_SetContinuousZoom, int32, SourceDevice, const FBMCCLens_SetContinuousZoom&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnLens_SetContinuousZoom OnLens_SetContinuousZoom;
+	virtual void OnLensContinuousZoom(BMCCDeviceHandle Source, const FBMCCLens_SetContinuousZoom& Payload) override { OnLens_SetContinuousZoom.Broadcast(Source, Payload); }
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMediaTransportModeReceived, int32, SourceDevice, const FBMCCMedia_TransportMode&, Payload);
+	UPROPERTY(BlueprintAssignable) FOnMediaTransportModeReceived OnMediaTransportModeReceived;
+	virtual void OnMediaTransportMode(BMCCDeviceHandle Source, const FBMCCMedia_TransportMode& Payload) override { OnMediaTransportModeReceived.Broadcast(Source, Payload); }
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FVideoVideoMode, int32, SourceDevice, const FBMCCVideo_VideoMode&, Payload);
-	BMCC_CREATE_DISPATCHER(VideoVideoMode, OnVideoVideoMode, FBMCCVideo_VideoMode)
+	UPROPERTY(BlueprintAssignable) FVideoVideoMode VideoVideoMode;
+	virtual void OnVideoVideoMode(BMCCDeviceHandle Source, const FBMCCVideo_VideoMode& Payload) override { VideoVideoMode.Broadcast(Source, Payload); }
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FVideoRecordingFormat, int32, SourceDevice, const FBMCCVideo_RecordingFormat&, Payload);
-	BMCC_CREATE_DISPATCHER(VideoRecordingFormat, OnVideoRecordingFormat, FBMCCVideo_RecordingFormat);
+	UPROPERTY(BlueprintAssignable) FVideoRecordingFormat VideoRecordingFormat;
+	virtual void OnVideoRecordingFormat(BMCCDeviceHandle Source, const FBMCCVideo_RecordingFormat& Payload) override { VideoRecordingFormat.Broadcast(Source, Payload); };
 	
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBatteryStatusReceived, int32, SourceDevice, const FBMCCBattery_Info&, Payload);
-	BMCC_CREATE_DISPATCHER(BatteryStatusReceived, OnBatteryStatus, FBMCCBattery_Info);
-
-	UPROPERTY(BlueprintAssignable) FOnMediaTransportModeReceived MediaTransportModeReceived;
+	UPROPERTY(BlueprintAssignable) FBatteryStatusReceived BatteryStatusReceived;
+	virtual void OnBatteryStatus(BMCCDeviceHandle Source, const FBMCCBattery_Info& Payload) override { BatteryStatusReceived.Broadcast(Source, Payload); };
 
 };

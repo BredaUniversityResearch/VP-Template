@@ -25,5 +25,6 @@ public:
 	virtual void OnVideoRecordingFormat(BMCCDeviceHandle Source, const FBMCCVideo_RecordingFormat& RecordingFormat) override;
 	virtual void OnVendorSpecificCanonLens(BMCCDeviceHandle Source, const FBMCCVendorSpecific_CanonLens& Data) override;
 private:
+	UPROPERTY()
 	UCineCameraComponent* Target{ nullptr };
 };

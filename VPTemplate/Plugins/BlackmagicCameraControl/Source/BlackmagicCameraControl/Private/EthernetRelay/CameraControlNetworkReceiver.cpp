@@ -140,6 +140,13 @@ namespace
 	};
 }
 
+void FCameraControlNetworkReceiver::FConnectedTransmitter::Close() 
+{
+	ClientSocket->Close();
+	static_cast<FBackgroundReceiveThread*>(ReceiveThread.Get())->WaitForCompletion();
+	ClientSocket = nullptr;
+}
+
 FCameraControlNetworkReceiver::FCameraControlNetworkReceiver(IBMCCDataReceivedHandler* DataReceivedHandler)
 	: m_dataHandler(DataReceivedHandler)
 {
@@ -160,6 +167,12 @@ void FCameraControlNetworkReceiver::Start()
 
 void FCameraControlNetworkReceiver::Stop()
 {
+	for (const TUniquePtr<FConnectedTransmitter>& connected : m_activeConnections)
+	{
+		connected->Close();
+	}
+	m_activeConnections.Empty();
+
 	if (m_discoveryBroadcastTask != nullptr)
 	{
 		m_discoveryBroadcastTask->Stop();
@@ -175,8 +188,7 @@ void FCameraControlNetworkReceiver::Update()
 		if ((now - m_activeConnections[i]->LastConnectionTime).GetDuration() > InactivityDisconnectTime ||
 			m_activeConnections[i]->ClientSocket->GetConnectionState() != SCS_Connected)
 		{
-			m_activeConnections[i]->ClientSocket->Close();
-			static_cast<FBackgroundReceiveThread*>(m_activeConnections[i]->ReceiveThread.Get())->WaitForCompletion();
+			m_activeConnections[i]->Close();
 			m_activeConnections.RemoveAt(i);
 		}
 	}

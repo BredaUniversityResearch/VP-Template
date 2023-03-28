@@ -2,7 +2,6 @@
 
 #include "BMCCCommandPayload.h"
 #include "BMCCCommandIdentifier.h"
-#include "BMCCFixed16.h"
 
 #include "BMCCVideo.generated.h"
 

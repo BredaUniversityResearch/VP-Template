@@ -3,10 +3,10 @@
 #include "BMCCBattery_Info.h"
 #include "BMCCLens.h"
 #include "BMCCMedia_TransportMode.h"
-
-#include "BlackmagicCameraControl.h"
 #include "BMCCVideo.h"
 #include "BMCCVendorSpecific.h"
+
+#include "BlackmagicCameraControl.h"
 
 namespace
 {
@@ -15,7 +15,7 @@ namespace
 	{
 		if (TDispatchFunction != nullptr)
 		{
-			if constexpr (TPayloadSize == -1 && std::is_constructible_v<TCommandType, const TArrayView<uint8>&>)
+			if constexpr (std::is_constructible_v<TCommandType, const TArrayView<uint8>&>)
 			{
 				TCommandType data = TCommandType(SerializedDataView);
 				(DispatchTarget->*TDispatchFunction)(Source, data);
