@@ -35,7 +35,8 @@ namespace
 
 		virtual bool Init() override
 		{
-			m_serverIdentifier = FMath::Rand();
+			//Get any kind of random int32. FMath::Rand isn't properly random seeded at this point.
+			m_serverIdentifier = static_cast<int32>(FGuid::NewGuid().B);
 			m_discoveryBroadcaster = FUdpSocketBuilder("CameraControlDiscoveryBroadcaster")
 				.AsBlocking()
 				.WithMulticastLoopback()
