@@ -21,6 +21,9 @@ class BLACKMAGICCAMERACONTROL_API UBMCCDispatcher
 	GENERATED_BODY()
 
 public:
+	virtual void PostInitProperties() override;
+	virtual void BeginDestroy() override;
+
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(BMCCDispatcherStat, STATGROUP_Tickables); }
 

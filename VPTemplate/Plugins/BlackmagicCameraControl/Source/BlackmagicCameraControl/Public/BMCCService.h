@@ -37,13 +37,14 @@ public:
 	void SubscribeMessageReceivedHandler(IBMCCCallbackHandler* a_CallbackHandler);
 	void UnsubscribeMessageReceivedHandler(IBMCCCallbackHandler* a_CallbackHandler);
 
-	UBMCCDispatcher* GetDefaultDispatcher() const;
+	UBMCCDispatcher& GetDefaultDispatcher() const;
+	void CreateDefaultDispatcher();
 
 private:
 	TUniquePtr<Pimpl> m_Data;
 	bool m_FirstTick{ true };
 
-	UBMCCDispatcher* DefaultDispatcher;
+	UBMCCDispatcher* DefaultDispatcher{nullptr};
 };
 
 template <typename TCommandType>

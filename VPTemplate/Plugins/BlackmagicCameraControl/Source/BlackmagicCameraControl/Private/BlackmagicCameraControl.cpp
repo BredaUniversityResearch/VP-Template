@@ -8,6 +8,8 @@ void FBlackmagicCameraControl::StartupModule()
 {
 	ControlService = MakeUnique<FBMCCService>();
 	IModularFeatures::Get().RegisterModularFeature(FBMCCService::GetModularFeatureName(), ControlService.Get());
+
+	ControlService->CreateDefaultDispatcher();
 }
 
 void FBlackmagicCameraControl::ShutdownModule()

@@ -19,17 +19,12 @@ public:
 
 FBMCCService::FBMCCService()
 	: m_Data(MakeUnique<Pimpl>())
-	, DefaultDispatcher(NewObject<UBMCCDispatcher>())
 {
-	DefaultDispatcher->AddToRoot();
 	//m_Data->m_BluetoothService = MakeUnique<FBluetoothService>(this);
-
-	SubscribeMessageReceivedHandler(DefaultDispatcher);
 }
 
 FBMCCService::~FBMCCService()
 {
-	UnsubscribeMessageReceivedHandler(DefaultDispatcher);
 	if (IsValid(DefaultDispatcher))
 	{
 		DefaultDispatcher->RemoveFromRoot();
@@ -76,7 +71,14 @@ void FBMCCService::UnsubscribeMessageReceivedHandler(IBMCCCallbackHandler* a_Cal
 	m_Data->CallbackHandlers.RemoveSingleSwap(a_CallbackHandler);
 }
 
-UBMCCDispatcher* FBMCCService::GetDefaultDispatcher() const
+UBMCCDispatcher& FBMCCService::GetDefaultDispatcher() const
 {
-	return DefaultDispatcher;
+	return *DefaultDispatcher;
+}
+
+void FBMCCService::CreateDefaultDispatcher()
+{
+	ensure(DefaultDispatcher == nullptr);
+	DefaultDispatcher = NewObject<UBMCCDispatcher>();
+	DefaultDispatcher->AddToRoot();
 }

@@ -14,11 +14,7 @@ void FCameraControlDataPacket::ReadFrom(FMemoryReader& Reader)
 	Reader << ReceivedTimeCodeAsBcd;
 	uint16 byteCount = 0;
 	Reader << byteCount;
-	PacketData.Reserve(byteCount);
-	for (int i = 0; i < byteCount; ++i)
-	{
-		uint8 byte;
-		Reader << byte;
-		PacketData.Emplace(byte);
-	}
+	ensure(byteCount > 0);
+	PacketData.AddDefaulted(byteCount);
+	Reader.Serialize(PacketData.GetData(), byteCount);
 }

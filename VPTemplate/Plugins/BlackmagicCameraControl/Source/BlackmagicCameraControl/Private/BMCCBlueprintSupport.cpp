@@ -10,7 +10,7 @@ UBMCCDispatcher* UBMCCBlueprintSupport::GetBlackmagicCameraControlDispatcher()
 	if (features.IsModularFeatureAvailable(FBMCCService::GetModularFeatureName()))
 	{
 		FBMCCService& service = features.GetModularFeature<FBMCCService>(FBMCCService::GetModularFeatureName());
-		return service.GetDefaultDispatcher();
+		return &service.GetDefaultDispatcher();
 	}
 	else
 	{
