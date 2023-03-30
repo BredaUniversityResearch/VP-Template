@@ -14,7 +14,8 @@ namespace
 	static constexpr uint16 DiscoveryMulticastPort = 49069;
 	static const FIPv4Endpoint DiscoveryMulticastEndpoint = FIPv4Endpoint(DiscoveryMulticastAddress, DiscoveryMulticastPort);
 	static constexpr float DiscoveryMulticastIntervalSeconds = 5.0f;
-	static constexpr uint16 ConnectionPort = 49071;
+	static constexpr uint16 ConnectionPortRangeStart = 49070;
+	static constexpr uint16 ConnectionPortRangeEnd = ConnectionPortRangeStart + 32;
 	static const FTimespan InactivityDisconnectTime = FTimespan::FromSeconds(15.0);
 
 	class FBackgroundDiscoveryBroadcasterRunnable : public FRunnable
@@ -165,10 +166,22 @@ FCameraControlNetworkReceiver::~FCameraControlNetworkReceiver()
 
 void FCameraControlNetworkReceiver::Start()
 {
-	UE_LOG(LogBlackmagicCameraControl, Log, TEXT("Starting network receiver"));
 
-	m_connectionListener = MakeUnique<FTcpListener>(FIPv4Endpoint(FIPv4Address::Any, ConnectionPort));
-	ensureAlways(m_connectionListener->IsActive());
+	for (uint16 connectPortToTry = ConnectionPortRangeStart; connectPortToTry < ConnectionPortRangeEnd; ++connectPortToTry)
+	{
+		UE_LOG(LogBlackmagicCameraControl, Log, TEXT("Attempting to start network receiver on port %u"), connectPortToTry);
+		m_connectionListener = MakeUnique<FTcpListener>(FIPv4Endpoint(FIPv4Address::Any, connectPortToTry));
+		if (m_connectionListener->IsActive())
+		{
+			UE_LOG(LogBlackmagicCameraControl, Log, TEXT("Success... Listening for connections on port %u"), connectPortToTry);
+			break;
+		}
+	}
+
+	if (!m_connectionListener->IsActive())
+	{
+		UE_LOG(LogBlackmagicCameraControl, Error, TEXT("Failed to create a listener, exhausted entire port range from %u-%u"), ConnectionPortRangeStart, ConnectionPortRangeEnd);
+	}
 	m_connectionListener->OnConnectionAccepted().BindRaw(this, &FCameraControlNetworkReceiver::OnConnectionAccepted);
 
 	m_discoveryBroadcastTask = MakeUnique<FBackgroundDiscoveryBroadcasterRunnable>(this, m_connectionListener->GetLocalEndpoint().Port);
