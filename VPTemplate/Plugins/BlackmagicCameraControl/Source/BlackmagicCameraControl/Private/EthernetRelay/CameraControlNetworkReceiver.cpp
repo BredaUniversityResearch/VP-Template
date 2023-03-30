@@ -165,7 +165,10 @@ FCameraControlNetworkReceiver::~FCameraControlNetworkReceiver()
 
 void FCameraControlNetworkReceiver::Start()
 {
+	UE_LOG(LogBlackmagicCameraControl, Log, TEXT("Starting network receiver"));
+
 	m_connectionListener = MakeUnique<FTcpListener>(FIPv4Endpoint(FIPv4Address::Any, ConnectionPort));
+	ensureAlways(m_connectionListener->IsActive());
 	m_connectionListener->OnConnectionAccepted().BindRaw(this, &FCameraControlNetworkReceiver::OnConnectionAccepted);
 
 	m_discoveryBroadcastTask = MakeUnique<FBackgroundDiscoveryBroadcasterRunnable>(this, m_connectionListener->GetLocalEndpoint().Port);
@@ -194,8 +197,10 @@ void FCameraControlNetworkReceiver::Update()
 		if ((now - m_activeConnections[i]->LastConnectionTime).GetDuration() > InactivityDisconnectTime ||
 			m_activeConnections[i]->ClientSocket->GetConnectionState() != SCS_Connected)
 		{
+			UE_LOG(LogBlackmagicCameraControl, Log, TEXT("Connection closed from server"));
 			m_activeConnections[i]->Close();
 			m_activeConnections.RemoveAt(i);
+
 		}
 	}
 }
@@ -207,5 +212,8 @@ bool FCameraControlNetworkReceiver::OnConnectionAccepted(FSocket* ConnectionSock
 	connection->LastConnectionTime = FDateTime::UtcNow();
 	connection->ReceiveThread = MakeUnique<FBackgroundReceiveThread>(connection.Get(), m_dataHandler);
 	m_activeConnections.Emplace(MoveTemp(connection));
+
+	UE_LOG(LogBlackmagicCameraControl, Log, TEXT("Connection accepted from %s"), *RemoteEndpoint.ToString());
+
 	return true;
 }

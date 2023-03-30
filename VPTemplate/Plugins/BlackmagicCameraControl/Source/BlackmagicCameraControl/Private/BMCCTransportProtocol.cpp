@@ -18,7 +18,7 @@ void BMCCTransportProtocol::DecodeStream(const TArrayView<uint8>& Stream, BMCCDe
 		bytesProcessed += sizeof(BMCCCommandHeader);
 
 		int bytesRemaining = static_cast<int>(Stream.Num()) - bytesProcessed;
-		UE_LOG(LogBlackmagicCameraControl, Display, TEXT("Received Message %i.%i. With data %s"), command->Identifier.Category, command->Identifier.Parameter, *BytesToHex(data + bytesProcessed, bytesRemaining));
+		UE_LOG(LogBlackmagicCameraControl, Log, TEXT("Received Message %i.%i. With data %s"), command->Identifier.Category, command->Identifier.Parameter, *BytesToHex(data + bytesProcessed, bytesRemaining));
 
 		const FBMCCCommandMeta* meta = FBMCCCommandMeta::FindMetaForIdentifier(command->Identifier);
 		if (meta != nullptr)
