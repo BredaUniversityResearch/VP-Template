@@ -84,10 +84,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "RemoteControl",
-			"Enabled": true
-		},
-		{
 			"Name": "nDisplay",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
@@ -190,7 +186,7 @@
 		},
 		{
 			"Name": "LevelSnapshots",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "LiveLinkViconDataStream",
@@ -226,6 +222,10 @@
 		{
 			"Name": "GooglePAD",
 			"Enabled": false
+		},
+		{
+			"Name": "RemoteControl",
+			"Enabled": true
 		},
 		{
 			"Name": "RemoteControlWebInterface",
