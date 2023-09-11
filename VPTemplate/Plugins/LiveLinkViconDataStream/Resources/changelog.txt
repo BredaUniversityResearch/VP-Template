@@ -1,0 +1,16 @@
+change log for unreal plugin
+
+==========================================
+1.2
+==========================================
+1. Use Livelink instead of animation node, which will provide bone remapping functionality as well.
+2. Headset name could be set in the menu bar instead of modifying in config file.
+
+
+==========================================
+1.5
+==========================================
+1. Animation role for rigid body.
+2. Add dynamic camera data with Lens role.
+3. Auto update focal length when using Vicon camera controller
+4. Added marker data to stream.

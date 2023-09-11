@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Engine/DataAsset.h"
+
 #include "PhysicalObjectTrackerSerialId.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnSerialIdChanged);

@@ -1,0 +1,48 @@
+{
+	"FileVersion": 3,
+	"Version": 11,
+	"VersionName": "1.6.2",
+	"FriendlyName": "Vicon DataStream LiveLink",
+	"Description": "Interface to the Vicon DataStream SDK through LiveLink",
+	"Category": "Mocap",
+	"CreatedBy": "Vicon Motion Systems Ltd",
+	"CreatedByURL": "http://www.vicon.com",
+	"DocsURL": "https://docs.vicon.com/display/Unreal5Plugin16/",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EngineVersion": "5.2.0",
+	"CanContainContent": true,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "LiveLinkDataStream",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"PlatformAllowList": [
+				"Win64"
+			]
+		},
+		{
+			"Name": "LiveLinkDataStreamEditor",
+			"Type": "UncookedOnly",
+			"LoadingPhase": "PreDefault",
+			"PlatformAllowList": [
+				"Win64"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "LiveLink",
+			"Enabled": true
+		},
+		{
+			"Name": "LiveLinkCamera",
+			"Enabled": true
+		},
+		{
+			"Name": "LiveLinkLens",
+			"Enabled": true
+		}
+	]
+}

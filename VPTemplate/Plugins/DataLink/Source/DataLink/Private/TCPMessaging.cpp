@@ -1,5 +1,7 @@
 #include "TCPMessaging.h"
 
+#include "Tasks/Task.h"
+
 #include "DataPacket.h"
 #include "MessageEndpoint.h"
 #include "TCPConnection.h"
@@ -34,7 +36,7 @@ void FTCPMessaging::ConnectSocket(
 {
     //Uses Tasks System to avoid blocking calls as accessing Connection->Connect can block.
     const auto taskName = TEXT("DataLinkConnectTCPSocket");
-    const auto connectFunction = 
+    auto connectFunction = 
         [this, 
         RemoteEndpoint,
         RetryInterval,
@@ -57,20 +59,20 @@ void FTCPMessaging::ConnectSocket(
         UpdateEvent->Trigger();
     };
     
-    UE::Tasks::Launch(taskName, connectFunction);
+    UE::Tasks::Launch(taskName, MoveTemp(connectFunction));
 }
 
 void FTCPMessaging::DisconnectSocket()
 {
     const auto taskName = TEXT("DataLinkDisconnectTCPSocket");
-    const auto disconnectFunction =
+    auto disconnectFunction =
         [this]()
     {
         Connection->Disconnect();
         UpdateEvent->Trigger();
     };
 
-    UE::Tasks::Launch(taskName, disconnectFunction);
+    UE::Tasks::Launch(taskName, MoveTemp(disconnectFunction));
 }
 
 void FTCPMessaging::SetMaxMessageQueueSize(uint32 InMaxMessageQueueSize)
