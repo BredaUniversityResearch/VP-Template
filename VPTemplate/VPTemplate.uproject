@@ -28,14 +28,6 @@
 			]
 		},
 		{
-			"Name": "SteamVR",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Win64",
-				"Linux"
-			]
-		},
-		{
 			"Name": "PythonScriptPlugin",
 			"Enabled": true
 		},
@@ -166,7 +158,7 @@
 		},
 		{
 			"Name": "PhysicalObjectTracker",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "CradleLightControl",
@@ -231,6 +223,10 @@
 			"Name": "RemoteControlWebInterface",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/beb39fbe47e74bb1a8098e2b2c9c40b2"
+		},
+		{
+			"Name": "DataLink",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
