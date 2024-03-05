@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.2",
+	"EngineAssociation": "5.3",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -21,7 +21,7 @@
 		},
 		{
 			"Name": "OculusVR",
-			"Enabled": true,
+			"Enabled": false,
 			"SupportedTargetPlatforms": [
 				"Win64",
 				"Android"
@@ -231,7 +231,6 @@
 	],
 	"TargetPlatforms": [
 		"WindowsNoEditor",
-		"Windows",
-		"HoloLens"
+		"Windows"
 	]
 }

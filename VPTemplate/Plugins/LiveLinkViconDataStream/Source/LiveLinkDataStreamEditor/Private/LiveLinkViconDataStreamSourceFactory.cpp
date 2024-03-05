@@ -4,6 +4,7 @@
 #include "LiveLinkViconDataStreamSourceFactory.h"
 #include "ILiveLinkDataStreamModule.h"
 #include "LiveLinkViconDataStreamSource.h"
+#include "LiveLinkViconDataStreamBlueprint.h"
 #include "LiveLinkViconDataStreamSourceEditor.h"
 
 #define LOCTEXT_NAMESPACE "LiveLinkViconDataStreamSourceFactory"
@@ -29,14 +30,16 @@ TSharedPtr< ILiveLinkSource > ULiveLinkViconDataStreamSourceFactory::CreateSourc
 {
   // Extract the properties from the string
   ViconStreamProperties Props = ViconStreamProperties::FromString( ConnectionString );
-  TSharedPtr< FLiveLinkViconDataStreamSource > NewSource = MakeShareable( new FLiveLinkViconDataStreamSource( FText::FromString( "Vicon Live Link" ), Props ) );
+  const FText SourceType = FText::FromString(FString(ULiveLinkViconDataStreamBlueprint::SOURCE_TYPE.c_str()));
+  TSharedPtr< FLiveLinkViconDataStreamSource > NewSource = MakeShareable( new FLiveLinkViconDataStreamSource( SourceType, Props ) );
   return NewSource;
 }
 
 void ULiveLinkViconDataStreamSourceFactory::OnPropertiesSelected( ViconStreamProperties StreamProperties, FOnLiveLinkSourceCreated OnLiveLinkSourceCreated ) const
 {
   FString PropertiesString = StreamProperties.ToString();
-  TSharedPtr< FLiveLinkViconDataStreamSource > SharedPtr = MakeShared< FLiveLinkViconDataStreamSource >( FText::FromString( "Vicon Live Link" ), StreamProperties );
+  const FText SourceType = FText::FromString(FString(ULiveLinkViconDataStreamBlueprint::SOURCE_TYPE.c_str()));
+  TSharedPtr< FLiveLinkViconDataStreamSource > SharedPtr = MakeShared< FLiveLinkViconDataStreamSource >( SourceType, StreamProperties );
   OnLiveLinkSourceCreated.ExecuteIfBound( SharedPtr, MoveTemp( PropertiesString ) );
 }
 #undef LOCTEXT_NAMESPACE

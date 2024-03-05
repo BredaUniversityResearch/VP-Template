@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CameraCalibrationCore/Public/Models/LensModel.h"
+#include "Models/LensModel.h"
 #include "ViconLensModel.generated.h"
 
 USTRUCT( BlueprintType )

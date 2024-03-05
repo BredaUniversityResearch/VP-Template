@@ -13,7 +13,7 @@ ULiveLinkViconCameraController::ULiveLinkViconCameraController()
 
 void ULiveLinkViconCameraController::Tick( float DeltaTime, const FLiveLinkSubjectFrameData& SubjectData )
 {
-  UActorComponent* AttachedCameraComponent =  GetAttachedComponent();
+  UActorComponent* AttachedCameraComponent = GetAttachedComponent();
  
   if( UCineCameraComponent* CineCameraComponent = Cast< UCineCameraComponent >( AttachedCameraComponent ) )
   {
@@ -21,15 +21,26 @@ void ULiveLinkViconCameraController::Tick( float DeltaTime, const FLiveLinkSubje
 
     if( FrameData )
     {
-      float FilmbackRatio = CineCameraComponent->Filmback.SensorWidth / CineCameraComponent->Filmback.SensorHeight;
+      float NewFilmbackRatio = CineCameraComponent->Filmback.SensorWidth / CineCameraComponent->Filmback.SensorHeight;
       float FrameDataRatio = FrameData->FxFy.Y / FrameData->FxFy.X;
-      if( FMath::IsNearlyEqual( FilmbackRatio, FrameDataRatio, 1e-6f ) )
+      // If user input of filmback setting changed, we check if it matches what we expect. 
+      if( !FMath::IsNearlyEqual( CurrentFilmbackRatio, NewFilmbackRatio ) )
       {
-        CineCameraComponent->SetCurrentFocalLength( FrameData->FxFy.X * CineCameraComponent->Filmback.SensorWidth );
-      }
-      else
-      {
-        UE_LOG( LogTemp, Warning, TEXT( "Expecting image width height ratio of %.6f but current ratio is %.6f, no change to focal length" ), FrameDataRatio, FilmbackRatio );
+        // We expect the user input of filmback ratio to be the same as our calibration streamed from LiveLink.
+        if( FMath::IsNearlyEqual( NewFilmbackRatio, FrameDataRatio ) )
+        {
+          float FocalLength = FrameData->FxFy.X * CineCameraComponent->Filmback.SensorWidth;
+          CineCameraComponent->SetCurrentFocalLength( FocalLength );
+          UE_LOG( LogTemp, Log, TEXT("Focal length updated to %.4f" ), FocalLength );
+        }
+        // If it doesn't match, we notify what is expected in the log and do not update anything.
+        else
+        {
+          float Height = CineCameraComponent->Filmback.SensorWidth / FrameDataRatio;
+          UE_LOG( LogTemp, Warning, TEXT( "Expecting sensor height %.4f, focal length not updated" ), Height );
+        }
+        // Keep track of the input filmback ratio
+        CurrentFilmbackRatio = NewFilmbackRatio;
       }
     }
   }

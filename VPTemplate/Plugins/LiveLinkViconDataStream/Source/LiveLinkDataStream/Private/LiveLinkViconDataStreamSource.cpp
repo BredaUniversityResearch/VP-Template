@@ -81,20 +81,20 @@ bool FLiveLinkViconDataStreamSource::IsConnected() const
 
 void FLiveLinkViconDataStreamSource::InitializeSettings( ULiveLinkSourceSettings* Settings )
 {
-  ULiveLinkDataStreamSourceSettings* DataStreameSettings = Cast< ULiveLinkDataStreamSourceSettings >( Settings );
-  ViconStreamFrameReader->SetLightweightEnabled( DataStreameSettings->EnableLightweight );
-  ViconStreamFrameReader->SetMarkerEnabled( DataStreameSettings->StreamMarkerData );
-  ViconStreamFrameReader->SetUnlabeledMarkerEnabled( DataStreameSettings->StreamUnlabeledMarkerData );
-  ViconStreamFrameReader->ShowAllVideoCamera( DataStreameSettings->ShowAllVideoCamera );
+  ULiveLinkDataStreamSourceSettings* DataStreamSettings = Cast< ULiveLinkDataStreamSourceSettings >( Settings );
+  ViconStreamFrameReader->SetLightweightEnabled( DataStreamSettings->EnableLightweight );
+  ViconStreamFrameReader->SetMarkerEnabled( DataStreamSettings->StreamMarkerData );
+  ViconStreamFrameReader->SetUnlabeledMarkerEnabled( DataStreamSettings->StreamUnlabeledMarkerData );
+  ViconStreamFrameReader->ShowAllVideoCamera( DataStreamSettings->ShowAllVideoCamera );
 }
 
 void FLiveLinkViconDataStreamSource::OnSettingsChanged( ULiveLinkSourceSettings* Settings, const FPropertyChangedEvent& PropertyChangedEvent )
 {
-  ULiveLinkDataStreamSourceSettings* DataStreameSettings = Cast< ULiveLinkDataStreamSourceSettings >( Settings );
+  ULiveLinkDataStreamSourceSettings* DataStreamSettings = Cast< ULiveLinkDataStreamSourceSettings >( Settings );
 
-  ViconStreamFrameReader->SetLightweightEnabled( DataStreameSettings->EnableLightweight );
-  ViconStreamFrameReader->SetMarkerEnabled( DataStreameSettings->StreamMarkerData );
-  ViconStreamFrameReader->SetUnlabeledMarkerEnabled( DataStreameSettings->StreamUnlabeledMarkerData );
-  ViconStreamFrameReader->ShowAllVideoCamera( DataStreameSettings->ShowAllVideoCamera );
+  ViconStreamFrameReader->SetLightweightEnabled( DataStreamSettings->EnableLightweight );
+  ViconStreamFrameReader->SetMarkerEnabled( DataStreamSettings->StreamMarkerData );
+  ViconStreamFrameReader->SetUnlabeledMarkerEnabled( DataStreamSettings->StreamUnlabeledMarkerData );
+  ViconStreamFrameReader->ShowAllVideoCamera( DataStreamSettings->ShowAllVideoCamera );
   ILiveLinkSource::OnSettingsChanged( Settings, PropertyChangedEvent );
 }

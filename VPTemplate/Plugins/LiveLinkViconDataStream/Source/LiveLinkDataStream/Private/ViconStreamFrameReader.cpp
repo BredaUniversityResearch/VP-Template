@@ -2,18 +2,24 @@
 
 
 #include "ViconStreamFrameReader.h"
+#include "Roles/LiveLinkAnimationRole.h"
+#include "Roles/LiveLinkAnimationTypes.h"
+#include "Roles/LiveLinkTransformRole.h"
+#include "Roles/LiveLinkTransformTypes.h"
+#include "Roles/LiveLinkBasicRole.h"
+#include "Roles/LiveLinkBasicTypes.h"
 #include "ILiveLinkDataStreamModule.h"
 
 #include "Async/Async.h"
+
 #include "LiveLinkLensRole.h"
 #include "LiveLinkLensTypes.h"
 #include "LiveLinkTypes.h"
-#include "LiveLinkViconMarkerRole.h"
-#include "LiveLinkViconMarkerTypes.h"
-#include "Roles/LiveLinkAnimationRole.h"
-#include "Roles/LiveLinkAnimationTypes.h"
 #include "Roles/LiveLinkCameraRole.h"
 #include "Roles/LiveLinkCameraTypes.h"
+
+const std::string FViconStreamFrameReader::UNLABELED_MARKER = "UnlabeledMarker";
+const std::string FViconStreamFrameReader::LABELED_MARKER = "LabeledMarker";
 
 ViconStreamProperties ViconStreamProperties::FromString( const FString& i_rPropsString )
 {
@@ -171,9 +177,9 @@ uint32 FViconStreamFrameReader::Run()
     }
   }
 
-  m_CachedSubjectsBones.Empty();
+  m_CachedSubjects.Empty();
   m_CachedCameras.Empty();
-  m_CachedMarkers.Empty();
+  m_CachedMarkerCounts.Empty();
   m_DataStream.Disconnect();
   return 0;
 }
@@ -270,12 +276,16 @@ void FViconStreamFrameReader::ShowAllVideoCamera( bool i_bShow )
 
 void FViconStreamFrameReader::SetMarkerEnabled( bool i_bStreamMarker )
 {
-  m_DataStream.SetMarkerDataEnabled( i_bStreamMarker );
+  // Intermediate bool for same reason as m_bLightweight
+  m_bMarker = i_bStreamMarker;
+  m_DataStream.SetMarkerDataEnabled( m_bMarker );
 }
 
 void FViconStreamFrameReader::SetUnlabeledMarkerEnabled( bool i_bStreamMarker )
 {
-  m_DataStream.SetUnlabeledMarkerDataEnabled( i_bStreamMarker );
+  // Intermediate bool for same reason as m_bLightweight
+  m_bUnlabeledMarker = i_bStreamMarker;
+  m_DataStream.SetUnlabeledMarkerDataEnabled( m_bUnlabeledMarker );
 }
 
 void FViconStreamFrameReader::ConnectInternal()
@@ -317,8 +327,10 @@ void FViconStreamFrameReader::ConnectInternal()
     // Set the subject filter. This must be done after connection and a frame has been received, in order
     // to determine subject IDs
     m_DataStream.SetSubjectFilter( m_ViconStreamProps.m_SubjectFilter.ToString() );
-    // Called after GetFrame, to ensure that supported type information from the server has been received ( if server support lightweight)
+    // Called after GetFrame, to ensure that supported type information from the server has been received 
     m_DataStream.SetLightWeightEnabled( m_bLightweight );
+    m_DataStream.SetMarkerDataEnabled( m_bMarker );
+    m_DataStream.SetUnlabeledMarkerDataEnabled( m_bUnlabeledMarker );
     if( !m_ViconStreamProps.m_SubjectFilter.IsEmpty() )
     {
       m_ViconStreamProps.m_SubjectFilter.ToString().ParseIntoArray( m_SubjectAllowed, TEXT( "," ), true );
@@ -354,100 +366,76 @@ void FViconStreamFrameReader::ClearCamerasFromLiveLink( const TSet< FString >& i
   }
 }
 
-void FViconStreamFrameReader::ClearMarkerFromLiveLink( const FLiveLinkSubjectKey& i_rLabelledMarkerKey )
+void FViconStreamFrameReader::ClearMarkerFromLiveLink( const FLiveLinkSubjectKey& i_rMarkerKey )
 {
   if( !m_bStopTask )
   {
-    m_pLiveLinkClient->RemoveSubject_AnyThread( i_rLabelledMarkerKey );
+    m_pLiveLinkClient->RemoveSubject_AnyThread( i_rMarkerKey );
   }
-  m_CachedMarkers.Remove( i_rLabelledMarkerKey.SubjectName.ToString() );
-  UE_LOG( LogViconStream, Log, TEXT( "Removing subject %s" ), *i_rLabelledMarkerKey.SubjectName.ToString() );
+  m_CachedMarkerCounts.Remove( i_rMarkerKey.SubjectName.ToString() );
+  UE_LOG( LogViconStream, Log, TEXT( "Removing subject %s" ), *i_rMarkerKey.SubjectName.ToString() );
 }
 
-void FViconStreamFrameReader::HandleLabelledMarker()
+TArray<FName> FViconStreamFrameReader::GetGenericMarkerPropertyNames(unsigned int& MarkerCount)
 {
-  FString LabelledMarker( "LabelledMarker" );
-  FLiveLinkSubjectKey LabelledMarkerKey( m_SourceGuid, FName( *LabelledMarker ) );
-
-  /////////Labelled Marker Data
+  TArray<FName> PropertyNames;
+  for (unsigned int MarkerIndex = 0; MarkerIndex < MarkerCount; ++MarkerIndex)
   {
-    TArray< FVector > LabelledMarkerPoseList;
-    auto Result = m_DataStream.GetLabelledMarkers( LabelledMarkerPoseList );
-    unsigned int MarkerCount = LabelledMarkerPoseList.Num();
-    if( 0 == MarkerCount )
-    {
-      ClearMarkerFromLiveLink( LabelledMarkerKey );
-      return;
-    }
-
-    // Static Frame
-    if( !m_CachedMarkers.Contains( LabelledMarker ) )
-    {
-      FLiveLinkStaticDataStruct StaticDataStruct = FLiveLinkStaticDataStruct( FLiveLinkViconMarkerStaticData::StaticStruct() );
-      FLiveLinkViconMarkerStaticData& rMarkerData = *StaticDataStruct.Cast< FLiveLinkViconMarkerStaticData >();
-      rMarkerData.bIsLabeled = true;
-      if( m_bStopTask )
-      {
-        return;
-      }
-      m_pLiveLinkClient->PushSubjectStaticData_AnyThread( LabelledMarkerKey, ULiveLinkViconMarkerRole::StaticClass(), MoveTemp( StaticDataStruct ) );
-      m_CachedMarkers.Add( LabelledMarker );
-    }
-
-    //Frame Data
-    FLiveLinkFrameDataStruct FrameDataStruct = FLiveLinkFrameDataStruct( FLiveLinkViconMarkerFrameData::StaticStruct() );
-    FLiveLinkViconMarkerFrameData& rMarkerFrameData = *FrameDataStruct.Cast< FLiveLinkViconMarkerFrameData >();
-    rMarkerFrameData.m_MarkerData = LabelledMarkerPoseList;
-    if( m_bStopTask )
-    {
-      return;
-    }
-    m_pLiveLinkClient->PushSubjectFrameData_AnyThread( LabelledMarkerKey, MoveTemp( FrameDataStruct ) );
-    m_CachedMarkers[ LabelledMarker ] = MarkerCount;
+    PropertyNames.Emplace(FString::FromInt(MarkerIndex) + "_X");
+    PropertyNames.Emplace(FString::FromInt(MarkerIndex) + "_Y");
+    PropertyNames.Emplace(FString::FromInt(MarkerIndex) + "_Z");
   }
+  return PropertyNames;
 }
 
-void FViconStreamFrameReader::HandleUnlabelledMarker()
+void FViconStreamFrameReader::HandleMarkerData(bool bLabeled)
 {
-  FString UnlabelledMarker( "UnLabelledMarker" );
-  FLiveLinkSubjectKey UnlabelledMarkerKey( m_SourceGuid, FName( *UnlabelledMarker ) );
-
-  /////////Unlabelled Marker Data
+  if (m_bStopTask)
   {
-    TArray< FVector > UnlabelledMarkerPoseList;
-    auto Result = m_DataStream.GetUnlabelledMarkers( UnlabelledMarkerPoseList );
-    unsigned int UnlabelledMarkerCount = UnlabelledMarkerPoseList.Num();
-    if( 0 == UnlabelledMarkerCount )
-    {
-      ClearMarkerFromLiveLink( UnlabelledMarkerKey );
-      return;
-    }
-
-    // Static Frame
-    if( !m_CachedMarkers.Contains( UnlabelledMarker ) )
-    {
-      FLiveLinkStaticDataStruct StaticDataStruct = FLiveLinkStaticDataStruct( FLiveLinkViconMarkerStaticData::StaticStruct() );
-      FLiveLinkViconMarkerStaticData& rMarkerData = *StaticDataStruct.Cast< FLiveLinkViconMarkerStaticData >();
-      rMarkerData.bIsLabeled = false;
-      if( m_bStopTask )
-      {
-        return;
-      }
-      m_pLiveLinkClient->PushSubjectStaticData_AnyThread( UnlabelledMarkerKey, ULiveLinkViconMarkerRole::StaticClass(), MoveTemp( StaticDataStruct ) );
-      m_CachedMarkers.Add( UnlabelledMarker );
-    }
-
-    //Frame Data
-    FLiveLinkFrameDataStruct FrameDataStruct = FLiveLinkFrameDataStruct( FLiveLinkViconMarkerFrameData::StaticStruct() );
-    FLiveLinkViconMarkerFrameData& rMarkerFrameData = *FrameDataStruct.Cast< FLiveLinkViconMarkerFrameData >();
-    rMarkerFrameData.m_MarkerData = UnlabelledMarkerPoseList;
-    if( m_bStopTask )
-    {
-      return;
-    }
-    m_pLiveLinkClient->PushSubjectFrameData_AnyThread( UnlabelledMarkerKey, MoveTemp( FrameDataStruct ) );
-    m_CachedMarkers[ UnlabelledMarker ] = UnlabelledMarkerCount;
+    return;
   }
+
+  FString SubjectName(bLabeled ? LABELED_MARKER.c_str() : UNLABELED_MARKER.c_str());
+  FLiveLinkSubjectKey SubjectKey( m_SourceGuid, FName( *SubjectName ) );
+
+  unsigned int MarkerCount = 0;
+  const auto CountResult = bLabeled ? m_DataStream.GetLabeledMarkerCount(MarkerCount) : m_DataStream.GetUnlabeledMarkerCount(MarkerCount);
+  if (CountResult == EResult::EError)
+  {
+    UE_LOG(LogViconStream, Warning, TEXT("Failed to get marker count for %s"), *SubjectName);
+    ClearMarkerFromLiveLink(SubjectKey);
+    return;
+  }
+  if (MarkerCount == 0)
+  {
+    ClearMarkerFromLiveLink(SubjectKey);
+    return;
+  }
+
+  // Static data
+  unsigned int* CachedMarkerCount = m_CachedMarkerCounts.Find(SubjectName);
+  if (CachedMarkerCount == nullptr || *CachedMarkerCount != MarkerCount)
+  {
+    FLiveLinkStaticDataStruct StaticDataStruct = FLiveLinkStaticDataStruct( FLiveLinkBaseStaticData::StaticStruct() );
+    FLiveLinkBaseStaticData& rMarkerStaticData = *StaticDataStruct.Cast< FLiveLinkBaseStaticData >();
+    // Property names are generated from marker indices as markers are only named when associated with a Vicon subject
+    rMarkerStaticData.PropertyNames = GetGenericMarkerPropertyNames(MarkerCount);
+    m_pLiveLinkClient->PushSubjectStaticData_AnyThread( SubjectKey, ULiveLinkBasicRole::StaticClass(), MoveTemp( StaticDataStruct ) );
+  }
+
+  // Frame Data
+  FLiveLinkFrameDataStruct FrameDataStruct = FLiveLinkFrameDataStruct( FLiveLinkBaseFrameData::StaticStruct() );
+  FLiveLinkBaseFrameData& rMarkerFrameData = *FrameDataStruct.Cast< FLiveLinkBaseFrameData >();
+  TArray<float>& rPropertyValues = rMarkerFrameData.PropertyValues;
+
+  const auto TranslationResult = bLabeled ? m_DataStream.GetLabeledMarkers(rPropertyValues) : m_DataStream.GetUnlabeledMarkers(rPropertyValues);
+  if (TranslationResult == EResult::EError)
+  {
+    UE_LOG(LogViconStream, Warning, TEXT("Failed to get markers translations for %s"), *SubjectName);
+    return;
+  }
+  m_pLiveLinkClient->PushSubjectFrameData_AnyThread(SubjectKey, MoveTemp( FrameDataStruct ) );
+  m_CachedMarkerCounts.Add(SubjectName, MarkerCount);
 }
 
 // todo: reference instead of the pointer
@@ -458,7 +446,7 @@ void FViconStreamFrameReader::HandleSubjectData()
   {
     return;
   }
-
+ 
   // static data (skeleton)
   for( const auto& rSubject : SubjectNames )
   {
@@ -474,54 +462,62 @@ void FViconStreamFrameReader::HandleSubjectData()
     }
 
     FName SubjectNameFName = FName( *rSubject );
-    // If we have the subject cached, check the segments/bones hasn't changed.
-    // If it changed, remove the subject.
-    if( m_CachedSubjectsBones.Contains( rSubject ) )
+    // If we have the subject cached, check the bone count or marker count have not changed.  
+    // If either did, remove the subject and re-add the static data data
+    // We do this because the bone count determines whether it is a transform or an animation role
+    // And the marker property names need to change when markers are enabled / disabled or the subject has been altered
+
+    if( m_CachedSubjects.Contains( rSubject ))
     {
-      unsigned int CachedBoneCount = m_CachedSubjectsBones[ rSubject ].Num();
+      const FCachedSubject& CachedSubject = m_CachedSubjects[ rSubject ];
       unsigned int StreamBoneCount = 0;
-      if( m_DataStream.GetSegmentCountForSubject( TCHAR_TO_UTF8( *rSubject ), StreamBoneCount ) == ESuccess )
+      TArray<std::string> StreamMarkerNames;
+      if( m_DataStream.GetSegmentCountForSubject( TCHAR_TO_UTF8( *rSubject ), StreamBoneCount ) == ESuccess  &&
+          m_DataStream.GetMarkerNamesForSubject( TCHAR_TO_UTF8( *rSubject ), StreamMarkerNames ) == ESuccess  )
       {
-        if( StreamBoneCount == CachedBoneCount )
+        // std::vector equality checks for matching lengths first so it should be efficient
+        if( StreamBoneCount == CachedSubject.Bones.Num() && StreamMarkerNames == CachedSubject.Markers )
         {
+          // Move on to next subject, don't need to update static data
           continue;
         }
         else
         {
-          UE_LOG( LogViconStream, Warning, TEXT( "Bone count changed for %s" ), *rSubject );
+          UE_LOG( LogViconStream, Warning, TEXT( "Bone count or marker names changed for %s" ), *rSubject );
           if( !m_bStopTask )
           {
             m_pLiveLinkClient->RemoveSubject_AnyThread( {m_SourceGuid, SubjectNameFName} );
           }
-          m_CachedSubjectsBones.Remove( rSubject );
+          m_CachedSubjects.Remove( rSubject );
         }
       }
     }
 
     // If we don't have the subject cached, we will add it below
-    TArray< std::string > SubjectBones;
-
-    bool bGotSkeleton = AddSubjectStaticDataToLiveLink( rSubject, SubjectBones );
-    if( !bGotSkeleton )
+    FCachedSubject CachedSubject;
+    bool bGotSkeleton = AddSubjectStaticDataToLiveLink( rSubject, CachedSubject.Bones, CachedSubject.Markers);
+    if ( !bGotSkeleton )
     {
       UE_LOG( LogViconStream, Error, TEXT( "Failed to get Static Data for %s" ), *rSubject );
       continue;
     }
-    m_CachedSubjectsBones.Add( rSubject, SubjectBones );
+    m_CachedSubjects.Add( rSubject, CachedSubject );
   }
 
   // frame data
-  for( const auto& rSubject : SubjectNames )
+  for ( const auto& rSubject : SubjectNames )
   {
-    if( m_SubjectAllowed.Num() != 0 && !m_SubjectAllowed.Contains( rSubject ) )
+    if ( m_SubjectAllowed.Num() != 0 && !m_SubjectAllowed.Contains(rSubject) )
     {
       continue;
     }
 
     FName SubjectNameFName = FName( *rSubject );
-    TArray< std::string > SubjectBones = m_CachedSubjectsBones[ rSubject ];
-    FLiveLinkFrameDataStruct FrameDataStruct = ( SubjectBones.Num() == 1 ) ? FLiveLinkFrameDataStruct( FLiveLinkTransformFrameData::StaticStruct() ) : FLiveLinkFrameDataStruct( FLiveLinkAnimationFrameData::StaticStruct() );
-    if( m_DataStream.GetPoseForSubject( TCHAR_TO_UTF8( *rSubject ), SubjectBones, FrameDataStruct ) )
+    const FCachedSubject& CachedSubject = m_CachedSubjects[ rSubject ];
+    FLiveLinkFrameDataStruct FrameDataStruct = ( CachedSubject.Bones.Num() == 1 ) ?
+      FLiveLinkFrameDataStruct( FLiveLinkTransformFrameData::StaticStruct() ) :
+      FLiveLinkFrameDataStruct( FLiveLinkAnimationFrameData::StaticStruct() );
+    if (m_DataStream.GetPoseForSubject(TCHAR_TO_UTF8(*rSubject), CachedSubject.Bones, CachedSubject.Markers, FrameDataStruct))
     {
       if( !m_bStopTask )
       {
@@ -606,14 +602,27 @@ void FViconStreamFrameReader::HandleCameraData()
   }
 }
 
+
 void FViconStreamFrameReader::HandleMarkerData()
 {
-  HandleLabelledMarker();
-  HandleUnlabelledMarker();
+  HandleMarkerData(true);
+  HandleMarkerData(false);
+}
+
+TArray<FName> FViconStreamFrameReader::MarkerPropertiesFromNames(const TArray<std::string>& i_rMarkerNames)
+{
+  TArray<FName> MarkerProperties;
+  for (const std::string& MarkerName : i_rMarkerNames)
+  {
+    MarkerProperties.Emplace((MarkerName + "_X").c_str());
+    MarkerProperties.Emplace((MarkerName + "_Y").c_str());
+    MarkerProperties.Emplace((MarkerName + "_Z").c_str());
+  }
+  return MarkerProperties;
 }
 
 // Bind the given subject to the given skeleton and store the result.
-bool FViconStreamFrameReader::AddSubjectStaticDataToLiveLink( const FString& i_rSubjectName, TArray< std::string >& o_rSubjectBones )
+bool FViconStreamFrameReader::AddSubjectStaticDataToLiveLink( const FString& i_rSubjectName, TArray< std::string >& o_rSubjectBones, TArray<std::string>& o_rMarkerNames )
 {
   if( m_DataStream.IsConnected() )
   {
@@ -631,8 +640,17 @@ bool FViconStreamFrameReader::AddSubjectStaticDataToLiveLink( const FString& i_r
     {
       FLiveLinkStaticDataStruct StaticDataStruct = FLiveLinkStaticDataStruct( FLiveLinkTransformStaticData::StaticStruct() );
       FLiveLinkTransformStaticData& StaticTransformData = *StaticDataStruct.Cast< FLiveLinkTransformStaticData >();
-      o_rSubjectBones.Empty();
 
+      // markers
+      if (m_DataStream.GetMarkerNamesForSubject(TCHAR_TO_UTF8(*i_rSubjectName), o_rMarkerNames) != ESuccess)
+      {
+        UE_LOG( LogViconStream, Error, TEXT( "Failed to get marker names for &s" ), *i_rSubjectName );
+        return false;
+      }
+      StaticTransformData.PropertyNames = MarkerPropertiesFromNames(o_rMarkerNames);
+
+      // skeleton segment
+      o_rSubjectBones.Empty();
       FString Name;
       if( m_DataStream.GetSegmentNameForSubject( TCHAR_TO_UTF8( *i_rSubjectName ), 0, Name ) != ESuccess )
       {
@@ -651,13 +669,21 @@ bool FViconStreamFrameReader::AddSubjectStaticDataToLiveLink( const FString& i_r
 
     // subject
     FLiveLinkStaticDataStruct StaticDataStruct = FLiveLinkStaticDataStruct( FLiveLinkSkeletonStaticData::StaticStruct() );
-    FLiveLinkSkeletonStaticData& StaticSkeleton = *StaticDataStruct.Cast< FLiveLinkSkeletonStaticData >();
+    FLiveLinkSkeletonStaticData& StaticData = *StaticDataStruct.Cast< FLiveLinkSkeletonStaticData >();
 
     NumBoneDefs = static_cast< int32 >( numBone );
 
-    StaticSkeleton.BoneNames.SetNumUninitialized( NumBoneDefs );
-    StaticSkeleton.BoneParents.SetNumUninitialized( NumBoneDefs );
+    StaticData.BoneNames.SetNumUninitialized( NumBoneDefs );
+    StaticData.BoneParents.SetNumUninitialized( NumBoneDefs );
     o_rSubjectBones.Empty();
+    
+    // marker names
+    if (m_DataStream.GetMarkerNamesForSubject(TCHAR_TO_UTF8(*i_rSubjectName), o_rMarkerNames) != ESuccess)
+    {
+      UE_LOG( LogViconStream, Error, TEXT( "Failed to get marker names for &s" ), *i_rSubjectName );
+      return false;
+    }
+    StaticData.PropertyNames = MarkerPropertiesFromNames(o_rMarkerNames);
 
     // We will use a vector of strings to access the datastream, as conversion
     // to FName loses case sensitivity
@@ -672,7 +698,7 @@ bool FViconStreamFrameReader::AddSubjectStaticDataToLiveLink( const FString& i_r
       }
 
       o_rSubjectBones.Emplace( TCHAR_TO_UTF8( *Name ) );
-      StaticSkeleton.BoneNames[ i ] = FName( *Name );
+      StaticData.BoneNames[ i ] = FName( *Name );
     }
 
     for( int32 i = 0; i < NumBoneDefs; ++i )
@@ -687,13 +713,14 @@ bool FViconStreamFrameReader::AddSubjectStaticDataToLiveLink( const FString& i_r
       }
 
       int32 ParentIndex = o_rSubjectBones.Find( TCHAR_TO_UTF8( *ParentName ) );
-      StaticSkeleton.BoneParents[ i ] = ParentIndex;
+      StaticData.BoneParents[ i ] = ParentIndex;
     }
 
     // push data
     if( !m_bStopTask )
     {
-      m_pLiveLinkClient->PushSubjectStaticData_AnyThread( {m_SourceGuid, SubjectNameFName}, ULiveLinkAnimationRole::StaticClass(), MoveTemp( StaticDataStruct ) );
+      m_pLiveLinkClient->PushSubjectStaticData_AnyThread( 
+          {m_SourceGuid, SubjectNameFName}, ULiveLinkAnimationRole::StaticClass(), MoveTemp( StaticDataStruct ) );
     }
 
     return true;

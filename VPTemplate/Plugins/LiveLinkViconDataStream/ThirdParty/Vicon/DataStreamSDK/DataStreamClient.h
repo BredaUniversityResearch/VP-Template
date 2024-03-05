@@ -112,13 +112,12 @@ namespace CPP
   {
   public:
     /// Construction.
-    /// You can create many instances of the Vicon DataStream Client which can connect to multiple Vicon DataStream Servers.
+    /// You can create many instances of the Vicon DataStream Client which can connect to multiple Vicon DataStream Servers. 
     ///
     /// 
     /// C example
     ///      
     ///      // The C version uses explicit creation methods
-    ///      
     ///      CClient * pClient = ClientCreate();
     ///      // C Client functions take the client as a parameter
     ///      CBool ok = Client_SomeFunction( pClient, Args );
@@ -127,15 +126,11 @@ namespace CPP
     ///      
     /// C++ example
     ///      
-    ///      
     ///      // C++ version of the SDK is object oriented, so use the class constructor.
-    ///      
     ///      ViconDataStreamSDK::CPP::Client StackClient;
     ///      Output_SomeFunction Output = StackClient.SomeFunction();
     ///      // Client is implicitly destroyed as it goes out of scope.
-    ///      
     ///      // Alternatively the Client can be made on the heap.
-    ///      
     ///      ViconDataStreamSDK::CPP::Client * pHeapClient
     ///      = new ViconDataStreamSDK::CPP::Client();
     ///      Output_SomeFunction Output = pHeapClient->SomeFunction( Input );
@@ -165,7 +160,6 @@ namespace CPP
     ///      Output_SomeFunction Output = pHeapClient.SomeFunction(InputParam);
     ///      // Signal to the garbage collector that it can clean up pHeapClient.Disconnect();
     ///      pHeapClient = null;
-    /// -----
     ///
     Client();
 
@@ -190,7 +184,6 @@ namespace CPP
     /// 
     /// C example
     ///      
-    ///      
     ///      CClient * pClient = Client_Create();
     ///      COutput_GetVersion Output = Client_GetVersion( pClient );
     ///      Client_Destroy( pClient );
@@ -198,13 +191,11 @@ namespace CPP
     ///      
     /// C++ example
     ///      
-    ///      
     ///      ViconDataStreamSDK::CPP::Client MyClient;
     ///      Output_GetVersion Output = MyClient.GetVersion();
     ///      
     ///      
     /// MATLAB example
-    ///      
     ///      
     ///      MyClient = ViconDataStreamSDK.DotNET.Client();
     ///      Output = MyClient.GetVersion();
@@ -212,10 +203,8 @@ namespace CPP
     ///      
     /// .NET example
     ///      
-    ///      
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      Output_GetVersion Output = MyClient.GetVersion();
-    /// -----
     /// 
     /// \return Output_GetVersion class containing the version information.
     Output_GetVersion  GetVersion() const;
@@ -254,7 +243,7 @@ namespace CPP
     ///      
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      Output_Connect Output = MyClient.Connect("localhost:801");
-    /// -----
+    ///
     /// 
     /// \param  HostName The DNS-identifiable name, or IP address of the PC hosting the DataStream server. 
     ///                  For example:
@@ -298,9 +287,14 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.SetConnectionTimeout(200);
     ///      Output_Connect Output = MyClient.Connect("localhost:801");
-    /// -----
+    ///
     /// 
-    /// \param  Timeout  Connection timeout in millisecond, default is 5000, minimum capped at 10
+    /// \param  Timeout  Connection timeout in millisecond, default is 5000 minimum.
+    /// 
+    /// \return An Output_Connect class containing the result of the connect operation.
+    ///         - The Result will be: 
+    ///           + Success
+    ///           + ArgumentOutOfRange
     Output_SetConnectionTimeout SetConnectionTimeout( unsigned int Timeout );
 
     /// Connect to a Vicon DataStream Server's Multicast stream. 
@@ -308,12 +302,6 @@ namespace CPP
     /// 
     /// See Also: Connect(), Disconnect(), IsConnected(), StartTransmittingMulticast(), StopTransmittingMulticast()
     /// 
-    ///      // class Output_ConnectToMulticast
-    ///      // {
-    ///      //   public:
-    ///      //   Result::Enum Result;
-    ///      // };
-    ///      
     ///
     /// C example
     ///      
@@ -335,7 +323,7 @@ namespace CPP
     ///      
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();;
     ///      Output_ConnectToMulticast Output = MyClient.ConnectToMulticast("localhost", "224.0.0.0");
-    /// -----
+    ///
     ///
     ///
     /// \param  LocalIP      The DNS-identifiable name, or IP address of the local Ethernet interface 
@@ -387,7 +375,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect("localhost");
     ///      Output_Disconnect Output = MyClient.Disconnect();
-    /// -----
+    ///
     /// 
     /// \return An Output_Disconnect class containing the result of the operation.
     ///         - The Result will be: 
@@ -440,7 +428,7 @@ namespace CPP
     ///      Output_IsConnected Output = MyClient.IsConnected()
     ///      // Output.Connected == true
     ///      // (assuming localhost is serving)
-    /// -----
+    ///
     /// 
     /// \return An Output_IsConnected class containing a true value for Connected if you are 
     ///         connected to the stream, otherwise false.
@@ -452,7 +440,6 @@ namespace CPP
     ///
     /// See Also: Connect(), ConnectToMulticast(), Disconnect(), StopTransmittingMulticast()
     /// 
-
     ///
     /// C example
     ///      
@@ -478,7 +465,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      MyClient.StartTransmittingMulticast( "10.0.0.1", "224.0.0.0" );
-    /// -----    
+    ///    
     /// 
     /// \param  ServerIP      The IP Address of the server Ethernet interface from which the Multicast data will be sent. 
     ///                       Do not specify a port number (any port number specified will be ignored).
@@ -499,7 +486,7 @@ namespace CPP
     /// 
     /// See Also: Connect(), ConnectToMulticast(), Disconnect(), StartTransmittingMulticast()
     /// 
-
+    ///
     ///
     /// C example
     ///      
@@ -533,7 +520,7 @@ namespace CPP
     ///      MyClient.StartTransmittingMulticast( "10.0.0.1", "224.0.0.0" );
     ///      // Do some stuff
     ///      MyClient.StopTransmittingMulticast();
-    /// -----
+    ///
     /// \return An Output_StopTransmittingMulticast class containing the result of the operation.
     ///         - The Result will be: 
     ///           + Success
@@ -544,7 +531,10 @@ namespace CPP
     /// Enable kinematic segment data in the Vicon DataStream. 
     /// Call this function on startup, after connecting to the server, and before trying to read local or global segment data.
     ///
-    /// See Also: IsSegmentDataEnabled(), DisableSegmentData(), EnableMarkerData(), EnableUnlabeledMarkerData(), EnableDeviceData(), GetSegmentCount(), GetSegmentName(), GetSegmentGlobalTranslation(), GetSegmentGlobalRotationEulerXYZ(), GetSegmentLocalTranslation(), GetSegmentLocalRotationEulerXYZ()
+    /// See Also: IsSegmentDataEnabled(), DisableSegmentData(), EnableMarkerData(),
+    ///           EnableUnlabeledMarkerData(), EnableDeviceData(), GetSegmentCount(),
+    ///           GetSegmentName(), GetSegmentGlobalTranslation(), GetSegmentGlobalRotationEulerXYZ(),
+    ///           GetSegmentLocalTranslation(), GetSegmentLocalRotationEulerXYZ()
     ///
     ///
     /// C example
@@ -571,7 +561,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableSegmentData Output = MyClient.EnableSegmentData();
-    /// -----
+    ///
     /// \return An Output_EnableSegmentData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -586,7 +576,10 @@ namespace CPP
     ///
     /// Call this function on startup, after connecting to the server, and before trying to read local or global segment data.
     ///
-    /// See Also: IsSegmentDataEnabled(), DisableSegmentData(), EnableMarkerData(), EnableUnlabeledMarkerData(), EnableDeviceData(), GetSegmentCount(), GetSegmentName(), GetSegmentGlobalTranslation(), GetSegmentGlobalRotationEulerXYZ(), GetSegmentLocalTranslation(), GetSegmentLocalRotationEulerXYZ()
+    /// See Also: IsSegmentDataEnabled(), DisableSegmentData(), EnableMarkerData(),
+    ///           EnableUnlabeledMarkerData(), EnableDeviceData(), GetSegmentCount(),
+    ///           GetSegmentName(), GetSegmentGlobalTranslation(), GetSegmentGlobalRotationEulerXYZ(),
+    ///           GetSegmentLocalTranslation(), GetSegmentLocalRotationEulerXYZ()
     ///
     ///
     /// C example
@@ -613,7 +606,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableLightweightSegmentData Output = MyClient.EnableLightweightSegmentData();
-    /// -----
+    ///
     /// \return An Output_EnableSegmentData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -623,7 +616,9 @@ namespace CPP
     /// Enable labeled reconstructed marker data in the Vicon DataStream. 
     /// Call this function on startup, after connecting to the server, and before trying to read labeled marker data.
     ///
-    /// See Also: IsMarkerDataEnabled(), DisableMarkerData(), EnableSegmentData(), EnableUnlabeledMarkerData(), EnableDeviceData(), GetMarkerCount(), GetMarkerName(), GetMarkerGlobalTranslation()
+    /// See Also: IsMarkerDataEnabled(), DisableMarkerData(), EnableSegmentData(),
+    ///           EnableUnlabeledMarkerData(), EnableDeviceData(), GetMarkerCount(),
+    ///           GetMarkerName(), GetMarkerGlobalTranslation()
     ///
     ///
     /// C example
@@ -650,7 +645,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableMarkerData Output = MyClient.EnableMarkerData();
-    /// -----
+    ///
     /// \return An Output_EnableMarkerData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -660,7 +655,8 @@ namespace CPP
     /// Enable unlabeled reconstructed marker data in the Vicon DataStream. 
     /// Call this function on startup, after connecting to the server, and before trying to read global unlabeled marker data.
     ///
-    /// See Also: IsUnlabeledMarkerDataEnabled(), DisableUnlabeledMarkerData(), EnableSegmentData(), EnableMarkerData(), EnableDeviceData(), GetUnlabeledMarkerCount(), GetUnlabeledMarkerGlobalTranslation()
+    /// See Also: IsUnlabeledMarkerDataEnabled(), DisableUnlabeledMarkerData(), EnableSegmentData(),
+    ///           EnableMarkerData(), EnableDeviceData(), GetUnlabeledMarkerCount(), GetUnlabeledMarkerGlobalTranslation()
     ///
     ///
     /// C example
@@ -687,7 +683,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableUnlabeledMarkerData Output = MyClient.EnableUnlabeledMarkerData();
-    /// -----
+    ///
     /// \return An Output_UnlabeledMarkerData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -697,7 +693,9 @@ namespace CPP
     /// Enable information about the rays contributing to each labeled marker in the Vicon DataStream. 
     /// Call this function on startup, after connecting to the server, and before trying to read global unlabeled marker data.
     ///
-    ///
+    /// See Also: IsMarkerRayDataEnabled(), DisableMarkerRayData(), EnableSegmentData(),
+    ///           EnableMarkerData(), EnableDeviceData(), GetUnlabeledMarkerCount(),
+    ///           GetUnlabeledMarkerGlobalTranslation()
     /// 
     /// C example
     ///      
@@ -723,9 +721,8 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableMarkerRayData Output = MyClient.EnableMarkerRayData();
-    /// -----
+    ///
     /// 
-    /// See Also: IsMarkerRayDataEnabled(), DisableMarkerRayData(), EnableSegmentData(), EnableMarkerData(), EnableDeviceData(), GetUnlabeledMarkerCount(), GetUnlabeledMarkerGlobalTranslation()
     ///
     /// \return An Output_EnableMarkerRayData class containing the result of the operation.
     ///         - The Result will be:
@@ -763,7 +760,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableDeviceData Output = MyClient.EnableDeviceData();
-    /// -----
+    ///
     /// \return An Output_EnableDeviceData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -800,7 +797,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableCentroidData Output = MyClient.EnableCentroidData();
-    /// -----
+    ///
     /// \return An Output_EnableCentroidData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -815,7 +812,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -825,14 +822,14 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableGreyscaleData Output = MyClient.EnableGreyscaleData ();
-    /// -----
+    ///
     /// \return An Output_EnableGreyscaleData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -847,7 +844,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -857,29 +854,28 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableVideoData Output = MyClient.EnableVideoData ();
-    /// -----
+    ///
     /// \return An Output_EnableVideoData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
     ///           + NotConnected
     Output_EnableVideoData       EnableVideoData();
 
-    /// Enable camera calibration data in the Vicon DataStream.
+    /// \brief Enable camera calibration data in Vicon DataStream.
     /// Call this function on startup, after connecting to the server, and before trying to read camera calibration information.
     ///
     /// See Also: IsCameraCalibrationDataEnabled(), DisableCameraCalibrationData()
     ///
-    ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -889,13 +885,13 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
-    ///   Not implemented
+    ///       Not implemented
     ///      
-    /// -----
+    ///
     /// \return An Output_EnableCameraCalibrationData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -932,7 +928,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_EnableDebugData Output = MyClient.EnableDebugData ();
-    /// -----
+    ///
     /// \return An Output_EnableDebugData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -969,7 +965,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableSegmentData Output = MyClient.DisableSegmentData ();
-    /// -----
+    ///
     /// \return An Output_DisableSegmentData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -1007,7 +1003,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableLightweightSegmentData Output = MyClient.DisableLightweightSegmentData ();
-    /// -----
+    ///
     /// \return An Output_DisableLightweightSegmentData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -1043,7 +1039,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableMarkerData Output = MyClient.DisableMarkerData ();
-    /// -----
+    ///
     /// \return An Output_DisableMarkerData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -1079,7 +1075,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableUnlabeledMarkerData Output = MyClient.DisableUnlabeledMarkerData ();
-    /// -----
+    ///
     /// \return An Output_DisableUnlabeledMarkerData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -1115,7 +1111,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableMarkerRayData Output = MyClient.DisableMarkerRayData ();
-    /// -----
+    ///
     /// \return An Output_DisableMarkerRayData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -1151,7 +1147,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableDeviceData Output = MyClient.DisableDeviceData ();
-    /// -----
+    ///
     /// \return An Output_DisableDeviceData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -1187,7 +1183,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableCentroidData Output = MyClient.DisableCentroidData ();
-    /// -----
+    ///
     /// \return An Output_DisableCentroidData class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -1201,7 +1197,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -1211,14 +1207,14 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableGreyscaleData Output = MyClient.DisableGreyscaleData ();
-    /// -----
+    ///
     ///
     /// \return An Output_DisableGreyscaleData class containing the result of the operation.
     ///         - The Result will be:
@@ -1233,7 +1229,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -1243,14 +1239,14 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableVideoData Output = MyClient.DisableVideoData ();
-    /// -----
+    ///
     ///
     /// \return An Output_DisableVideoData class containing the result of the operation.
     ///         - The Result will be:
@@ -1265,7 +1261,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -1275,13 +1271,13 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
-    /// -----
+    ///
     ///
     /// \return An Output_DisableCameraCalibrationData class containing the result of the operation.
     ///         - The Result will be:
@@ -1318,7 +1314,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      Output_DisableDebugData Output = MyClient.DisableDebugData ();
-    /// -----
+    ///
     ///        
     /// \return An Output_DisableDebugData class containing the result of the operation.
     ///         - The Result will be:
@@ -1328,7 +1324,7 @@ namespace CPP
 
     /// Return whether kinematic segment data is enabled in the Vicon DataStream.
     ///
-    /// See Also: EnableSegmentData(), DisableSegmentData(), IsMarkerDataEnabled(), IsUnlabeledMarkerDataEnabled(), IsDeviceDataEnabled()
+    /// See Also: EnableSegmentData(), DisableSegmentData(), IsMarkerDataEnabled(), IsDeviceDataEnabled(), IsUnlabeledMarkerDataEnabled()
     ///
     ///
     /// C example
@@ -1370,7 +1366,7 @@ namespace CPP
     ///      MyClient.EnableSegmentData();
     ///      Output_IsSegmentDataEnabled Output = MyClient.IsSegmentDataEnabled();
     ///      // Output.Enabled == true
-    /// -----
+    ///
     /// \return An Output_IsSegmentDataEnabled class containing the result of the operation.
     ///         - The Result will be:
     ///           + Whether the data is enabled
@@ -1378,7 +1374,7 @@ namespace CPP
 
     /// Return whether the lightweight transport mode for kinematic segment data is enabled in the Vicon DataStream.
     ///
-    /// See Also: EnableSegmentData(), DisableSegmentData(), IsMarkerDataEnabled(), IsUnlabeledMarkerDataEnabled(), IsDeviceDataEnabled()
+    /// See Also: EnableSegmentData(), DisableSegmentData(), IsMarkerDataEnabled(), IsDeviceDataEnabled(), IsUnlabeledMarkerDataEnabled()
     ///
     ///
     /// C example
@@ -1419,7 +1415,7 @@ namespace CPP
     ///      MyClient.EnableSegmentData();
     ///      Output_IsLightweightSegmentDataEnabled Output = MyClient.IsLightweightSegmentDataEnabled();
     ///      // Output.Enabled == true
-    /// -----
+    ///
     /// \return An Output_IsLightweightSegmentDataEnabled class containing the result of the operation.
     ///         - The Result will be:
     ///           + Whether the data is enabled
@@ -1427,7 +1423,7 @@ namespace CPP
 
     /// Return whether labeled reconstructed marker data is enabled in the DataStream.
     ///
-    /// See Also: EnableMarkerData(), DisableMarkerData(), IsSegmentDataEnabled(), IsUnlabeledMarkerDataEnabled(), IsDeviceDataEnabled()
+    /// See Also: EnableMarkerData(), DisableMarkerData(), IsSegmentDataEnabled(), IsDeviceDataEnabled(), IsUnlabeledMarkerDataEnabled()
     ///
     ///
     /// C example
@@ -1469,7 +1465,7 @@ namespace CPP
     ///      MyClient.EnableMarkerData();
     ///      Output_IsMarkerDataEnabled Output = MyClient.IsMarkerDataEnabled();
     ///      // Output.Enabled == true
-    /// -----
+    ///
     /// \return An Output_IsMarkerDataEnabled class containing the result of the operation.
     ///         - The Result will be:
     ///           + Whether the data is enabled
@@ -1518,7 +1514,7 @@ namespace CPP
     ///      MyClient.EnableUnlabeledMarkerData();
     ///      Output_IsUnlabeledMarkerDataEnabled Output = MyClient.IsUnlabeledMarkerDataEnabled(); 
     ///      // Output.Enabled == true
-    /// -----
+    ///
     /// \return An Output_IsUnlabeledMarkerDataEnabled  class containing the result of the operation.
     ///         - The Result will be:
     ///           + Whether the data is enabled
@@ -1569,7 +1565,7 @@ namespace CPP
     ///      MyClient.EnableMarkerRayData();
     ///      Output_IsMarkerRayDataEnabled Output = MyClient.IsMarkerRayDataEnabled(); 
     ///      // Output.Enabled == true
-    /// -----
+    ///
     /// \return An Output_IsMarkerRayDataEnabled class containing the result of the operation.
     ///         - The Result will be:
     ///           + Whether the data is enabled
@@ -1618,7 +1614,7 @@ namespace CPP
     ///      MyClient.EnableDeviceData();
     ///      Output_IsDeviceDataEnabled Output = MyClient.IsDeviceDataEnabled();
     ///      // Output.Enabled == true
-    /// -----
+    ///
     /// \return An Output_IsDeviceDataEnabled class containing the result of the operation.
     ///         - The Result will be:
     ///           + Whether the data is enabled
@@ -1665,7 +1661,7 @@ namespace CPP
     ///      MyClient.EnableCentroidData();
     ///      Output_IsCentroidDataEnabled Output = MyClient.IsCentroidDataEnabled ();
     ///      // Output.Enabled == true
-    /// -----
+    ///
     ///
     /// See Also: EnableCentroidData(), DisableCentroidData()
     /// \return An Output_IsCentroidDataEnabled class containing the result of the operation.
@@ -1680,7 +1676,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -1694,6 +1690,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
@@ -1704,7 +1701,7 @@ namespace CPP
     ///      MyClient.EnableGreyscaleData();
     ///      Output_IsGreyscaleDataEnabled Output = MyClient.IsGreyscaleDataEnabled ();
     ///      // Output.Enabled == true
-    /// -----
+    ///
     ///
     ///
     /// \return An Output_IsGreyscaleDataEnabled class containing the result of the operation.
@@ -1719,7 +1716,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -1733,6 +1730,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
@@ -1743,7 +1741,7 @@ namespace CPP
     ///      MyClient.EnableVideoData();
     ///      Output_IsVideoDataEnabled Output = MyClient.IsVideoDataEnabled ();
     ///      // Output.Enabled == true
-    /// -----
+    ///
     ///
     ///
     /// \return An Output_IsVideoDataEnabled class containing the result of the operation.
@@ -1758,7 +1756,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -1772,13 +1770,12 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
-    ///   Not implemented
+    ///      Not implemented
     ///      
-    /// -----
-    ///
     ///
     /// \return An Output_IsCameraCalibrationDataEnabled class containing the result of the operation.
     ///         - The Result will be:
@@ -1813,6 +1810,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
@@ -1823,7 +1821,7 @@ namespace CPP
     ///      MyClient.EnableDebugData();
     ///      Output_IsDebugDataEnabled Output = MyClient.IsDebugDataEnabled ();
     ///      // Output.Enabled == true
-    /// -----
+    ///
     ///        
     ///
     /// \return An Output_IsDebugDataEnabled class containing the result of the operation.
@@ -1860,7 +1858,7 @@ namespace CPP
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
     ///      MyClient.SetBufferSize( 5 );
-    /// -----
+    ///
     /// See Also: GetFrame()
     ///
     /// \param  BufferSize  The maximum number of frames to buffer.
@@ -1886,14 +1884,13 @@ namespace CPP
     ///
     ///   + **ClientPullPreFetch**
     ///   "ClientPullPreFetch" is an enhancement to the "ClientPull" mode.
-    ///    A thread in the SDK continuously and preemptively does a "ClientPull" on your behalf, storing the latest requested frame in memory.
-    ///    When you next call GetFrame(), the SDK returns the last requested frame that was cached in memory.
-    ///    GetFrame() does not need to block the calling thread.
-    ///    As with normal "ClientPull", buffers are unlikely to fill up, and Server performance is unlikely to be affected.
-    ///    Latency is slightly reduced, but network traffic may increase if you request frames on behalf of the Client which are never used.
-    //
-    //
-    /// The stream defaults to "ClientPull" mode as this is considered the safest option. If performance is a problem, try "ClientPullPreFetch" followed by "ServerPush".
+    ///   As soon as a sample has been received, it will preemptively request the next sample.
+    ///   The server will send you this next sample as soon as it is ready, so do not experience the delay in requesting it.
+    ///   GetFrame() may block the calling thread if the next frame has not been received yet.
+    ///   As with normal "ClientPull", buffers are unlikely to fill up, and Server performance is unlikely to be affected.
+    ///
+    /// The stream defaults to "ClientPull" mode as this is considered the easiest option. For improved performance use "ServerPush". 
+    /// "ClientPullPreFetch" may be useful if problems are being caused by large numbers of samples being buffered.
     ///
     /// 
     ///
@@ -1932,7 +1929,7 @@ namespace CPP
     ///      MyClient.SetStreamMode( ViconDataStreamSDK.DotNET.StreamMode.ServerPush );
     ///      MyClient.SetStreamMode( ViconDataStreamSDK.DotNET.StreamMode.ClientPull );
     ///      MyClient.SetStreamMode( ViconDataStreamSDK.DotNET.StreamMode.ClientPullPreFetch);
-    /// -----
+    ///
     /// \param Mode Stream modes that the SDK can operate in
     ///           + StreamMode.ServerPush
     ///           + StreamMode.ClientPull
@@ -1966,10 +1963,12 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
+    ///      Not implemented
     ///      
     /// .NET example
     ///      
-    /// -----
+    ///      Not implemented
+    ///
     ///
     /// \return An Output_SetApexDeviceFeedback class containing the result of the operation.
     ///         - The Result will be:
@@ -2009,7 +2008,9 @@ namespace CPP
     /// MATLAB example
     ///      
     ///      MyClient = ViconDataStreamSDK.DotNET.Client();
-    ///      MyClient.SetAxisMapping( ViconDataStreamSDK.DotNET.Direction.Forward, ViconDataStreamSDK.DotNET.Direction.Left, ViconDataStreamSDK.DotNET.Direction.Up );
+    ///      MyClient.SetAxisMapping( ViconDataStreamSDK.DotNET.Direction.Forward,
+    ///                               ViconDataStreamSDK.DotNET.Direction.Left,
+    ///                               ViconDataStreamSDK.DotNET.Direction.Up );
     ///      
     /// .NET example
     ///      
@@ -2017,7 +2018,7 @@ namespace CPP
     ///      MyClient.SetAxisMapping( ViconDataStreamSDK.DotNET.Direction.Forward,
     ///      ViconDataStreamSDK.DotNET.Direction.Left,
     ///      ViconDataStreamSDK.DotNET.Direction.Up );
-    /// -----
+    ///
     /// \param XAxis Specify the direction of your X axis relative to yourself as the observer.
     /// \param YAxis Specify the direction of your Y axis relative to yourself as the observer.
     /// \param ZAxis Specify the direction of your Z axis relative to yourself as the observer.
@@ -2068,7 +2069,7 @@ namespace CPP
     ///      // Output.XAxis == ViconDataStreamSDK.DotNET.Direction.Forward
     ///      // Output.YAxis == ViconDataStreamSDK.DotNET.Direction.Left
     ///      // Output.ZAxis == ViconDataStreamSDK.DotNET.Direction.Up
-    /// -----
+    ///
     /// \return An Output_GetAxisMapping class containing the result of the operation.
     ///         - The Result will be:
     ///           + XAxis, YAxis, ZAxis
@@ -2112,7 +2113,7 @@ namespace CPP
     ///      Output = MyClient.GetFrame(); // Output.Result == NotConnected
     ///      MyClient.Connect( "localhost" );
     ///      Output = MyClient.GetFrame(); // Output.Result == Success
-    /// -----
+    ///
     /// \return An Output_GetFrame class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -2164,7 +2165,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output = MyClient.GetFrameNumber(); // Output.Result == Success
     ///      // Output.FrameNumber >= 1
-    /// -----
+    ///
     ///        
     ///        
     ///
@@ -2208,7 +2209,7 @@ namespace CPP
     ///      MyClient.Connect( "localhost" );
     ///      MyClient.GetFrame();
     ///      Output_GetTimecode Output = MyClient.GetTimecode();
-    /// -----
+    ///
     /// \return An Output_GetTimecode class containing the result of the operation and
     ///           + Hours
     ///           + Minutes
@@ -2260,7 +2261,7 @@ namespace CPP
     ///      MyClient.Connect( "localhost" );
     ///      MyClient.GetFrame();
     ///      Output_GetFrameRate Output = MyClient.GetFrameRate ();
-    /// -----
+    ///
     /// \return An Output_GetFrameRate  class containing the result of the operation and the frame rate in hz.
     ///         - The Result will be:
     ///           + Success
@@ -2302,7 +2303,7 @@ namespace CPP
     ///      MyClient.Connect( "localhost" );
     ///      MyClient.GetFrame();
     ///      Output_GetLatencySampleCount Output = MyClient.GetLatencySampleCount();
-    /// -----
+    ///
     /// \return An Output_GetLatencySampleCount class containing the result of the operation and the number of samples taken.
     ///         - The Result will be:
     ///           + Success
@@ -2348,7 +2349,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetLatencySampleName Output = MyClient.GetLatencySampleName( 0 );
     ///      Output.Name == "Data Collected"
-    /// -----
+    ///
     /// \param LatencySampleIndex The index of the name.
     /// \return An Output_GetLatencySampleName class containing the result of the operation and the name of the latency sample.
     ///         - The Result will be:
@@ -2398,7 +2399,7 @@ namespace CPP
     ///      Output_GetLatencySampleName Output =
     ///      MyClient.GetLatencySampleValue( "Data Collected" );
     ///      // Output.Value == 0.1
-    /// -----
+    ///
     /// \param LatencySampleName The name of the latency sample
     /// \return An Output_GetLatencySampleValue class containing the result of the operation and the duration of the latency in seconds.
     ///         - The Result will be:
@@ -2443,7 +2444,7 @@ namespace CPP
     ///      MyClient.Connect( "localhost" );
     ///      MyClient.GetFrame();
     ///      Output_GetLatencyTotal Output = MyClient.GetLatencyTotal();
-    /// -----
+    ///
     /// \return An Output_GetLatencyTotal class containing the result of the operation and the total latency in seconds made from summing the other latencies.
     ///         - The Result will be:
     ///           + Success
@@ -2474,7 +2475,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
     ///      MyClient.Connect( "localhost" );
@@ -2487,7 +2488,7 @@ namespace CPP
     ///      MyClient.Connect( "localhost" );
     ///      MyClient.GetFrame();
     ///      Output_GetHardwareFrameNumber Output = MyClient.GetHardwareFrameNumber();
-    /// -----
+    ///
     ///
     /// \return An Output_GetHardwareFrameNumber class containing the result of the operation.
     ///         - The Result will be:
@@ -2530,7 +2531,7 @@ namespace CPP
     ///      MyClient.Connect( "localhost" );
     ///      MyClient.GetFrame();
     ///      Output_GetFrameRateCount Output = MyClient.GetFrameRateCount();
-    /// -----
+    ///
     ///
     /// \return An Output_GetFrameRateCount class containing the result of the operation.
     ///         - The Result will be:
@@ -2583,7 +2584,7 @@ namespace CPP
     ///      {
     ///        Output_GetFrameRateName NameOutput = MyClient.GetFrameRateIndex( 0 );
     ///      }
-    /// -----
+    ///
     ///
     /// \return An Output_GetFrameRateName class containing the result of the operation.
     ///         - The Result will be:
@@ -2636,7 +2637,7 @@ namespace CPP
     ///      Output_GetFrameRateCount Output = MyClient.GetFrameRateCount();
     ///      Output_GetFrameRateName NameOutput = MyClient.GetFrameRateIndex( 0 );
     ///      Output_GetFrameRateValue ValueOutput = MyClient.GetFrameRateValue( NameOutput.Name );
-    /// -----
+    ///
     ///
     /// \return An Output_GetFrameRateValue class containing the result of the operation.
     ///         - The Result will be:
@@ -2693,7 +2694,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output = MyClient.GetSubjectCount(); // Output.Result == Success
     ///      // Output.SubjectCount >= 0
-    /// -----
+    ///
     ///        
     ///        
     ///
@@ -2773,7 +2774,7 @@ namespace CPP
     ///      // OutputGSN .SubjectName == "Bob"
     ///      OutputGSN = MyClient.GetSubjectName(2);// OutputGSN.Result == InvalidIndex
     ///      // OutputGSN.SubjectName == ""
-    /// -----
+    ///
     /// \param SubjectIndex The index of the subject. A valid Subject Index is between 0 and GetSubjectCount()-1.
     ///                                         Matlab: A valid Subject Index is between 1 and GetSubjectCount().
     /// \return An Output_GetSubjectName GetSubjectName class containing the result of the operation and the name of the subject.
@@ -2832,7 +2833,7 @@ namespace CPP
     ///      Output = MyClient.GetSubjectRootSegmentName( "Bob" );
     ///      // Output.Result == Success
     ///      // Output.SegmentName == "Pelvis"
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \return An Output_GetSubjectRootSegmentName class containing the result of the operation and the name of the root segment.
     ///         - The Result will be:
@@ -2908,7 +2909,7 @@ namespace CPP
     ///      // Output.SegmentCount == 0
     ///      Output = MyClient.GetSegmentCount( "Bob" ); // Output.Result == Success
     ///      // Output.SegmentCount >= 0
-    /// -----
+    ///
     ///        
     ///        
     ///
@@ -2964,7 +2965,7 @@ namespace CPP
     ///      Output_GetSegmentParentName Output;
     ///      // SegmentIndex must be between 0 and GetSegmentCount() - 1
     ///      Output = MyClient.GetSegmentName( "Bob", 0 );
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \param SegmentIndex The index of the segment
     /// \return An Output_GetSegmentName  class containing the result of the operation and the name of the parent segment or an empty string if it is the root segment.
@@ -3074,7 +3075,7 @@ namespace CPP
     ///      // OutputGSCN.Result == InvalidIndex
     ///      // OutputGSCN.SegmentName == ""
     ///      // (no third segment)
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \param SegmentName The name of the segment
     /// \return An Output_GetSegmentChildCount  class containing the result of the operation and the number of child segments.
@@ -3132,7 +3133,7 @@ namespace CPP
     ///      Output_GetSegmentChildName Output;
     ///      // Segment index must be between 0 and GetSegmentChildCount() - 1
     ///      Output = MyClient.GetSegmentChildName( "Bob", "Pelvis", 0 );
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \param SegmentName The name of the segment
     /// \param SegmentIndex The index of the child segment. A valid Segment Index is between 0 and GetSegmentChildCount()-1.
@@ -3211,7 +3212,7 @@ namespace CPP
     ///      Output = MyClient.GetSegmentParentName( "Bob", "LFemur" );
     ///      // Output.Result == Success
     ///      // Output.SegmentName == "Pelvis"
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \param SegmentName The name of the segment
     /// \return An Output_GetSegmentParentName  class containing the result of the operation and the name of the parent segment or an empty string if it is the root segment.
@@ -3267,7 +3268,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentStaticTranslation Output =
     ///      MyClient.GetSegmentStaticTranslations( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \param SegmentName The name of the segment
     /// \return An Output_GetSegmentStaticTranslation class containing the result of the operation and the translation of the segment.
@@ -3287,7 +3288,7 @@ namespace CPP
     /// If you are required to calculate the amount a segment has rotated from its base position, subtract this value from the local
     /// rotation.
     /// 
-    /// See Also: GetSegmentStaticTranslation(), GetSegmentStaticRotationMatrix(), GetSegmentStaticRotationQuaternion(), GetSegmentStaticRotationEulerXYZ(), GetSegmentLocalTranslation, GetSegmentLocalRotationHelical, GetSegmentLocalRotationMatrix, GetSegmentLocalRotationQuaternion, GetSegmentLocalRotationEulerXYZ
+    /// See Also: GetSegmentStaticTranslation(), GetSegmentStaticRotationMatrix(), GetSegmentStaticRotationQuaternion(), GetSegmentStaticRotationEulerXYZ(), GetSegmentLocalTranslation(), GetSegmentLocalRotationHelical(), GetSegmentLocalRotationMatrix(), GetSegmentLocalRotationQuaternion(), GetSegmentLocalRotationEulerXYZ()
     ///
     ///
     /// C example
@@ -3322,7 +3323,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentStaticRotationHelical Output =
     ///      MyClient.GetSegmentStaticRotationHelical( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \param SegmentName The name of the segment
     /// \return An Output_GetSegmentStaticRotationHelical  class containing the result of the operation and the rotation of the segment.
@@ -3375,7 +3376,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentStaticRotationMatrix Output =
     ///      MyClient.GetSegmentStaticRotationMatrix( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \param SegmentName The name of the segment
     /// \return An Output_GetSegmentStaticRotationMatrix  class containing the result of the operation and the rotation of the segment.
@@ -3431,7 +3432,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentStaticRotationQuaternion Output =
     ///      MyClient.GetSegmentStaticRotationQuaternion( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param SubjectName The name of the subject
     /// \param SegmentName The name of the segment
     /// \return An Output_GetSegmentStaticRotationQuaternion class containing the result of the operation and the rotation of the segment.
@@ -3488,7 +3489,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentStaticRotationEulerXYZ Output =
     ///      MyClient.GetSegmentStaticRotationEulerXYZ( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentStaticRotationEulerXYZ class containing the result of the request
@@ -3600,7 +3601,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentGlobalTranslation Output =
     ///      MyClient.GetSegmentGlobalTranslations( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentGlobalTranslation class containing the result of the operation, the translation of the segment, and whether the segment is occluded.
@@ -3653,7 +3654,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentGlobalRotationHelical Output =
     ///      MyClient.GetSegmentGlobalRotationHelical( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentGlobalRotationHelical class containing the result of the operation, the rotation of the segment, and whether the segment is occluded.
@@ -3707,7 +3708,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentGlobalRotationMatrix Output =
     ///      MyClient.GetSegmentGlobalRotationMatrix( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentGlobalRotationMatrix  Class containing the result of the operation, the rotation of the segment, and whether the segment is occluded.
@@ -3762,7 +3763,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentGlobalRotationQuaternion Output =
     ///      MyClient.GetSegmentGlobalRotationQuaternion( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentGlobalRotationQuaternion  class containing the result of the operation, the rotation of the segment, and whether the segment is occluded.
@@ -3815,7 +3816,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentGlobalRotationEulerXYZ Output =
     ///      MyClient.GetSegmentGlobalRotationEulerXYZ( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentGlobalRotationEulerXYZ class containing the result of the operation, 
@@ -3872,7 +3873,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentLocalTranslation Output =
     ///      MyClient.GetSegmentLocalTranslations( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentLocalTranslation class containing the result of the operation, the translation of the segment, and whether the segment is occluded.
@@ -3927,7 +3928,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentLocalRotationHelical Output =
     ///      MyClient.GetSegmentLocalRotationHelical( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentLocalRotationHelical class containing the result of the operation, 
@@ -3982,7 +3983,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentLocalRotationMatrix Output =
     ///      MyClient.GetSegmentLocalRotationMatrix( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentLocalRotationMatrix class containing the result of the operation, 
@@ -4037,7 +4038,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentLocalRotationQuaternion Output =
     ///      MyClient.GetSegmentLocalRotationQuaternion( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentLocalRotationQuaternion class containing the result of the operation, 
@@ -4054,7 +4055,11 @@ namespace CPP
 
     /// Return the rotation of a subject segment in local Euler XYZ coordinates relative to its parent segment.
     ///
-    /// See Also: GetSegmentLocalTranslation(), GetSegmentLocalRotationHelical(), GetSegmentLocalRotationMatrix(), GetSegmentLocalRotationQuaternion(), GetSegmentGlobalTranslation(), GetSegmentGlobalRotationHelical(), GetSegmentGlobalRotationMatrix() , GetSegmentGlobalRotationQuaternion(), GetSegmentGlobalRotationEulerXYZ()
+    /// See Also: GetSegmentLocalTranslation(), GetSegmentLocalRotationHelical(),
+    ///           GetSegmentLocalRotationMatrix(), GetSegmentLocalRotationQuaternion(),
+    ///           GetSegmentGlobalTranslation(), GetSegmentGlobalRotationHelical(),
+    ///           GetSegmentGlobalRotationMatrix() , GetSegmentGlobalRotationQuaternion(),
+    ///           GetSegmentGlobalRotationEulerXYZ()
     ///
     ///
     ///
@@ -4093,7 +4098,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetSegmentLocalRotationEulerXYZ Output =
     ///      MyClient.GetSegmentLocalRotationEulerXYZ( "Alice", "Pelvis" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  SegmentName The name of the segment.
     /// \return An Output_GetSegmentLocalRotationEulerXYZ class containing the result of the operation, 
@@ -4182,7 +4187,7 @@ namespace CPP
     ///      Output = MyClient.GetObjectQuality( "Object" );
     ///      // Output.Result == Success
     ///      // Output.Quality >= 0 && Output.Quality >= 1.0
-    /// -----
+    ///
     /// \param  ObjectName The name of the subject.
     /// \return An Output_GetObjectQuality class containing the result of the operation and the quality score of the object.
     ///         - The Result will be:
@@ -4265,7 +4270,7 @@ namespace CPP
     ///      // (no "Alice")
     ///      Output = MyClient.GetMarkerCount( "Bob" ); // Output.Result == Success
     ///      // Output.MarkerCount >= 0
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \return An Output_GetMarkerCount class containing the result of the operation, and the number of markers.
     ///         - The Result will be:
@@ -4386,7 +4391,7 @@ namespace CPP
     ///      // OutputGMN.Result == InvalidIndex
     ///      // OutputGMN.MarkerName == ""
     ///      // (no third marker)
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  MarkerIndex The index of the marker.
     /// \return An Output_GetMarkerName class containing the result of the operation and the name of the marker.
@@ -4447,7 +4452,7 @@ namespace CPP
     ///      Output = MyClient.GetMarkerParentName( "Bob", "LFHD" );
     ///      // Output.Result == Success
     ///      // Output.SegmentName == "Head"
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  MarkerName The name of the marker.
     /// \return An Output_GetMarkerParentName class containing the result of the operation and the name of the parent segment.
@@ -4501,7 +4506,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetMarkerGlobalTranslation Output =
     ///      MyClient.GetMarkerGlobalTranslation( "Alice", "LASI" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  MarkerName The name of the marker.
     /// \return An Output_GetMarkerGlobalTranslation class containing the result of the operation, the translation of the marker, and whether the marker is occluded.
@@ -4555,7 +4560,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetMarkerRayContributionCount Output =
     ///      MyClient.GetMarkerRayContributionCount( "Alice", "LASI" );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  MarkerName The name of the marker.
     /// \return An Output_GetMarkerRayContributionCount class containing the result of the operation and the number of rays.
@@ -4614,7 +4619,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetMarkerRayContribution Output =
     ///      MyClient.GetMarkerRayContribution( "Alice", "LASI", 0 );
-    /// -----
+    ///
     /// \param  SubjectName The name of the subject.
     /// \param  MarkerName The name of the marker.
     /// \param  MarkerRayContributionIndex The index of the ray required.
@@ -4671,7 +4676,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output = MyClient.GetUnlabeledMarkerCount(); // Output.Result == Success
     ///      // Output.MarkerCount >= 0
-    /// -----
+    ///
     /// \return An Output_GetUnlabeledMarkerCount class containing the result of the operation and the number of markers.
     ///         - The Result will be:
     ///           + Success
@@ -4723,7 +4728,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetUnlabeledMarkerGlobalTranslation Output =
     ///      MyClient.GetUnlabeledMarkerGlobalTranslation( 0 );
-    /// -----
+    ///
     /// \param MarkerIndex The index of the marker
     /// \return An Output_GetUnlabeledMarkerGlobalTranslation class containing the result of the operation and the translation of the marker.
     ///         - The Result will be:
@@ -4779,7 +4784,7 @@ namespace CPP
     ///      Output_GetLabeledMarkerCount Output = MyClient.GetLabeledMarkerCount();
     ///      // Output.Result == Success
     ///      // Output.MarkerCount >= 0
-    /// -----
+    ///
     ///
     /// \return An Output_GetLabeledMarkerCount class containing the result of the operation.
     ///         - The Result will be:
@@ -4831,7 +4836,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetLabeledMarkerGlobalTranslation Output =
     ///      MyClient.GetLabeledMarkerGlobalTranslation( 0 );
-    /// -----
+    ///
     ///        
     /// \return An Output_GetLabeledMarkerGlobalTranslation class containing the result of the operation.
     ///         - The Result will be:
@@ -4885,7 +4890,7 @@ namespace CPP
     ///      Output_GetDeviceCount Output = MyClient.GetDeviceCount();
     ///      // Output.Result == Success
     ///      // Output.DeviceCount >= 0
-    /// -----
+    ///
     /// \return An Output_GetDeviceCount class containing the result of the operation and the number of devices.
     ///         - The Result will be:
     ///           + Success
@@ -4997,7 +5002,7 @@ namespace CPP
     ///      // OutputGDN.Result == InvalidIndex
     ///      // OutputGDN.DeviceName == ""
     ///      // OutputGDN.DeviceType == Unknown
-    /// -----
+    ///
     /// \param DeviceIndex The index of the device.
     /// \return An Output_GetDeviceName class containing the result of the operation, the name of the device, and the device type.
     ///         - The Result will be:
@@ -5074,7 +5079,7 @@ namespace CPP
     ///      Output = MyClient.GetDeviceOutputCount( "ZeroWire" );
     ///      // Output.Result == Success
     ///      // Output.DeviceOutputCount == 6
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \return An Output_GetDeviceOutputCount class containing the result of the operation and the number of device outputs.
     ///         - The Result will be:
@@ -5144,7 +5149,7 @@ namespace CPP
     ///      // Output.Result == Success
     ///      // Output.DeviceOutputName == "Fx"
     ///      // Output.DeviceOutputUnit == Newton
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \param DeviceOutputIndex The index of the device output
     /// \return An Output_GetDeviceOutputName class containing the result of the operation, the name of the device output and the unit of the device output.
@@ -5273,7 +5278,7 @@ namespace CPP
     ///      // Output.DeviceOutputName == "Force"
     ///      // Output.DeviceOutputComponentName == "Fx"
     ///      // Output.DeviceOutputUnit == Newton
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \param DeviceOutputIndex The index of the device output
     /// \return An Output_GetDeviceOutputName class containing the result of the operation, the name of the device output and component and the unit of the device output.
@@ -5390,7 +5395,7 @@ namespace CPP
     ///      // Output.Result == Success
     ///      // Output.Value == ?
     ///      // Output.Occluded = ?
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \param DeviceOutputComponentName The name of the device output - This is the component name, not the output name
     /// \return An Output_GetDeviceOutputValue  class containing the result of the operation.
@@ -5458,7 +5463,7 @@ namespace CPP
     ///      // Output.Result == Success
     ///      // Output.Value == ?
     ///      // Output.Occluded = ?
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \param DeviceOutputName The name of the device output
     /// \param DeviceOutputComponentName The name of the device output component
@@ -5521,7 +5526,7 @@ namespace CPP
     ///      // Output.Result == Success
     ///      // Output.DeviceOutputSubsamples == ?
     ///      // Output.Occluded = ?
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \param DeviceOutputName The name of the device output - This is the component name, not the output name
     /// \return An Output_GetDeviceOutputSubsamples class containing the result of the operation, the number of subsamples for this device output, and whether the device is occluded.
@@ -5583,7 +5588,7 @@ namespace CPP
     ///      // Output.Result == Success
     ///      // Output.DeviceOutputSubsamples == ?
     ///      // Output.Occluded = ?
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \param DeviceOutputName The name of the device output
     /// \param DeviceOutputComponentName The name of the device output component
@@ -5652,7 +5657,7 @@ namespace CPP
     ///      // Output.Result == Success
     ///      // Output.Value == ?
     ///      // Output.Occluded = ?
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \param DeviceOutputName The name of the device output - This is the component name, not the output name.
     /// \param Subsample The subsamples to access
@@ -5723,7 +5728,7 @@ namespace CPP
     ///      // Output.Result == Success
     ///      // Output.Value == ?
     ///      // Output.Occluded = ?
-    /// -----
+    ///
     /// \param DeviceName The device name
     /// \param DeviceOutputName The name of the device output
     /// \param DeviceOutputComponentName The name of the device output component
@@ -5786,7 +5791,7 @@ namespace CPP
     ///      Output_GetForcePlateCount Output = MyClient.GetForcePlateCount();
     ///      // Output.Result == Success
     ///      // Output.ForcePlateCount >= 0
-    /// -----
+    ///
     /// \return An Output_GetForcePlateCount class containing the result of the operation and the number of force plates.
     ///         - The Result will be:
     ///           + Success
@@ -5837,7 +5842,7 @@ namespace CPP
     ///      MyClient.EnableUnlabeledMarkerData();
     ///      MyClient.GetFrame();
     ///      Output_GetGlobalForceVector Output = MyClient.GetGlobalForceVector( 0 );
-    /// -----
+    ///
     /// \param ForcePlateIndex The index of the force plate
     /// \return An Output_GetGlobalForceVector class containing the result of the operation and the force on the force plate
     ///         - The Result will be:
@@ -5891,7 +5896,7 @@ namespace CPP
     ///      MyClient.EnableDeviceData ();
     ///      MyClient.GetFrame();
     ///      Output_GetGlobalMomentVector Output = MyClient.GetGlobalMomentVector( 0 );
-    /// -----
+    ///
     /// \param ForcePlateIndex The index of the force plate
     /// \return An Output_GetGlobalMomentVector  class containing the result of the operation and the moment exerted on the force plate
     ///         - The Result will be:
@@ -5944,7 +5949,7 @@ namespace CPP
     ///      MyClient.EnableDeviceData ();
     ///      MyClient.GetFrame();
     ///      Output_GetGlobalCentreOfPressure Output = MyClient.GetGlobalCentreOfPressure( 0 );
-    /// -----
+    ///
     /// \param ForcePlateIndex The index of the force plate
     /// \return An Output_GetGlobalCentreOfPressure class containing the result of the operation and the center of pressure.
     ///         - The Result will be:
@@ -6005,7 +6010,7 @@ namespace CPP
     ///      Output_GetForcePlateSubsamples Output = MyClient.GetForcePlateSubsamples ( 0 );
     ///      // Output.Result == Success
     ///      // Output.ForcePlateSubsamples >= 0
-    /// -----
+    ///
 
     ///
     /// \param ForcePlateIndex The index of the force plate
@@ -6084,10 +6089,10 @@ namespace CPP
     ///      {
     ///        Output_GetGlobalForceVector Output = MyClient.GetGlobalForceVector( Index, Sample );
     ///      }
-    /// -----
+    ///
     /// \param ForcePlateIndex The index of the force plate
     /// \param Subsample The subsample to access
-    /// \return An Output_GetGlobalForceVector class containing the result of the operation and the force on the forceplate.
+    /// \return An Output_GetGlobalForceVector class containing the result of the operation and the force on the force plate.
     ///         - The Result will be:
     ///           + Success
     ///           + NotConnected
@@ -6163,7 +6168,7 @@ namespace CPP
     ///      {
     ///        Output_GetGlobalMomentVector Output = MyClient.GetGlobalMomentVector( Index, Sample );
     ///      }
-    /// -----
+    ///
     ///        
     ///        
     ///
@@ -6245,7 +6250,7 @@ namespace CPP
     ///      {
     ///        Output_GetGlobalCentreOfPressure Output = MyClient.GetGlobalCentreOfPressure (Index,Sample);
     ///      }
-    /// -----
+    ///
     /// \param ForcePlateIndex The index of the force plate
     /// \param Subsample The subsample to access
     /// \return An Output_GetGlobalCentreOfPressure class containing the result of the operation the center of pressure
@@ -6302,7 +6307,7 @@ namespace CPP
     ///      Output_GetEyeTrackerCount Output = MyClient.GetEyeTrackerCount();
     ///      // Output.Result == Success
     ///      // Output.EyeTrackerCount >= 0
-    /// -----
+    ///
     /// \return An Output_GetEyeTrackerCount class containing the result of the operation and the number of eye trackers.
     ///         - The Result will be:
     ///           + Success
@@ -6354,7 +6359,7 @@ namespace CPP
     ///      MyClient.EnableDeviceData ();
     ///      MyClient.GetFrame();
     ///      Output_GetEyeTrackerGlobalPosition Output = MyClient.GetEyeTrackerGlobalPosition ( 0 );
-    /// -----
+    ///
     /// \param EyeTrackerIndex The index of the eye tracker
     /// \return An Output_GetEyeTrackerGlobalPosition class containing the result of the operation, the eye position and whether the eye tracker is occluded.
     ///         - The Result will be:
@@ -6411,7 +6416,7 @@ namespace CPP
     ///      MyClient.EnableDeviceData ();
     ///      MyClient.GetFrame();
     ///      Output_GetEyeTrackerGlobalPosition Output = MyClient.GetEyeTrackerGlobalPosition ( 0 );
-    /// -----
+    ///
     /// \param EyeTrackerIndex The index of the eye tracker
     /// \return An Output_GetEyeTrackerGlobalGazeVector class containing the result of the operation, the gaze direction vector, and whether the eye tracker is occluded.
     ///         - The Result will be:
@@ -6467,7 +6472,7 @@ namespace CPP
     ///      Output_GetCameraCount Output = MyClient.GetCameraCount();
     ///      // Output.Result == Success
     ///      // Output.CameraCount >= 0
-    /// -----
+    ///
     /// \return An Output_GetCameraCount class containing the result of the operation and the number of cameras.
     ///         - The Result will be:
     ///           + Success
@@ -6520,7 +6525,7 @@ namespace CPP
     ///      Output_GetCameraCount Output = MyClient.GetDynamicCameraCount();
     ///      // Output.Result == Success
     ///      // Output.CameraCount >= 0
-    /// -----
+    ///
     /// \return An Output_GetDynamicCameraCount class containing the result of the operation and the number of cameras.
     ///         - The Result will be:
     ///           + Success
@@ -6585,7 +6590,7 @@ namespace CPP
     ///      // OutputGCC.CameraCount == 1
     ///      Output_GetCameraName OutputGCN;
     ///      OutputGCN = MyClient.GetCameraName( 0 )
-    /// -----
+    ///
     /// \param CameraIndex The index of the camera
     /// \return An Output_GetCameraName class containing the result of the operation and the name of the camera.
     ///         - The Result will be:
@@ -6651,7 +6656,7 @@ namespace CPP
     ///      // OutputGCC.CameraCount == 1
     ///      Output_GetDynamicCameraName OutputGCN;
     ///      OutputGCN = MyClient.GetDynamicCameraName( 0 )
-    /// -----
+    ///
     /// \param CameraIndex The index of the camera
     /// \return An Output_GetDynamicCameraName class containing the result of the operation and the name of the camera.
     ///         - The Result will be:
@@ -6706,7 +6711,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -6726,8 +6731,9 @@ namespace CPP
     ///          Output_GetCameraId Output_GCI = MyClient.GetCameraId( OutputGCN.CameraName );
     ///        }
     ///      }
-    /// -----
     ///
+    ///
+    /// \param CameraName Name of the camera
     /// \return An Output_GetCameraId class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -6741,7 +6747,6 @@ namespace CPP
     ///
     ///
     /// C example
-    ///      
     ///      
     ///      CClient * pClient = Client_Create();
     ///      Client_Connect( pClient, "localhost" );
@@ -6764,7 +6769,6 @@ namespace CPP
     ///      
     /// C++ example
     ///      
-    ///      
     ///      A valid CameraName may be obtained from GetCameraName()
     ///      ViconDataStreamSDK::CPP::Client MyClient;
     ///      MyClient.Connect( "localhost" );
@@ -6784,13 +6788,11 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     ///      
     /// .NET example
-    ///      
     ///      
     ///      A valid CameraName may be obtained from GetCameraName()
     ///      ViconDataStreamSDK.DotNET.Client MyClient = new ViconDataStreamSDK.DotNET.Client();
@@ -6807,8 +6809,8 @@ namespace CPP
     ///          Output_GetCameraUserId Output_GCI = MyClient.GetCameraUserId( OutputGCN.CameraName );
     ///        }
     ///      }
-    /// -----
     ///
+    /// \param CameraName Name of the camera
     /// \return An Output_GetCameraUserId class containing the result of the operation.
     ///         - The Result will be:
     ///           + Success
@@ -6862,7 +6864,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -6882,7 +6884,7 @@ namespace CPP
     ///          Output_GetCameraType Output_GCT = MyClient.GetCameraType( OutputGCN.CameraName );
     ///        }
     ///      }
-    /// -----
+    ///
     ///
     /// \return An Output_ class containing the result of the operation.
     ///         - The Result will be:
@@ -6940,7 +6942,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -6960,7 +6962,7 @@ namespace CPP
     ///          Output_GetCameraDisplayName Output_GCD = MyClient.GetCameraDisplayName( OutputGCN.CameraName );
     ///        }
     ///      }
-    /// -----
+    ///
     ///
     /// \return An Output_ class containing the result of the operation.
     ///         - The Result will be:
@@ -7014,7 +7016,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -7034,7 +7036,7 @@ namespace CPP
     ///          Output_GetCameraResolution Output_GCR = MyClient.GetCameraResolution( OutputGCN.CameraName );
     ///        }
     ///      }
-    /// -----
+    ///
     ///
     /// \return An Output_ class containing the result of the operation.
     ///         - The Result will be:
@@ -7088,7 +7090,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -7108,7 +7110,7 @@ namespace CPP
     ///          Output_GetIsVideoCamera Output_GCV = MyClient.GetIsVideoCamera( OutputGCN.CameraName );
     ///        }
     ///      }
-    /// -----
+    ///
     ///
     /// \return An Output_ class containing the result of the operation.
     ///         - The Result will be:
@@ -7126,7 +7128,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     /// C++ example
     ///      
@@ -7148,7 +7150,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -7168,7 +7170,7 @@ namespace CPP
     ///          Output_GetCameraSensorMode Output = MyClient.GetCameraSensorMode( OutputGCN.CameraName );
     ///        }
     ///      }
-    /// -----
+    ///
     ///
     /// \return An Output_ class containing the result of the operation and the sensor mode of the camera as a string
     ///         - The Result will be:
@@ -7185,7 +7187,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///     Not Implmented
+    ///     Not Implemented
     ///      
     /// C++ example
     ///      
@@ -7207,7 +7209,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -7227,7 +7229,7 @@ namespace CPP
     ///          Output_GetCameraWindowSize Output = MyClient.GetCameraWindowSize( OutputGCN.CameraName );
     ///        }
     ///      }
-    /// -----
+    ///
     ///
     /// \return An Output_ class containing the result of the operation, and members defining the top, left, width and height of the sensor window
     ///         - The Result will be:
@@ -7270,8 +7272,8 @@ namespace CPP
     /// .NET example
     ///      
     ///      Not Implemented
-    /// -----
-    /// \param  CameraName The name of the Camera.
+    ///
+    /// \param  i_rCameraName The name of the Camera.
     /// \return An Output_GetSegmentGlobalTranslation class containing the result of the operation, the translation of the camera.
     ///         - The Result will be:
     ///            + Success
@@ -7314,8 +7316,8 @@ namespace CPP
     /// .NET example
     ///      
     ///      Not Implemented
-    /// -----
-    /// \param  CameraName The name of the Camera.
+    ///
+    /// \param  i_rCameraName The name of the Camera.
     /// \return An Output_GetCameraGlobalRotationHelical class containing the result of the operation, the rotation of the camera.
     ///         - The Result will be:
     ///            + Success
@@ -7359,8 +7361,8 @@ namespace CPP
     /// .NET example
     ///      
     ///      Not Implemented
-    /// -----
-    /// \param  CameraName The name of the Camera.
+    ///
+    /// \param  i_rCameraName The name of the Camera.
     /// \return An Output_GetCameraGlobalRotationMatrix class containing the result of the operation, the rotation of the camera.
     ///         - The Result will be:
     ///            + Success
@@ -7403,8 +7405,8 @@ namespace CPP
     /// .NET example
     ///      
     ///      Not Implemented
-    /// -----
-    /// \param  CameraName The name of the Camera.
+    ///
+    /// \param  i_rCameraName The name of the Camera.
     /// \return An Output_GetCameraGlobalRotationQuaternion class containing the result of the operation, the rotation of the camera.
     ///         - The Result will be:
     ///            + Success
@@ -7447,8 +7449,8 @@ namespace CPP
     /// .NET example
     ///      
     ///      Not Implemented
-    /// -----
-    /// \param  CameraName The name of the Camera.
+    ///
+    /// \param  i_rCameraName The name of the Camera.
     /// \return An Output_GetCameraGlobalRotationEulerXYZ class containing the result of the operation, the rotation of the camera.
     ///         - The Result will be:
     ///            + Success
@@ -7486,14 +7488,15 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
-    /// -----
+    ///
+    /// \param  i_rCameraName The name of the Camera.
     ///
     /// \return An Output_GetCameraPrincipalPoint class containing the result of the operation, and members defining the x, y of the principal point
     ///         - The Result will be:
@@ -7531,14 +7534,15 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///     Not implemented
     ///      
     ///      
     /// .NET example
     ///      
     ///     Not Implemented
     ///      
-    /// -----
+    ///
+    /// \param  i_rCameraName The name of the Camera.
     ///
     /// \return An Output_GetCameraFocalLength class containing the result of the operation, and the focal length of the camera.
     ///         - The Result will be:
@@ -7556,7 +7560,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    ///     Not Implmented
+    ///     Not Implemented
     ///      
     /// C++ example
     ///      
@@ -7578,14 +7582,15 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///     Not implemented
     ///      
     ///      
     /// .NET example
     ///      
     ///     Not Implemented
     ///      
-    /// -----
+    ///
+    /// \param  i_rCameraName The name of the Camera.
     ///
     /// \return An Output_CameraLensParameters class containing the result of the operation, and the parameters of the camera lens distortion model
     ///         - The Result will be:
@@ -7662,8 +7667,7 @@ namespace CPP
     ///        // OutputGCeC.Result == Success
     ///        // OutputGCeC.CentroidCount >= 0
     ///      }
-    /// -----
-    ///        
+    ///
     ///        
     ///
     /// \param CameraName The name of the camera.
@@ -7725,7 +7729,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetCameraName OutputGCN = MyClient.GetCameraName( 0 );
     ///      Output_GetCentroidPosition Output = MyClient.GetCentroidPosition( OutputGCN.CameraName, 0 );
-    /// -----
+    ///
     ///        
     ///        
     ///
@@ -7790,7 +7794,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetCameraName OutputGCN = MyClient.GetCameraName( 0 );
     ///      Output_GetCentroidWeight Output = MyClient.GetCentroidWeight( OutputGCN.CameraName, 0 );
-    /// -----
+    ///
     ///        
     ///        
     ///
@@ -7813,7 +7817,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// C++ example
@@ -7828,7 +7832,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -7841,7 +7845,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetCameraName CameraName = MyClient.GetCameraName( 0 );
     ///      Output_GetGreyscaleBlob GreyscaleData = MyClient.GetGreyscaleBlob( CameraName.CameraName, 0 );
-    /// -----
+    ///
     ///     
     /// \return An Output_GetGreyscaleBlobCount class containing the result of the operation.
     ///         - The Result will be:
@@ -7859,7 +7863,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// C++ example
@@ -7875,7 +7879,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///       Not implemented
     ///      
     ///      
     /// .NET example
@@ -7888,7 +7892,7 @@ namespace CPP
     ///      Output_GetCameraName CameraName = MyClient.GetCameraName( 0 );
     ///      Output_GetGreyscaleBlobSubsampleInfo Output
     ///          = MyClient.GetGreyscaleBlobSubsampleInfo( CameraName.CameraName );
-    /// -----
+    ///
     ///     
     /// \return An Output_GetGreyscaleBlobSubsampleInfo class containing the result of the operation and details of the subsampled data
     ///         - The Result will be:
@@ -7905,7 +7909,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// C++ example
@@ -7921,7 +7925,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -7934,7 +7938,7 @@ namespace CPP
     ///      MyClient.GetFrame();
     ///      Output_GetCameraName CameraName = MyClient.GetCameraName( 0 );
     ///      Output_GetGreyscaleBlob GreyscaleData = MyClient.GetGreyscaleBlob( CameraName.CameraName, 0 );
-    /// -----
+    ///
     ///
     /// \return An Output_GetGreyscaleBlob class containing the result of the operation.
     ///         - The Result will be:
@@ -7951,7 +7955,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// C++ example
@@ -7967,7 +7971,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -7977,8 +7981,8 @@ namespace CPP
     ///      MyClient.EnableVideoData ();
     ///      MyClient.GetFrame();
     ///      Output_GetCameraName CameraName = MyClient.GetCameraName( 0 );
-    ///      Output_GetVideoFrame VideoData = MyClient.GetVideoFrame( CameraName.CameraName ); /// -----
-    /// -----
+    ///      Output_GetVideoFrame VideoData = MyClient.GetVideoFrame( CameraName.CameraName );
+    ///
     ///
     /// \return An Output_GetVideoFrame class containing the result of the operation.
     ///         - The Result will be:
@@ -7994,7 +7998,7 @@ namespace CPP
     ///
     /// C example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// C++ example
@@ -8017,7 +8021,7 @@ namespace CPP
     ///      
     /// MATLAB example
     ///      
-    /// Not implemented
+    ///      Not implemented
     ///      
     ///      
     /// .NET example
@@ -8034,8 +8038,8 @@ namespace CPP
     ///      List< unsigned int >^ ReceiveVideo = gcnew List< unsigned int >();
     ///      ReceiveVideo.Add( CameraId.CameraId );
     ///      Output_SetCameraFilter FilterResults = 
-    ///        MyClient.SetCameraFilter( ReceiveCentroids, ReceiveBlobs, ReceiveVideo );    /// -----
-    /// -----
+    ///        MyClient.SetCameraFilter( ReceiveCentroids, ReceiveBlobs, ReceiveVideo );
+    ///
     ///
     /// \return An Output_SetCameraFilter class containing the result of the operation.
     ///         - The Result will be:
