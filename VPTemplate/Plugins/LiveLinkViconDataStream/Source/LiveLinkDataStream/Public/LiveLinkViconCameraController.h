@@ -20,4 +20,7 @@ public:
   //~ Begin ULiveLinkControllerBase interface
   virtual void Tick( float DeltaTime, const FLiveLinkSubjectFrameData& SubjectData ) override;
   //~ End ULiveLinkControllerBase interface
+
+private:
+  float CurrentFilmbackRatio = -1;
 };

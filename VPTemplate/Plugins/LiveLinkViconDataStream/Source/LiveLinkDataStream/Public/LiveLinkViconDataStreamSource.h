@@ -22,22 +22,23 @@ public:
   FLiveLinkViconDataStreamSource( const FText& InSourceType, const ViconStreamProperties& InViconStreamProps );
   virtual ~FLiveLinkViconDataStreamSource();
 
+  // Begin ILiveLinkSource interface
   virtual void ReceiveClient( ILiveLinkClient* InClient, FGuid InSourceGuid ) override;
 
   virtual bool IsSourceStillValid() const override;
 
   virtual bool RequestSourceShutdown() override;
 
-  virtual FText GetSourceType() const;
-  virtual FText GetSourceMachineName() const;
-  virtual FText GetSourceStatus() const;
+  virtual FText GetSourceType() const override;
+  virtual FText GetSourceMachineName() const override;
+  virtual FText GetSourceStatus() const override;
 
-  bool IsConnected() const;
-
-  // settings
-  virtual void InitializeSettings( ULiveLinkSourceSettings* Settings );
+  virtual void InitializeSettings( ULiveLinkSourceSettings* Settings ) override;
   virtual TSubclassOf< ULiveLinkSourceSettings > GetSettingsClass() const override { return ULiveLinkDataStreamSourceSettings::StaticClass(); }
   virtual void OnSettingsChanged( ULiveLinkSourceSettings* Settings, const FPropertyChangedEvent& PropertyChangedEvent ) override;
+  // End ILiveLinkSource interface
+
+  bool IsConnected() const;
 
 private:
   ILiveLinkClient* Client;

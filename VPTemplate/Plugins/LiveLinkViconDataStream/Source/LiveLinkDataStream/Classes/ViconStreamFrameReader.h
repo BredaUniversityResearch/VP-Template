@@ -19,6 +19,7 @@
 
 class FLiveLinkViconDataStreamSource;
 
+
 class LIVELINKDATASTREAM_API ViconStreamProperties
 {
 public:
@@ -44,6 +45,9 @@ public:
   FViconStreamFrameReader( ILiveLinkClient* i_pClient, const ViconStreamProperties& i_rViconStreamProps, const FGuid& i_rSourceGuid );
   virtual ~FViconStreamFrameReader();
 
+  static const std::string UNLABELED_MARKER;
+  static const std::string LABELED_MARKER;
+
   // Begin FRunnable interface.
   virtual bool Init();
   virtual uint32 Run();
@@ -64,18 +68,32 @@ public:
   void ShowAllVideoCamera( bool i_bShow );
 
 private:
+  // Cached representation of static data for transform / animation subjects
+  class FCachedSubject
+  {
+  public:
+    TArray<std::string> Markers;
+    TArray<std::string> Bones;
+  };
+
   void HandleSubjectData();
   void HandleCameraData();
   void HandleMarkerData();
-
-  bool AddSubjectStaticDataToLiveLink( const FString& i_rSubjectName, TArray< std::string >& o_rSubjectBones );
+  bool AddSubjectStaticDataToLiveLink( const FString& i_rSubjectName, TArray< std::string >& o_rSubjectBones, TArray<std::string>& o_rMarkerNames );
   void ClearCamerasFromLiveLink( const TSet< FString >& i_rStaleCameras );
-  void ClearMarkerFromLiveLink( const FLiveLinkSubjectKey& i_rLabelledMarkerKey );
-  void HandleLabelledMarker();
-  void HandleUnlabelledMarker();
+  void ClearMarkerFromLiveLink( const FLiveLinkSubjectKey& i_rMarkerKey );
+
+  // Handle markers not attached to subjects
+  void HandleMarkerData(bool bLabeled);
+
+  // Utility to get a list of property names of the form {index}_{axis}
+  TArray<FName> GetGenericMarkerPropertyNames(unsigned int& MarkerCount);
 
 private:
   void ConnectInternal();
+
+  // Adds _X, _Y, and _Z to the marker names, returning a list whose length is three times the input
+  TArray<FName> MarkerPropertiesFromNames(const TArray<std::string>& i_rMarkerNames);
 
   ILiveLinkClient* m_pLiveLinkClient;
   ViconStreamProperties m_ViconStreamProps;
@@ -88,11 +106,13 @@ private:
 
   ViconStream m_DataStream;
 
-  typedef TArray< std::string > TSubjectBones;
-  TMap< FString, TSubjectBones > m_CachedSubjectsBones;
+  TMap< FString, FCachedSubject> m_CachedSubjects;
   TSet< FString > m_CachedCameras;
-  TMap< FString, unsigned int > m_CachedMarkers;
+  TMap< FString, unsigned int> m_CachedMarkerCounts;
   bool m_bLightweight;
+  bool m_bMarker;
+  bool m_bUnlabeledMarker;
   bool m_bShowAllVideoCamera;
   TArray< FString > m_SubjectAllowed;
+
 };

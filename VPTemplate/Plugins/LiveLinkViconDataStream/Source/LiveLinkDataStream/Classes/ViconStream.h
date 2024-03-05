@@ -8,7 +8,6 @@
 #include "ILiveLinkClient.h"
 #include "LiveLinkTypes.h"
 #include "Logging/LogMacros.h"
-#include "Roles/LiveLinkAnimationTypes.h"
 #include "Roles/LiveLinkCameraTypes.h"
 
 DECLARE_LOG_CATEGORY_CLASS( LogViconStream, Display, All )
@@ -89,7 +88,7 @@ public:
 
   EResult GetSegmentLocalPose( const std::string& i_rSubjectName, const std::string& i_rSegmentName, FTransform& o_rPose );
 
-  bool GetPoseForSubject( const std::string& InName, const TArray< std::string >& BoneNames, FLiveLinkFrameDataStruct& OutSubject );
+  bool GetPoseForSubject( const std::string& InName, const TArray< std::string >& BoneNames, const TArray<std::string>& MarkerNames, FLiveLinkFrameDataStruct& OutSubject );
   EResult GetSubjectNames( TArray< FString >& SubjectNames );
 
   EResult GetRootPose( const std::string& i_rSubjectName, FVector& o_rPosition, FQuat& o_rOrientation );
@@ -105,8 +104,16 @@ public:
   EResult GetLensStaticData( const std::string& i_rCameraName, FLiveLinkLensStaticData& LensStaticData );
   EResult GetLensFrameData( const std::string& i_rCameraName, FLiveLinkLensFrameData& LensFrameData );
 
-  EResult GetLabelledMarkers( TArray< FVector >& o_rMarkerList );
-  EResult GetUnlabelledMarkers( TArray< FVector >& o_rMarkerList );
+  EResult GetMarkerNamesForSubject(const std::string& i_rSubjectName, TArray<std::string>& o_rNames);
+  // Gets positions of markers for subject as a flattened vector of the form [x1, y1, z1, x2, y2, z2, ...]
+  EResult GetMarkersForSubject(const std::string& i_rSubjectName, const TArray<std::string>& i_rMarkerNames,TArray <float>& o_rMarkerValues);
+  // Gets positions of labeled markers as a flattened vector of the form [x1, y1, z1, x2, y2, z2, ...]
+  EResult GetLabeledMarkers(TArray< float >& o_rMarkerList);
+  // Gets positions of unlabeled markers as a flattened vector of the form [x1, y1, z1, x2, y2, z2, ...]
+  EResult GetUnlabeledMarkers(TArray< float >& o_rMarkerList);
+  EResult GetMarkerCountForSubject(const std::string& i_rSubjectName, unsigned int& o_rMarkerCount);
+  EResult GetUnlabeledMarkerCount(unsigned int& o_rCount);
+  EResult GetLabeledMarkerCount(unsigned int& o_rCount);
 
   bool IsRetimed() { return m_bRetimed; }
 
@@ -117,6 +124,8 @@ public:
 private:
   EResult GetSegmentScale( const std::string& i_rSubjectName, const std::string& i_rSegmentName, FVector& o_rScale );
   bool IsViconServerYup();
+  // Apply corrections for Unreal coordinate system to marker locations from datastream
+  FVector HandleMarker(const double i_rTranslation[3]);
 
   FString m_ServerIP;
   float m_Offset;

@@ -19,6 +19,7 @@ public class LiveLinkDataStream : ModuleRules
       new string[]
       {
         "Core",
+        "RenderCore",
         "CinematicCamera",
         "CameraCalibrationCore",
         "SlateCore",
@@ -32,7 +33,9 @@ public class LiveLinkDataStream : ModuleRules
         "LiveLinkLens",
         "TimeManagement",
         "Networking",
-        "Sockets"
+        "Sockets",
+        "MeshDescription",
+        "ProceduralMeshComponent"
       }
     );
 

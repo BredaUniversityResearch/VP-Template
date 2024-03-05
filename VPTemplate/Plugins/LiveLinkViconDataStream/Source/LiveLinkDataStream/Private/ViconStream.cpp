@@ -1,14 +1,18 @@
 // Copyright (c) 2021 Vicon Motion Systems Ltd. All Rights Reserved.
 
 #include "ViconStream.h"
-#include <TimeManagement/public/CommonFrameRates.h>
+
+#include "Roles/LiveLinkAnimationTypes.h"
+#include "Roles/LiveLinkTransformTypes.h"
+#include "ViconLensModel.h"
+
+#include "CommonFrameRates.h"
+#include "LiveLinkLensTypes.h"
 #include "Misc/Paths.h"
 
-#include "ViconLensModel.h"
 #include <iostream>
 #include <string>
 
-#include "LiveLinkLens/Public/LiveLinkLensTypes.h"
 
 #ifdef CPP
 #pragma push_macro( "CPP" )
@@ -591,6 +595,7 @@ EResult ViconStream::GetDynamicCameraNames( TSet< FString >& o_rNameList ) const
       return EResult::EError;
     }
 
+
     o_rNameList.Add( std::string( CameraNameResult.CameraName ).c_str() );
   }
   return EResult::ESuccess;
@@ -716,74 +721,179 @@ EResult ViconStream::GetLensFrameData( const std::string& i_rCameraName, FLiveLi
   LensFrameData.PrincipalPoint = FVector2D( PrinciplePointResult.PrincipalPointX, PrinciplePointResult.PrincipalPointY ) / Resolution;
   LensFrameData.FxFy = FVector2D( FocalLength / Resolution.X, FocalLength / Resolution.Y );
 
+  // Add timecode to metadata
+  ViconDataStreamSDK::CPP::Output_GetTimecode GetTimeCodeResult = m_Client.GetTimecode();
+  if( GetTimeCodeResult.Result == ViconDataStreamSDK::CPP::Result::Success && GetTimeCodeResult.SubFramesPerFrame > 0 )
+  {
+    LiveLinkTimeCodeFromViconTimeCode( GetTimeCodeResult, LensFrameData.MetaData.SceneTime );
+  }
+
   return EResult::ESuccess;
 }
 
-EResult ViconStream::GetLabelledMarkers( TArray< FVector >& o_rMarkerList )
+FVector ViconStream::HandleMarker(const double i_Translation[3])
+{
+  FTransform MarkerTransformation;
+  MarkerTransformation.SetRotation(FQuat::Identity);
+  // 0.1 for mm->cm conversion
+  MarkerTransformation.SetTranslation(FVector(i_Translation[0], -i_Translation[1], i_Translation[2]) * 0.1);
+  if (IsViconServerYup())
+  {
+    MarkerTransformation = MarkerTransformation * s_YUpRotation;
+  }
+  auto Marker = MarkerTransformation.GetTranslation();
+  return FVector { Marker.X, Marker.Y, Marker.Z };
+}
+
+EResult ViconStream::GetUnlabeledMarkerCount(unsigned int& o_rCount)
+{
+  o_rCount = 0;
+  if (!m_Client.IsUnlabeledMarkerDataEnabled().Enabled)
+  {
+    return EResult::ESuccess;
+  }
+  const auto Result = m_Client.GetUnlabeledMarkerCount();
+  o_rCount = Result.MarkerCount;
+  return Result.Result ? EResult::ESuccess : EResult::EError;
+}
+
+EResult ViconStream::GetLabeledMarkerCount(unsigned int& o_rCount)
+{
+  o_rCount = 0;
+  if (!m_Client.IsMarkerDataEnabled().Enabled)
+  {
+    return EResult::ESuccess;
+  }
+  const auto Result = m_Client.GetLabeledMarkerCount();
+  o_rCount = Result.MarkerCount;
+  return Result.Result ? EResult::ESuccess : EResult::EError;
+}
+
+EResult ViconStream::GetLabeledMarkers( TArray< float >& o_rMarkerList )
 {
   // not available in retimed data
+  o_rMarkerList.Empty();
+  if (!m_Client.IsMarkerDataEnabled().Enabled)
+  {
+    return EResult::ESuccess;
+  }
   if( m_bRetimed )
   {
-    UE_LOG( LogViconStream, Warning, TEXT( "Camera data doesn't support retime mode" ) );
+    UE_LOG( LogViconStream, Warning, TEXT( "Marker data doesn't support retime mode" ) );
     return EResult::EError;
   }
 
-  o_rMarkerList.Empty();
   unsigned int MarkerCount = m_Client.GetLabeledMarkerCount().MarkerCount;
   for( unsigned int MarkerIndex = 0; MarkerIndex < MarkerCount; ++MarkerIndex )
   {
-    auto Result = m_Client.GetLabeledMarkerGlobalTranslation( MarkerIndex );
-    auto Translation = Result.Translation;
-    std::string MarkerPos;
-
-    FTransform MarkerTransformation;
-    MarkerTransformation.SetRotation( FQuat::Identity );
-    MarkerTransformation.SetTranslation( FVector( Translation[ 0 ], -Translation[ 1 ], Translation[ 2 ] ) * 0.1 );
-    if( IsViconServerYup() )
-    {
-      MarkerTransformation = MarkerTransformation * s_YUpRotation;
-    }
-    auto Marker = MarkerTransformation.GetTranslation();
-    FVector MarkerPose{Marker.X, Marker.Y, Marker.Z};
-    o_rMarkerList.Emplace( MarkerPose );
+    const auto Result = m_Client.GetLabeledMarkerGlobalTranslation( MarkerIndex );
+    const auto MarkerPose = HandleMarker(Result.Translation);
+    o_rMarkerList.Emplace(MarkerPose[0]);
+    o_rMarkerList.Emplace(MarkerPose[1]);
+    o_rMarkerList.Emplace(MarkerPose[2]);
   }
   return EResult::ESuccess;
 }
 
-EResult ViconStream::GetUnlabelledMarkers( TArray< FVector >& o_rMarkerList )
+EResult ViconStream::GetUnlabeledMarkers(TArray < float > & o_rMarkerList)
 {
   // not available in retimed data
+  o_rMarkerList.Empty();
+  if (!m_Client.IsUnlabeledMarkerDataEnabled().Enabled)
+  {
+    return EResult::ESuccess;
+  }
   if( m_bRetimed )
   {
-    UE_LOG( LogViconStream, Warning, TEXT( "Camera data doesn't support retime mode" ) );
+    UE_LOG( LogViconStream, Warning, TEXT( "Marker data doesn't support retime mode" ) );
     return EResult::EError;
   }
-  o_rMarkerList.Empty();
+
   unsigned int MarkerCount = m_Client.GetUnlabeledMarkerCount().MarkerCount;
   for( unsigned int MarkerIndex = 0; MarkerIndex < MarkerCount; ++MarkerIndex )
   {
-    auto Result = m_Client.GetUnlabeledMarkerGlobalTranslation( MarkerIndex );
-    auto Translation = Result.Translation;
-    std::string MarkerPos;
+    const auto Result = m_Client.GetUnlabeledMarkerGlobalTranslation(MarkerIndex);
+    const auto MarkerPose = HandleMarker(Result.Translation);
+    o_rMarkerList.Emplace(MarkerPose.X);
+    o_rMarkerList.Emplace(MarkerPose.Y);
+    o_rMarkerList.Emplace(MarkerPose.Z);
+  }
+  return EResult::ESuccess;
+}
+EResult ViconStream::GetMarkerCountForSubject(const std::string& i_rSubjectName, unsigned int& o_rCount)
+{
+  o_rCount = 0;
+  if (!m_Client.IsMarkerDataEnabled().Enabled)
+  {
+    return EResult::ESuccess;
+  }
+  const auto Result = m_Client.GetMarkerCount(i_rSubjectName);
+  o_rCount = Result.MarkerCount;
+  return Result.Result ? EResult::ESuccess : EResult::EError;
+}
 
-    FTransform MarkerTransformation;
-    MarkerTransformation.SetRotation( FQuat::Identity );
-    MarkerTransformation.SetTranslation( FVector( Translation[ 0 ], -Translation[ 1 ], Translation[ 2 ] ) * 0.1 );
-    if( IsViconServerYup() )
+EResult ViconStream::GetMarkerNamesForSubject(const std::string& i_rSubjectName, TArray<std::string>& o_rNames)
+{
+  o_rNames.Empty();
+  if (!m_Client.IsMarkerDataEnabled().Enabled)
+  {
+    return EResult::ESuccess;
+  }
+
+  if( m_bRetimed )
+  {
+    UE_LOG( LogViconStream, Warning, TEXT( "Marker data doesn't support retime mode" ) );
+    return EResult::EError;
+  }
+  
+  const auto CountResult = m_Client.GetMarkerCount(i_rSubjectName);
+  if (!CountResult.Result)
+  {
+    return EResult::EError;
+  }
+  for (unsigned int MarkerIndex = 0; MarkerIndex < CountResult.MarkerCount; MarkerIndex++)
+  {
+    const auto Result = m_Client.GetMarkerName(i_rSubjectName, MarkerIndex);
+    if (!Result.Result)
     {
-      MarkerTransformation = MarkerTransformation * s_YUpRotation;
+      return EResult::EError;
     }
-    auto Marker = MarkerTransformation.GetTranslation();
-    FVector MarkerPose{Marker.X, Marker.Y, Marker.Z};
-    o_rMarkerList.Emplace( MarkerPose );
+    o_rNames.Emplace(Result.MarkerName);
   }
   return EResult::ESuccess;
 }
 
-// Some comments here
-bool ViconStream::GetPoseForSubject( const std::string& InName, const TArray< std::string >& BoneNames, FLiveLinkFrameDataStruct& OutSubject )
+EResult ViconStream::GetMarkersForSubject(const std::string& i_rSubjectName, const TArray<std::string>& i_rMarkerNames, TArray<float>& o_rMarkerValues) 
 {
+  o_rMarkerValues.Empty();
+  if (!m_Client.IsMarkerDataEnabled().Enabled)
+  {
+    return EResult::ESuccess;
+  }
+  if( m_bRetimed )
+  {
+    UE_LOG( LogViconStream, Warning, TEXT( "Marker data doesn't support retime mode" ) );
+    return EResult::EError;
+  }
 
+  for (const std::string& rMarkerName: i_rMarkerNames)
+  {
+    const auto TransformResult = m_Client.GetMarkerGlobalTranslation(i_rSubjectName, rMarkerName);
+    if (!TransformResult.Result)
+    {
+      return EResult::EError;
+    }
+    const FVector MarkerTranslation = HandleMarker(TransformResult.Translation);
+    o_rMarkerValues.Emplace(MarkerTranslation.X);
+    o_rMarkerValues.Emplace(MarkerTranslation.Y);
+    o_rMarkerValues.Emplace(MarkerTranslation.Z);
+  }
+  return EResult::ESuccess;
+}
+
+bool ViconStream::GetPoseForSubject( 
+  const std::string& InName, const TArray< std::string >& BoneNames, const TArray<std::string>& MarkerNames, FLiveLinkFrameDataStruct& OutSubject )
+{
   ViconDataStreamSDK::CPP::Output_GetSegmentCount SegmentCount = m_pClient->GetSegmentCount( InName );
   if( SegmentCount.Result != ViconDataStreamSDK::CPP::Result::Success )
     return false;
@@ -809,6 +919,7 @@ bool ViconStream::GetPoseForSubject( const std::string& InName, const TArray< st
     {
       LiveLinkTimeCodeFromViconTimeCode( GetTimeCodeResult, FrameData.MetaData.SceneTime );
     }
+    GetMarkersForSubject(InName, MarkerNames, FrameData.PropertyValues);
     return true;
   }
 
@@ -848,6 +959,7 @@ bool ViconStream::GetPoseForSubject( const std::string& InName, const TArray< st
   {
     LiveLinkTimeCodeFromViconTimeCode( GetTimeCodeResult, FrameData.MetaData.SceneTime );
   }
+  GetMarkersForSubject(InName, MarkerNames, FrameData.PropertyValues);
 
   return true;
 }
