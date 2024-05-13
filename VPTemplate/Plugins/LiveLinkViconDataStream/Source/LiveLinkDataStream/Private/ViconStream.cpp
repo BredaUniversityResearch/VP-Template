@@ -905,7 +905,7 @@ bool ViconStream::GetPoseForSubject(
     FTransform& Pose = FrameData.Transform;
     if( GetSegmentLocalPose( InName, BoneNames[ 0 ], Pose ) != EResult::ESuccess )
     {
-      UE_LOG( LogViconStream, Log, TEXT( "Failed to get Segment for %s:%s" ),
+      UE_LOG( LogViconStream, Log, TEXT( "Failed to get Segment for %hs:%hs" ),
               InName.c_str(), BoneNames[ 0 ].c_str() );
       return false;
     }
@@ -941,7 +941,7 @@ bool ViconStream::GetPoseForSubject(
     FTransform Trans = OutPose[ j ];
     if( GetSegmentLocalPose( InName, BoneNames[ j ], Trans ) != EResult::ESuccess )
     {
-      UE_LOG( LogViconStream, Log, TEXT( "Failed to get Segment for %s:%s" ),
+      UE_LOG( LogViconStream, Log, TEXT( "Failed to get Segment for %hs:%hs" ),
               InName.c_str(), BoneNames[ j ].c_str() );
       return false;
     }
