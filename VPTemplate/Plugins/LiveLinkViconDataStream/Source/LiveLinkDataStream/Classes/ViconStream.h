@@ -108,9 +108,9 @@ public:
   // Gets positions of markers for subject as a flattened vector of the form [x1, y1, z1, x2, y2, z2, ...]
   EResult GetMarkersForSubject(const std::string& i_rSubjectName, const TArray<std::string>& i_rMarkerNames,TArray <float>& o_rMarkerValues);
   // Gets positions of labeled markers as a flattened vector of the form [x1, y1, z1, x2, y2, z2, ...]
-  EResult GetLabeledMarkers(TArray< float >& o_rMarkerList);
+  EResult GetLabeledMarkers(TArrayView< float >& o_rMarkerList);
   // Gets positions of unlabeled markers as a flattened vector of the form [x1, y1, z1, x2, y2, z2, ...]
-  EResult GetUnlabeledMarkers(TArray< float >& o_rMarkerList);
+  EResult GetUnlabeledMarkers(TArrayView< float >& o_rMarkerList);
   EResult GetMarkerCountForSubject(const std::string& i_rSubjectName, unsigned int& o_rMarkerCount);
   EResult GetUnlabeledMarkerCount(unsigned int& o_rCount);
   EResult GetLabeledMarkerCount(unsigned int& o_rCount);

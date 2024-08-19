@@ -17,9 +17,13 @@
 #include "LiveLinkTypes.h"
 #include "Roles/LiveLinkCameraRole.h"
 #include "Roles/LiveLinkCameraTypes.h"
+#include "LiveLinkSubjectSettings.h"
+#include "LiveLinkFrameInterpolationProcessor.h"
+#include "InterpolationProcessor/LiveLinkBasicFrameInterpolateProcessor.h"
 
 const std::string FViconStreamFrameReader::UNLABELED_MARKER = "UnlabeledMarker";
 const std::string FViconStreamFrameReader::LABELED_MARKER = "LabeledMarker";
+const std::string FViconStreamFrameReader::MARKER_COUNT_PROPERTY = "MarkerCount";
 
 ViconStreamProperties ViconStreamProperties::FromString( const FString& i_rPropsString )
 {
@@ -119,6 +123,20 @@ FViconStreamFrameReader::FViconStreamFrameReader( ILiveLinkClient* i_pClient, co
   Connect();
 }
 
+void FViconStreamFrameReader::DisablePropertyInterpolation(FLiveLinkSubjectKey SubjectKey)
+{
+  // These casts should always work but best to be safe
+  if (ULiveLinkSubjectSettings* SubjectSettings =
+    Cast<ULiveLinkSubjectSettings>(m_pLiveLinkClient->GetSubjectSettings(SubjectKey)))
+  {
+    if (ULiveLinkBasicFrameInterpolationProcessor* BasicProcessor =
+      Cast<ULiveLinkBasicFrameInterpolationProcessor>(SubjectSettings->InterpolationProcessor))
+    {
+      BasicProcessor->bInterpolatePropertyValues = false;
+    }
+  }
+}
+
 FViconStreamFrameReader::~FViconStreamFrameReader()
 {
   Shutdown();
@@ -144,6 +162,10 @@ uint32 FViconStreamFrameReader::Run()
   {
     return 0;
   }
+
+  // We only use properties to send marker data, which cannot be interpolated.
+  FDelegateHandle SubjectAddedDelegateHandle = m_pLiveLinkClient->OnLiveLinkSubjectAdded()
+    .AddRaw(this, &FViconStreamFrameReader::DisablePropertyInterpolation);
 
   while( !m_bStopTask )
   {
@@ -179,8 +201,10 @@ uint32 FViconStreamFrameReader::Run()
 
   m_CachedSubjects.Empty();
   m_CachedCameras.Empty();
-  m_CachedMarkerCounts.Empty();
+  m_CachedMarkers.Empty();
   m_DataStream.Disconnect();
+  m_pLiveLinkClient->OnLiveLinkSubjectAdded().Remove(SubjectAddedDelegateHandle);
+  
   return 0;
 }
 
@@ -277,8 +301,8 @@ void FViconStreamFrameReader::ShowAllVideoCamera( bool i_bShow )
 void FViconStreamFrameReader::SetMarkerEnabled( bool i_bStreamMarker )
 {
   // Intermediate bool for same reason as m_bLightweight
-  m_bMarker = i_bStreamMarker;
-  m_DataStream.SetMarkerDataEnabled( m_bMarker );
+  m_bLabeledMarker = i_bStreamMarker;
+  m_DataStream.SetMarkerDataEnabled( m_bLabeledMarker );
 }
 
 void FViconStreamFrameReader::SetUnlabeledMarkerEnabled( bool i_bStreamMarker )
@@ -329,7 +353,7 @@ void FViconStreamFrameReader::ConnectInternal()
     m_DataStream.SetSubjectFilter( m_ViconStreamProps.m_SubjectFilter.ToString() );
     // Called after GetFrame, to ensure that supported type information from the server has been received 
     m_DataStream.SetLightWeightEnabled( m_bLightweight );
-    m_DataStream.SetMarkerDataEnabled( m_bMarker );
+    m_DataStream.SetMarkerDataEnabled( m_bLabeledMarker );
     m_DataStream.SetUnlabeledMarkerDataEnabled( m_bUnlabeledMarker );
     if( !m_ViconStreamProps.m_SubjectFilter.IsEmpty() )
     {
@@ -372,13 +396,18 @@ void FViconStreamFrameReader::ClearMarkerFromLiveLink( const FLiveLinkSubjectKey
   {
     m_pLiveLinkClient->RemoveSubject_AnyThread( i_rMarkerKey );
   }
-  m_CachedMarkerCounts.Remove( i_rMarkerKey.SubjectName.ToString() );
+  if (FCachedMarker* pCachedMarker = m_CachedMarkers.Find(i_rMarkerKey.SubjectName.ToString()))
+  {
+    pCachedMarker->SubjectPresent = false;
+  }
   UE_LOG( LogViconStream, Log, TEXT( "Removing subject %s" ), *i_rMarkerKey.SubjectName.ToString() );
 }
 
-TArray<FName> FViconStreamFrameReader::GetGenericMarkerPropertyNames(unsigned int& MarkerCount)
+TArray<FName> FViconStreamFrameReader::GetGenericMarkerPropertyNames(unsigned int MarkerCount)
 {
+  // Markers are in the format [n, x1, y1, z1 ... xn, yn, zn, 0, 0, 0 ... , 0, 0, 0]
   TArray<FName> PropertyNames;
+  PropertyNames.Emplace(MARKER_COUNT_PROPERTY.c_str());
   for (unsigned int MarkerIndex = 0; MarkerIndex < MarkerCount; ++MarkerIndex)
   {
     PropertyNames.Emplace(FString::FromInt(MarkerIndex) + "_X");
@@ -397,6 +426,16 @@ void FViconStreamFrameReader::HandleMarkerData(bool bLabeled)
 
   FString SubjectName(bLabeled ? LABELED_MARKER.c_str() : UNLABELED_MARKER.c_str());
   FLiveLinkSubjectKey SubjectKey( m_SourceGuid, FName( *SubjectName ) );
+  // We need to remove the marker subject if its streaming option is disabled.
+  // We always have the marker subject present if its streaming option is enabled
+  // rather than removing it if the marker count drops to zero, as this would cause
+  // the subject presence to flicker if it dropped to zero intermittently.
+  bool MarkerEnabled = bLabeled ? m_bLabeledMarker : m_bUnlabeledMarker;
+  if (!MarkerEnabled)
+  {
+    ClearMarkerFromLiveLink(SubjectKey);
+    return;
+  }
 
   unsigned int MarkerCount = 0;
   const auto CountResult = bLabeled ? m_DataStream.GetLabeledMarkerCount(MarkerCount) : m_DataStream.GetUnlabeledMarkerCount(MarkerCount);
@@ -406,36 +445,52 @@ void FViconStreamFrameReader::HandleMarkerData(bool bLabeled)
     ClearMarkerFromLiveLink(SubjectKey);
     return;
   }
-  if (MarkerCount == 0)
-  {
-    ClearMarkerFromLiveLink(SubjectKey);
-    return;
-  }
 
-  // Static data
-  unsigned int* CachedMarkerCount = m_CachedMarkerCounts.Find(SubjectName);
-  if (CachedMarkerCount == nullptr || *CachedMarkerCount != MarkerCount)
+  FCachedMarker& rCachedMarker = m_CachedMarkers.FindOrAdd(SubjectName, FCachedMarker());
+  // We want to avoid updating the subject static data very often as frames will be dropped between the data
+  // format changing and the static data being updated on Live Link's consumer thread. We therefore keep
+  // a count of the maximum number of unlabeled markers seen on every frame and use that to size the property
+  // dictionary. We write in the markers we have for the frame and a count to the count entry and leave the
+  // rest zeroed.
+  // If subject is not present, we need to add it.  If marker count is higher than the current max, 
+  // we need to update the maximum and the static data.
+  bool NewMax = MarkerCount > rCachedMarker.MaxCount;
+  if (!rCachedMarker.SubjectPresent || NewMax)
   {
-    FLiveLinkStaticDataStruct StaticDataStruct = FLiveLinkStaticDataStruct( FLiveLinkBaseStaticData::StaticStruct() );
+    rCachedMarker.SubjectPresent = true;
+    if (NewMax)
+    {
+      rCachedMarker.MaxCount = MarkerCount;
+    }
+    FLiveLinkStaticDataStruct StaticDataStruct( FLiveLinkBaseStaticData::StaticStruct() );
     FLiveLinkBaseStaticData& rMarkerStaticData = *StaticDataStruct.Cast< FLiveLinkBaseStaticData >();
     // Property names are generated from marker indices as markers are only named when associated with a Vicon subject
-    rMarkerStaticData.PropertyNames = GetGenericMarkerPropertyNames(MarkerCount);
+    rMarkerStaticData.PropertyNames = GetGenericMarkerPropertyNames(rCachedMarker.MaxCount);
     m_pLiveLinkClient->PushSubjectStaticData_AnyThread( SubjectKey, ULiveLinkBasicRole::StaticClass(), MoveTemp( StaticDataStruct ) );
   }
 
   // Frame Data
-  FLiveLinkFrameDataStruct FrameDataStruct = FLiveLinkFrameDataStruct( FLiveLinkBaseFrameData::StaticStruct() );
+  FLiveLinkFrameDataStruct FrameDataStruct( FLiveLinkBaseFrameData::StaticStruct() );
   FLiveLinkBaseFrameData& rMarkerFrameData = *FrameDataStruct.Cast< FLiveLinkBaseFrameData >();
+  // Get property values
   TArray<float>& rPropertyValues = rMarkerFrameData.PropertyValues;
-
-  const auto TranslationResult = bLabeled ? m_DataStream.GetLabeledMarkers(rPropertyValues) : m_DataStream.GetUnlabeledMarkers(rPropertyValues);
-  if (TranslationResult == EResult::EError)
+  rPropertyValues.Init(0, 3 * rCachedMarker.MaxCount + 1);
+  // Markers are in the format [n, x1, y1, z1 ... xn, yn, zn, 0, 0, 0 ... , 0, 0, 0]
+  // We have a function LiveLinkViconUtils::GetMarkerTranslation to extract the data to a TArray<FVector>
+  rPropertyValues[0] = static_cast<float>(MarkerCount);
+  if (MarkerCount > 0)
   {
-    UE_LOG(LogViconStream, Warning, TEXT("Failed to get markers translations for %s"), *SubjectName);
-    return;
+    TArrayView<float> PropertyValuesView(&rPropertyValues[1], MarkerCount * 3);
+    const auto TranslationResult = bLabeled ?
+      m_DataStream.GetLabeledMarkers(PropertyValuesView) : m_DataStream.GetUnlabeledMarkers(PropertyValuesView);
+    if (TranslationResult == EResult::EError)
+    {
+      UE_LOG(LogViconStream, Warning, TEXT("Failed to get markers translations for %s"), *SubjectName);
+      return;
+    }
   }
   m_pLiveLinkClient->PushSubjectFrameData_AnyThread(SubjectKey, MoveTemp( FrameDataStruct ) );
-  m_CachedMarkerCounts.Add(SubjectName, MarkerCount);
+
 }
 
 // todo: reference instead of the pointer
@@ -466,7 +521,6 @@ void FViconStreamFrameReader::HandleSubjectData()
     // If either did, remove the subject and re-add the static data data
     // We do this because the bone count determines whether it is a transform or an animation role
     // And the marker property names need to change when markers are enabled / disabled or the subject has been altered
-
     if( m_CachedSubjects.Contains( rSubject ))
     {
       const FCachedSubject& CachedSubject = m_CachedSubjects[ rSubject ];
@@ -612,6 +666,7 @@ void FViconStreamFrameReader::HandleMarkerData()
 TArray<FName> FViconStreamFrameReader::MarkerPropertiesFromNames(const TArray<std::string>& i_rMarkerNames)
 {
   TArray<FName> MarkerProperties;
+  MarkerProperties.Emplace(MARKER_COUNT_PROPERTY.c_str());
   for (const std::string& MarkerName : i_rMarkerNames)
   {
     MarkerProperties.Emplace((MarkerName + "_X").c_str());

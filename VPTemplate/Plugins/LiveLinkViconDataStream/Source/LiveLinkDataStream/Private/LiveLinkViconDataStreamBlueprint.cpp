@@ -10,6 +10,7 @@
 #include "LiveLinkViconDataStreamSource.h"
 #include "Misc/Timecode.h"
 #include "Roles/LiveLinkBasicTypes.h"
+#include "LiveLinkViconUtils.h"
 
 const std::string ULiveLinkViconDataStreamBlueprint::SOURCE_TYPE = "Vicon Live Link";
 
@@ -67,19 +68,9 @@ bool ULiveLinkViconDataStreamBlueprint::GetMarkerTranslationByName(UPARAM(ref) F
   return true;
 }
 
-bool ULiveLinkViconDataStreamBlueprint::GetMarkerTranslations(UPARAM(ref) FLiveLinkBasicBlueprintData& BasicData, TArray<FVector>& Translation)
+bool ULiveLinkViconDataStreamBlueprint::GetMarkerTranslations(
+  UPARAM(ref) FLiveLinkBasicBlueprintData& BasicData, TArray<FVector>& Translations)
 {
-    Translation.Empty();
-    const TArray<float>& PropertyValues = BasicData.FrameData.PropertyValues;
-    if (PropertyValues.Num() % 3 != 0)
-    {
-        UE_LOG(LogViconDataStreamBlueprint, Log, TEXT("Cannot get marker translations, property values are in invalid format"));
-        return false;
-    }
-    for (int Index = 0; Index < PropertyValues.Num(); Index += 3)
-    {
-        Translation.Emplace(FVector(PropertyValues[Index], PropertyValues[Index + 1], PropertyValues[Index + 2]));
-    }
-    return true;
+    return LiveLinkViconUtils::GetMarkerTranslations(BasicData.FrameData.PropertyValues, Translations);
 }
 

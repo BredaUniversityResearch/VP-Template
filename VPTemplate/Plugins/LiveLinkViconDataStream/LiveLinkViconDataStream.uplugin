@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 11,
-	"VersionName": "1.8.0",
+	"VersionName": "1.9.0",
 	"FriendlyName": "Vicon DataStream LiveLink",
 	"Description": "Interface to the Vicon DataStream SDK through LiveLink",
 	"Category": "Mocap",
@@ -10,7 +10,7 @@
 	"DocsURL": "https://docs.vicon.com/display/Unreal5Plugin16/",
 	"MarketplaceURL": "",
 	"SupportURL": "",
-	"EngineVersion": "5.3.0",
+	"EngineVersion": "5.4.0",
 	"CanContainContent": true,
 	"Installed": true,
 	"Modules": [
