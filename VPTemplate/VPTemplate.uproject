@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.3",
+	"EngineAssociation": "5.4",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -153,18 +153,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "BlackmagicCameraControl",
-			"Enabled": false
-		},
-		{
-			"Name": "PhysicalObjectTracker",
-			"Enabled": false
-		},
-		{
-			"Name": "CradleLightControl",
-			"Enabled": false
-		},
-		{
 			"Name": "DMXProtocol",
 			"Enabled": true
 		},
@@ -178,10 +166,6 @@
 		},
 		{
 			"Name": "LevelSnapshots",
-			"Enabled": true
-		},
-		{
-			"Name": "LiveLinkViconDataStream",
 			"Enabled": true
 		},
 		{
@@ -216,17 +200,8 @@
 			"Enabled": false
 		},
 		{
-			"Name": "RemoteControl",
+			"Name": "LiveLinkViconDataStream",
 			"Enabled": true
-		},
-		{
-			"Name": "RemoteControlWebInterface",
-			"Enabled": true,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/beb39fbe47e74bb1a8098e2b2c9c40b2"
-		},
-		{
-			"Name": "DataLink",
-			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [

@@ -47,11 +47,12 @@ public:
 
   static const std::string UNLABELED_MARKER;
   static const std::string LABELED_MARKER;
+  static const std::string MARKER_COUNT_PROPERTY;
 
   // Begin FRunnable interface.
-  virtual bool Init();
-  virtual uint32 Run();
-  virtual void Stop();
+  virtual bool Init() override;
+  virtual uint32 Run() override;
+  virtual void Stop() override;
   // End FRunnable interface
 
   void Connect();
@@ -76,6 +77,20 @@ private:
     TArray<std::string> Bones;
   };
 
+  // Cached representation of unordered marker subjects (LabeledMarker and UnlabeledMarker)
+  class FCachedMarker
+  {
+  public:
+    // Maximum number of marker type seen. 
+    // This is used to set the size of the marker data vector so that the static
+    // data does not need to be updated regularly
+    unsigned int MaxCount = 0;
+    // Whether the subject has been added / removed from the live link stream.
+    // We need this in the struct so that we can keep track of the count even
+    // if the subject drops out
+    bool SubjectPresent = false;
+  };
+
   void HandleSubjectData();
   void HandleCameraData();
   void HandleMarkerData();
@@ -87,7 +102,12 @@ private:
   void HandleMarkerData(bool bLabeled);
 
   // Utility to get a list of property names of the form {index}_{axis}
-  TArray<FName> GetGenericMarkerPropertyNames(unsigned int& MarkerCount);
+  TArray<FName> GetGenericMarkerPropertyNames(unsigned int MarkerCount);
+
+  // Disable interpolation of property values for subject frame data
+  // Key is passed in by value rather than const reference to match the 
+  // signature of the subject changed delegate
+  void DisablePropertyInterpolation(FLiveLinkSubjectKey SubjectKey);
 
 private:
   void ConnectInternal();
@@ -108,9 +128,9 @@ private:
 
   TMap< FString, FCachedSubject> m_CachedSubjects;
   TSet< FString > m_CachedCameras;
-  TMap< FString, unsigned int> m_CachedMarkerCounts;
+  TMap< FString, FCachedMarker> m_CachedMarkers;
   bool m_bLightweight;
-  bool m_bMarker;
+  bool m_bLabeledMarker;
   bool m_bUnlabeledMarker;
   bool m_bShowAllVideoCamera;
   TArray< FString > m_SubjectAllowed;

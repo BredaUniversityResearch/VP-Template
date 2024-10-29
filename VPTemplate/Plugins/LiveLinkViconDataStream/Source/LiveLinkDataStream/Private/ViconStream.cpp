@@ -769,10 +769,9 @@ EResult ViconStream::GetLabeledMarkerCount(unsigned int& o_rCount)
   return Result.Result ? EResult::ESuccess : EResult::EError;
 }
 
-EResult ViconStream::GetLabeledMarkers( TArray< float >& o_rMarkerList )
+EResult ViconStream::GetLabeledMarkers( TArrayView< float >& o_rMarkerList )
 {
   // not available in retimed data
-  o_rMarkerList.Empty();
   if (!m_Client.IsMarkerDataEnabled().Enabled)
   {
     return EResult::ESuccess;
@@ -788,17 +787,16 @@ EResult ViconStream::GetLabeledMarkers( TArray< float >& o_rMarkerList )
   {
     const auto Result = m_Client.GetLabeledMarkerGlobalTranslation( MarkerIndex );
     const auto MarkerPose = HandleMarker(Result.Translation);
-    o_rMarkerList.Emplace(MarkerPose[0]);
-    o_rMarkerList.Emplace(MarkerPose[1]);
-    o_rMarkerList.Emplace(MarkerPose[2]);
+    o_rMarkerList[MarkerIndex*3] = MarkerPose[0];
+    o_rMarkerList[MarkerIndex*3+1]= MarkerPose[1];
+    o_rMarkerList[MarkerIndex*3+2] = MarkerPose[2];
   }
   return EResult::ESuccess;
 }
 
-EResult ViconStream::GetUnlabeledMarkers(TArray < float > & o_rMarkerList)
+EResult ViconStream::GetUnlabeledMarkers(TArrayView < float > & o_rMarkerList)
 {
   // not available in retimed data
-  o_rMarkerList.Empty();
   if (!m_Client.IsUnlabeledMarkerDataEnabled().Enabled)
   {
     return EResult::ESuccess;
@@ -814,12 +812,13 @@ EResult ViconStream::GetUnlabeledMarkers(TArray < float > & o_rMarkerList)
   {
     const auto Result = m_Client.GetUnlabeledMarkerGlobalTranslation(MarkerIndex);
     const auto MarkerPose = HandleMarker(Result.Translation);
-    o_rMarkerList.Emplace(MarkerPose.X);
-    o_rMarkerList.Emplace(MarkerPose.Y);
-    o_rMarkerList.Emplace(MarkerPose.Z);
+    o_rMarkerList[MarkerIndex*3] = MarkerPose[0];
+    o_rMarkerList[MarkerIndex*3+1]= MarkerPose[1];
+    o_rMarkerList[MarkerIndex*3+2] = MarkerPose[2];
   }
   return EResult::ESuccess;
 }
+
 EResult ViconStream::GetMarkerCountForSubject(const std::string& i_rSubjectName, unsigned int& o_rCount)
 {
   o_rCount = 0;
@@ -866,6 +865,7 @@ EResult ViconStream::GetMarkerNamesForSubject(const std::string& i_rSubjectName,
 EResult ViconStream::GetMarkersForSubject(const std::string& i_rSubjectName, const TArray<std::string>& i_rMarkerNames, TArray<float>& o_rMarkerValues) 
 {
   o_rMarkerValues.Empty();
+  o_rMarkerValues.Emplace(static_cast<float>(i_rMarkerNames.Num()));
   if (!m_Client.IsMarkerDataEnabled().Enabled)
   {
     return EResult::ESuccess;
@@ -905,7 +905,7 @@ bool ViconStream::GetPoseForSubject(
     FTransform& Pose = FrameData.Transform;
     if( GetSegmentLocalPose( InName, BoneNames[ 0 ], Pose ) != EResult::ESuccess )
     {
-      UE_LOG( LogViconStream, Log, TEXT( "Failed to get Segment for %s:%s" ),
+      UE_LOG( LogViconStream, Log, TEXT( "Failed to get Segment for %hs:%hs" ),
               InName.c_str(), BoneNames[ 0 ].c_str() );
       return false;
     }
@@ -941,7 +941,7 @@ bool ViconStream::GetPoseForSubject(
     FTransform Trans = OutPose[ j ];
     if( GetSegmentLocalPose( InName, BoneNames[ j ], Trans ) != EResult::ESuccess )
     {
-      UE_LOG( LogViconStream, Log, TEXT( "Failed to get Segment for %s:%s" ),
+      UE_LOG( LogViconStream, Log, TEXT( "Failed to get Segment for %hs:%hs" ),
               InName.c_str(), BoneNames[ j ].c_str() );
       return false;
     }

@@ -6,6 +6,7 @@
 #include "LiveLinkViconDataStreamSourceSettings.h"
 #include "LiveLinkViconDataStreamBlueprint.h"
 #include "ViconStreamFrameReader.h"
+#include "LiveLinkViconUtils.h"
 
 #include "Engine/Canvas.h"
 #include "Engine/World.h"
@@ -221,12 +222,9 @@ TArray<FVector> ULiveLinkViconMarkerVisualizer::GetMarkerData() const
   if (LiveLinkClient->EvaluateFrame_AnyThread(SubjectName, ULiveLinkBasicRole::StaticClass(), SubjectFrameData))
   {
     FLiveLinkBaseFrameData& rMarkerFrameData = *SubjectFrameData.FrameData.Cast<FLiveLinkBaseFrameData>();
-    // We know that the PropertyValues are in the format [x1, y1, z1, x2, y2, z2  ... ]
-    // So we can extract the positions like this
-    const TArray<float>& Values = rMarkerFrameData.PropertyValues;
-    for (int i = 0; i < Values.Num(); i = i + 3)
+    if (LiveLinkViconUtils::GetMarkerTranslations(rMarkerFrameData.PropertyValues, MarkerData))
     {
-      MarkerData.Emplace(FVector(Values[i], Values[i + 1], Values[i + 2]));
+      return MarkerData;
     }
   }
   return MarkerData;
