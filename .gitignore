@@ -80,6 +80,7 @@ VPTemplate/Plugins/*/Intermediate/*
 # Whitelist some files for the ViconDataStream plugin
 !VPTemplate/Plugins/LiveLinkViconDataStream/Binaries/Win64/boost_*.dll
 !VPTemplate/Plugins/LiveLinkViconDataStream/Binaries/Win64/ViconDataStreamSDK_CPP.dll
+!VPTemplate/Plugins/LiveLinkViconDataStream/ThirdParty/Vicon/DataStreamSDK/ViconDataStreamSDK_CPP.lib
 
 # Cache files for the editor to use
 DerivedDataCache/*
