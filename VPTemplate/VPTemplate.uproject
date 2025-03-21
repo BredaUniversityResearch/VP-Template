@@ -3,13 +3,6 @@
 	"EngineAssociation": "5.4",
 	"Category": "",
 	"Description": "",
-	"Modules": [
-		{
-			"Name": "VPTemplate",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		}
-	],
 	"Plugins": [
 		{
 			"Name": "MagicLeapMedia",
