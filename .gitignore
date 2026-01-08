@@ -83,7 +83,7 @@ VPTemplate/Plugins/*/Intermediate/*
 !VPTemplate/Plugins/LiveLinkViconDataStream/ThirdParty/Vicon/DataStreamSDK/ViconDataStreamSDK_CPP.lib
 
 # Cache files for the editor to use
-DerivedDataCache/*
+VPTemplate/DerivedDataCache/*
 
 #Resharper configurations.
 *.DotSettings.user
